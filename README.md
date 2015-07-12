@@ -1,3 +1,4 @@
+[![Stories in Ready](https://badge.waffle.io/stuphlabs/pullcord.png?label=ready&title=Ready)](https://waffle.io/stuphlabs/pullcord)
 Scale Down
 ==========
 
