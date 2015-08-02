@@ -1,4 +1,4 @@
-package scaledown
+package pullcord
 
 import (
 	"github.com/fitstar/falcore"
