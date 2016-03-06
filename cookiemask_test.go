@@ -456,26 +456,3 @@ func TestDoubleCookiemaskTopErrorBottomNoMasking(t *testing.T) {
 	assert.False(t, new_cookie1_set, "regex1 matched one of "+gostring(response.Header["Set-Cookie"]))
 	assert.False(t, new_cookie2_set, "regex2 matched one of "+gostring(response.Header["Set-Cookie"]))
 }
-
-/*
-func TestLandingPage(t *testing.T) {
-	request, err := http.NewRequest("GET", "/", nil)
-	assert.NoError(t, err)
-	_, response := falcore.TestWithRequest(request, NewLandingFilter(), nil)
-	assert.Equal(t, 200, response.StatusCode)
-}
-
-func TestAnotherLandingPage(t *testing.T) {
-	request, err := http.NewRequest("GET", "/other/page/somewhere/else.php", nil)
-	assert.NoError(t, err)
-	_, response := falcore.TestWithRequest(request, NewLandingFilter(), nil)
-	assert.Equal(t, 200, response.StatusCode)
-}
-
-func TestPostLandingPage(t *testing.T) {
-	request, err := http.NewRequest("POST", "/", nil)
-	assert.NoError(t, err)
-	_, response := falcore.TestWithRequest(request, NewLandingFilter(), nil)
-	assert.Equal(t, 200, response.StatusCode)
-}
-*/
