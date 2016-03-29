@@ -55,7 +55,7 @@ func TestConditionalFilterTrue(t *testing.T) {
 	condition := true
 	var test_err error
 	test_err = nil
-	conditional_filter := testable_ConditionalFilter(&condition, &test_err)
+	conditional_filter := testableConditionalFilter(&condition, &test_err)
 
 	/* run */
 	_, response := falcore.TestWithRequest(request, conditional_filter, nil)
@@ -77,7 +77,7 @@ func TestConditionalFilterFalse(t *testing.T) {
 	condition := false
 	var test_err error
 	test_err = nil
-	conditional_filter := testable_ConditionalFilter(&condition, &test_err)
+	conditional_filter := testableConditionalFilter(&condition, &test_err)
 
 	/* run */
 	_, response := falcore.TestWithRequest(request, conditional_filter, nil)
@@ -99,7 +99,7 @@ func TestConditionalFilterError(t *testing.T) {
 	condition := true
 	var test_err error
 	test_err = errors.New("test error")
-	conditional_filter := testable_ConditionalFilter(&condition, &test_err)
+	conditional_filter := testableConditionalFilter(&condition, &test_err)
 
 	/* run */
 	_, response := falcore.TestWithRequest(request, conditional_filter, nil)
@@ -121,7 +121,7 @@ func TestConditionalFilterTrueFalse(t *testing.T) {
 	condition := true
 	var test_err error
 	test_err = nil
-	conditional_filter := testable_ConditionalFilter(&condition, &test_err)
+	conditional_filter := testableConditionalFilter(&condition, &test_err)
 
 	/* run */
 	_, response1 := falcore.TestWithRequest(request, conditional_filter, nil)
@@ -151,7 +151,7 @@ func TestConditionalFilterFalseTrue(t *testing.T) {
 	condition := false
 	var test_err error
 	test_err = nil
-	conditional_filter := testable_ConditionalFilter(&condition, &test_err)
+	conditional_filter := testableConditionalFilter(&condition, &test_err)
 
 	/* run */
 	_, response1 := falcore.TestWithRequest(request, conditional_filter, nil)
@@ -181,7 +181,7 @@ func TestConditionalFilterTrueError(t *testing.T) {
 	condition := true
 	var test_err error
 	test_err = nil
-	conditional_filter := testable_ConditionalFilter(&condition, &test_err)
+	conditional_filter := testableConditionalFilter(&condition, &test_err)
 
 	/* run */
 	_, response1 := falcore.TestWithRequest(request, conditional_filter, nil)
@@ -212,7 +212,7 @@ func TestConditionalFilterErrorFalse(t *testing.T) {
 	condition := true
 	var test_err error
 	test_err = errors.New("test error")
-	conditional_filter := testable_ConditionalFilter(&condition, &test_err)
+	conditional_filter := testableConditionalFilter(&condition, &test_err)
 
 	/* run */
 	_, response1 := falcore.TestWithRequest(request, conditional_filter, nil)
