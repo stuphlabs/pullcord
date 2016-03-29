@@ -10,7 +10,7 @@ import (
 	"testing"
 )
 
-func testable_ConditionalFilter(condition *bool, err *error) falcore.RequestFilter {
+func testableConditionalFilter(condition *bool, err *error) falcore.RequestFilter {
 	return NewConditionalFilter(
 		func(req *falcore.Request) (bool, error) {
 			return *condition, *err
