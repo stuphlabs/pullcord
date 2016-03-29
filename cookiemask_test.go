@@ -66,31 +66,31 @@ func exampleCookieGen(variant string) (result http.Cookie) {
 	return result
 }
 
-func exampleCookieMaskGen(variant string) func([]*http.Cookie) ([]*http.Cookie, []*http.Cookie, map[string]interface{}, error) {
+func exampleCookieMaskGen(variant string) func(inCookies []*http.Cookie) (fwdCookies, setCookies []*http.Cookie, context map[string]interface{}, err error) {
 	var exampleCookieNameRegex = regexp.MustCompile("^example-" + variant + "-[0-9A-Fa-f]{" + strconv.Itoa(cookieNameRandSize*2) + "}$")
 
-	return func(in_ckes []*http.Cookie) (passthru_ckes []*http.Cookie, set_ckes []*http.Cookie, ctx map[string]interface{}, err error) {
+	return func(inCookies []*http.Cookie) (fwdCookies, setCookies []*http.Cookie, ctx map[string]interface{}, err error) {
 		if variant == "error" {
 			err = errors.New("got an error")
 		}
 		ctx = make(map[string]interface{})
 		found := false
-		for _, cke := range in_ckes {
+		for _, cke := range inCookies {
 			if exampleCookieNameRegex.MatchString(cke.Name) && exampleCookieValueRegex.MatchString(cke.Value) {
 				found = true
 				ctx["example-"+variant+"-cookie-found"] = "true"
 			} else {
-				passthru_ckes = append(passthru_ckes, cke)
+				fwdCookies = append(fwdCookies, cke)
 			}
 		}
 		if !found {
-			set_ckes = make([]*http.Cookie, 1)
+			setCookies = make([]*http.Cookie, 1)
 			sub_cke := exampleCookieGen(variant)
-			set_ckes[0] = &sub_cke
+			setCookies[0] = &sub_cke
 			ctx["example-"+variant+"-cookie-found"] = "false"
 		}
 
-		return passthru_ckes, set_ckes, ctx, err
+		return fwdCookies, setCookies, ctx, err
 	}
 }
 

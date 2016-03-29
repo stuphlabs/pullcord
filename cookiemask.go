@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func NewCookiemaskFilter(maskCookies func(ckes []*http.Cookie) (passthru_cookies []*http.Cookie, set_cookies []*http.Cookie, ctx map[string]interface{}, err error), masked falcore.RequestFilter, onError falcore.RequestFilter) falcore.RequestFilter {
+func NewCookiemaskFilter(maskCookies func(inCookies []*http.Cookie) (fwdCookies, setCookies []*http.Cookie, ctx map[string]interface{}, err error), masked falcore.RequestFilter, onError falcore.RequestFilter) falcore.RequestFilter {
 	return falcore.NewRequestFilter(func(req *falcore.Request) *http.Response {
 		passthru_ckes, set_ckes, ctx_ovrd, err := maskCookies(req.HttpRequest.Cookies())
 
