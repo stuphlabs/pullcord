@@ -268,28 +268,30 @@ func TestMinSessionHandlerInvalidCookie(t *testing.T) {
 */
 func TestMinSessionHandlerMultiSession(t *testing.T) {
 	/* setup */
-	var local_cookies1 []*http.Cookie
-	var local_cookies2 []*http.Cookie
-	ctx_key := "test key"
-	expected_present1 := false
-	var actual_present1 bool
-	expected_present2 := false
-	var actual_present2 bool
-	expected_present3 := true
-	var actual_present3 bool
-	expected_present4 := true
-	var actual_present4 bool
-	expected_present5 := true
-	var actual_present5 bool
-	expected_value3 := "test 3"
-	var actual_value3 interface{}
-	expected_value4 := "test 4"
-	var actual_value4 interface{}
-	expected_value5 := "test 5"
-	var actual_value5 interface{}
-	save_value1 := expected_value4
-	save_value2 := expected_value3
-	save_value3 := expected_value5
+	var (
+		local_cookies1    []*http.Cookie
+		local_cookies2    []*http.Cookie
+		ctx_key           = "test key"
+		expected_present1 = false
+		actual_present1   bool
+		expected_present2 = false
+		actual_present2   bool
+		expected_present3 = true
+		actual_present3   bool
+		expected_present4 = true
+		actual_present4   bool
+		expected_present5 = true
+		actual_present5   bool
+		expected_value3   = "test 3"
+		actual_value3     interface{}
+		expected_value4   = "test 4"
+		actual_value4     interface{}
+		expected_value5   = "test 5"
+		actual_value5     interface{}
+		save_value1       = expected_value4
+		save_value2       = expected_value3
+		save_value3       = expected_value5
+	)
 
 	/* run */
 	handler := NewMinSessionHandler("testHandler", "/", "example.com")

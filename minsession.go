@@ -24,13 +24,11 @@ type MinSessionHandler struct {
 	domain string
 }
 
-func (handler MinSessionHandler) CookieMask(incoming_cookies []*http.Cookie) (forwarded_cookies []*http.Cookie, set_cookies []*http.Cookie, context map[string]interface{}, err error) {
+func (handler *MinSessionHandler) CookieMask(incomingCookies []*http.Cookie) (forwardedCookies, setCookies []*http.Cookie, context map[string]interface{}, err error) {
 	new_cookie_needed := true
-	//initialized := false
-	//context = make(map[string]interface{})
 	cookieNameRegex := regexp.MustCompile("^" + handler.name + "-[0-9A-Fa-f]{" + strconv.Itoa(cookieNameRandSize*2) + "}$")
 
-	for _, cookie := range incoming_cookies {
+	for _, cookie := range incomingCookies {
 		if cookieNameRegex.MatchString(cookie.Name) {
 			session, cookie_name_legit := handler.table[cookie.Name]
 			if cookie_name_legit && len(cookie.Value) > 0 && cookie.Value == session.cvalue {
@@ -45,10 +43,10 @@ func (handler MinSessionHandler) CookieMask(incoming_cookies []*http.Cookie) (fo
 				bad_cookie.Name = cookie.Name
 				bad_cookie.Value = cookie.Value
 				bad_cookie.MaxAge = -1
-				set_cookies = append(set_cookies, &bad_cookie)
+				setCookies = append(setCookies, &bad_cookie)
 			}
 		} else {
-			forwarded_cookies = append(forwarded_cookies, cookie)
+			forwardedCookies = append(forwardedCookies, cookie)
 		}
 	}
 
@@ -61,7 +59,7 @@ func (handler MinSessionHandler) CookieMask(incoming_cookies []*http.Cookie) (fo
 		for name_gen_needed {
 			_, err = rand.Read(nbytes)
 			if err != nil {
-				return nil, set_cookies, nil, err
+				return nil, setCookies, nil, err
 			}
 
 			cookie_name = handler.name + "-" + hex.EncodeToString(nbytes)
@@ -70,7 +68,7 @@ func (handler MinSessionHandler) CookieMask(incoming_cookies []*http.Cookie) (fo
 			if !collides_legit {
 				name_gen_needed = false
 
-				for _, cookie := range set_cookies {
+				for _, cookie := range setCookies {
 					if cookie.Name == cookie_name {
 						name_gen_needed = true
 						break
@@ -81,7 +79,7 @@ func (handler MinSessionHandler) CookieMask(incoming_cookies []*http.Cookie) (fo
 
 		_, err = rand.Read(vbytes)
 		if err != nil {
-			return nil, set_cookies, nil, err
+			return nil, setCookies, nil, err
 		}
 
 		var new_cookie http.Cookie
@@ -92,24 +90,23 @@ func (handler MinSessionHandler) CookieMask(incoming_cookies []*http.Cookie) (fo
 		new_cookie.MaxAge = cookieMaxAge
 		new_cookie.Secure = true
 		new_cookie.HttpOnly = true
-		set_cookies = append(set_cookies, &new_cookie)
+		setCookies = append(setCookies, &new_cookie)
 
 		handler.table[new_cookie.Name] = session{cvalue: new_cookie.Value, data: make(map[string]interface{})}
 		session := handler.table[new_cookie.Name]
 
-		//context[new_cookie.Name] = &(session.data)
 		context = session.data
 	}
 
-	return forwarded_cookies, set_cookies, context, nil
+	return forwardedCookies, setCookies, context, nil
 }
 
-func NewMinSessionHandler(handler_name string, handler_path string, handler_domain string) SessionHandler {
+func NewMinSessionHandler(handlerName, handlerPath, handlerDomain string) *MinSessionHandler {
 	var result MinSessionHandler
 	result.table = make(map[string]session)
-	result.name = handler_name
-	result.path = handler_path
-	result.domain = handler_domain
+	result.name = handlerName
+	result.path = handlerPath
+	result.domain = handlerDomain
 
-	return result
+	return &result
 }
