@@ -211,7 +211,7 @@ func TestMinSessionHandlerInvalidCookie(t *testing.T) {
 	var invalid_cookie http.Cookie
 	var local_cookies []*http.Cookie
 	invalid_cookie.Name = "testHandler-"
-	for i := 0; i < cookieNameRandSize; i++ {
+	for i := 0; i < minSessionCookieNameRandSize; i++ {
 		invalid_cookie.Name += "ff"
 	}
 	invalid_cookie.Value = "foo"
