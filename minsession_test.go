@@ -371,21 +371,23 @@ func TestMinSessionHandlerMultiSession(t *testing.T) {
 */
 func TestMinSessionHandlerBadCookieDestroysSession(t *testing.T) {
 	/* setup */
-	var good_cookies []*http.Cookie
-	var bad_cookies []*http.Cookie
-	var bad_cookie http.Cookie
-	ctx_key := "test key"
-	expected_ctx_present1 := false
-	var actual_ctx_present1 bool
-	expected_ctx_present2 := false
-	var actual_ctx_present2 bool
-	expected_ctx_present3 := false
-	var actual_ctx_present3 bool
-	expected_cookie_present2 := true
-	var actual_cookie_present2 bool
-	expected_cookie_present3 := true
-	var actual_cookie_present3 bool
-	save_value := "foo"
+	var (
+		good_cookies             []*http.Cookie
+		bad_cookies              []*http.Cookie
+		bad_cookie               http.Cookie
+		ctx_key                  = "test key"
+		expected_ctx_present1    = false
+		actual_ctx_present1      bool
+		expected_ctx_present2    = false
+		actual_ctx_present2      bool
+		expected_ctx_present3    = false
+		actual_ctx_present3      bool
+		expected_cookie_present2 = true
+		actual_cookie_present2   bool
+		expected_cookie_present3 = true
+		actual_cookie_present3   bool
+		save_value               = "foo"
+	)
 
 	/* run */
 	handler := NewMinSessionHandler("testHandler", "/", "example.com")
@@ -484,21 +486,23 @@ func TestMinSessionHandlerBadCookieDestroysSession(t *testing.T) {
 */
 func TestMinSessionHandlerNonInterfering(t *testing.T) {
 	/* setup */
-	var local_cookies1 []*http.Cookie
-	var local_cookies2 []*http.Cookie
-	ctx_key := "test key"
-	expected_present1 := false
-	var actual_present1 bool
-	expected_present2 := false
-	var actual_present2 bool
-	expected_present3 := true
-	var actual_present3 bool
-	expected_present4 := false
-	var actual_present4 bool
-	save_value1 := "saved 1"
-	save_value2 := "saved 2"
-	expected_value3 := save_value2
-	var actual_value3 interface{}
+	var (
+		local_cookies1    []*http.Cookie
+		local_cookies2    []*http.Cookie
+		ctx_key           = "test key"
+		expected_present1 = false
+		actual_present1   bool
+		expected_present2 = false
+		actual_present2   bool
+		expected_present3 = true
+		actual_present3   bool
+		expected_present4 = false
+		actual_present4   bool
+		save_value1       = "saved 1"
+		save_value2       = "saved 2"
+		expected_value3   = save_value2
+		actual_value3     interface{}
+	)
 
 	/* run */
 	handler1 := NewMinSessionHandler("testHandler1", "/", "example.com")
