@@ -5,5 +5,5 @@ import (
 )
 
 type SessionHandler interface {
-	CookieMask([]*http.Cookie) ([]*http.Cookie, []*http.Cookie, map[string]interface{}, error)
+	CookieMask(inCookies []*http.Cookie) (fwdCookies, setCookies []*http.Cookie, context map[string]interface{}, err error)
 }
