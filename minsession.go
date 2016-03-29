@@ -8,9 +8,9 @@ import (
 	"strconv"
 )
 
-const cookieNameRandSize = 32
-const cookieValueRandSize = 128
-const cookieMaxAge = 2 * 60 * 60
+const minSessionCookieNameRandSize = 32
+const minSessionCookieValueRandSize = 128
+const minSessionCookieMaxAge = 2 * 60 * 60
 
 type session struct {
 	cvalue string
@@ -26,7 +26,7 @@ type MinSessionHandler struct {
 
 func (handler *MinSessionHandler) CookieMask(incomingCookies []*http.Cookie) (forwardedCookies, setCookies []*http.Cookie, context map[string]interface{}, err error) {
 	new_cookie_needed := true
-	cookieNameRegex := regexp.MustCompile("^" + handler.name + "-[0-9A-Fa-f]{" + strconv.Itoa(cookieNameRandSize*2) + "}$")
+	cookieNameRegex := regexp.MustCompile("^" + handler.name + "-[0-9A-Fa-f]{" + strconv.Itoa(minSessionCookieNameRandSize*2) + "}$")
 
 	for _, cookie := range incomingCookies {
 		if cookieNameRegex.MatchString(cookie.Name) {
@@ -51,8 +51,8 @@ func (handler *MinSessionHandler) CookieMask(incomingCookies []*http.Cookie) (fo
 	}
 
 	if new_cookie_needed {
-		nbytes := make([]byte, cookieNameRandSize)
-		vbytes := make([]byte, cookieValueRandSize)
+		nbytes := make([]byte, minSessionCookieNameRandSize)
+		vbytes := make([]byte, minSessionCookieValueRandSize)
 
 		cookie_name := ""
 		name_gen_needed := true
@@ -87,7 +87,7 @@ func (handler *MinSessionHandler) CookieMask(incomingCookies []*http.Cookie) (fo
 		new_cookie.Value = hex.EncodeToString(vbytes)
 		new_cookie.Path = handler.path
 		new_cookie.Domain = handler.domain
-		new_cookie.MaxAge = cookieMaxAge
+		new_cookie.MaxAge = minSessionCookieMaxAge
 		new_cookie.Secure = true
 		new_cookie.HttpOnly = true
 		setCookies = append(setCookies, &new_cookie)

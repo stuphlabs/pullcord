@@ -15,10 +15,10 @@ import (
 	"testing"
 )
 
-const cookieNameRandSize = 16
-const cookieValueRandSize = 64
+const cookieMaskTestCookieNameRandSize = 16
+const cookieMaskTestCookieValueRandSize = 64
 
-var exampleCookieValueRegex = regexp.MustCompile("^[0-9A-Fa-f]{" + strconv.Itoa(cookieValueRandSize*2) + "}$")
+var exampleCookieValueRegex = regexp.MustCompile("^[0-9A-Fa-f]{" + strconv.Itoa(cookieMaskTestCookieValueRandSize*2) + "}$")
 var randgen = randbo.New()
 
 func gostring(i interface{}) string {
@@ -57,8 +57,8 @@ var errorPage = falcore.NewRequestFilter(
 )
 
 func exampleCookieGen(variant string) (result http.Cookie) {
-	nbytes := make([]byte, cookieNameRandSize)
-	vbytes := make([]byte, cookieValueRandSize)
+	nbytes := make([]byte, cookieMaskTestCookieNameRandSize)
+	vbytes := make([]byte, cookieMaskTestCookieValueRandSize)
 	randgen.Read(nbytes)
 	randgen.Read(vbytes)
 	result.Name = "example-" + variant + "-" + hex.EncodeToString(nbytes)
@@ -67,7 +67,7 @@ func exampleCookieGen(variant string) (result http.Cookie) {
 }
 
 func exampleCookieMaskGen(variant string) func(inCookies []*http.Cookie) (fwdCookies, setCookies []*http.Cookie, context map[string]interface{}, err error) {
-	var exampleCookieNameRegex = regexp.MustCompile("^example-" + variant + "-[0-9A-Fa-f]{" + strconv.Itoa(cookieNameRandSize*2) + "}$")
+	var exampleCookieNameRegex = regexp.MustCompile("^example-" + variant + "-[0-9A-Fa-f]{" + strconv.Itoa(cookieMaskTestCookieNameRandSize*2) + "}$")
 
 	return func(inCookies []*http.Cookie) (fwdCookies, setCookies []*http.Cookie, ctx map[string]interface{}, err error) {
 		if variant == "error" {
@@ -96,7 +96,7 @@ func exampleCookieMaskGen(variant string) func(inCookies []*http.Cookie) (fwdCoo
 
 func TestCookiemaskCookieless(t *testing.T) {
 	/* setup */
-	cookieRegex := regexp.MustCompile("^example-test-[0-9A-Fa-f]{" + strconv.Itoa(cookieNameRandSize*2) + "}=[0-9A-Fa-f]{" + strconv.Itoa(cookieValueRandSize*2) + "}")
+	cookieRegex := regexp.MustCompile("^example-test-[0-9A-Fa-f]{" + strconv.Itoa(cookieMaskTestCookieNameRandSize*2) + "}=[0-9A-Fa-f]{" + strconv.Itoa(cookieMaskTestCookieValueRandSize*2) + "}")
 	request, err := http.NewRequest("GET", "/", nil)
 	assert.NoError(t, err)
 
@@ -121,7 +121,7 @@ func TestCookiemaskCookieless(t *testing.T) {
 
 func TestCookiemaskNoMasking(t *testing.T) {
 	/* setup */
-	cookieRegex := regexp.MustCompile("^example-test-[0-9A-Fa-f]{" + strconv.Itoa(cookieNameRandSize*2) + "}=[0-9A-Fa-f]{" + strconv.Itoa(cookieValueRandSize*2) + "}")
+	cookieRegex := regexp.MustCompile("^example-test-[0-9A-Fa-f]{" + strconv.Itoa(cookieMaskTestCookieNameRandSize*2) + "}=[0-9A-Fa-f]{" + strconv.Itoa(cookieMaskTestCookieValueRandSize*2) + "}")
 	request, err := http.NewRequest("GET", "/", nil)
 	assert.NoError(t, err)
 	cookie := exampleCookieGen("foo")
@@ -149,7 +149,7 @@ func TestCookiemaskNoMasking(t *testing.T) {
 
 func TestCookiemaskError(t *testing.T) {
 	/* setup */
-	cookieRegex := regexp.MustCompile("^example-test-[0-9A-Fa-f]{" + strconv.Itoa(cookieNameRandSize*2) + "}=[0-9A-Fa-f]{" + strconv.Itoa(cookieValueRandSize*2) + "}")
+	cookieRegex := regexp.MustCompile("^example-test-[0-9A-Fa-f]{" + strconv.Itoa(cookieMaskTestCookieNameRandSize*2) + "}=[0-9A-Fa-f]{" + strconv.Itoa(cookieMaskTestCookieValueRandSize*2) + "}")
 	request, err := http.NewRequest("GET", "/", nil)
 	assert.NoError(t, err)
 	cookie := exampleCookieGen("foo")
@@ -172,7 +172,7 @@ func TestCookiemaskError(t *testing.T) {
 
 func TestCookiemaskMasking(t *testing.T) {
 	/* setup */
-	cookieRegex := regexp.MustCompile("^example-test-[0-9A-Fa-f]{" + strconv.Itoa(cookieNameRandSize*2) + "}=[0-9A-Fa-f]{" + strconv.Itoa(cookieValueRandSize*2) + "}")
+	cookieRegex := regexp.MustCompile("^example-test-[0-9A-Fa-f]{" + strconv.Itoa(cookieMaskTestCookieNameRandSize*2) + "}=[0-9A-Fa-f]{" + strconv.Itoa(cookieMaskTestCookieValueRandSize*2) + "}")
 	request, err := http.NewRequest("GET", "/", nil)
 	assert.NoError(t, err)
 	cookie := exampleCookieGen("test")
@@ -200,8 +200,8 @@ func TestCookiemaskMasking(t *testing.T) {
 
 func TestDoubleCookiemaskNoMasking(t *testing.T) {
 	/* setup */
-	cookieRegex1 := regexp.MustCompile("^example-test1-[0-9A-Fa-f]{" + strconv.Itoa(cookieNameRandSize*2) + "}=[0-9A-Fa-f]{" + strconv.Itoa(cookieValueRandSize*2) + "}")
-	cookieRegex2 := regexp.MustCompile("^example-test2-[0-9A-Fa-f]{" + strconv.Itoa(cookieNameRandSize*2) + "}=[0-9A-Fa-f]{" + strconv.Itoa(cookieValueRandSize*2) + "}")
+	cookieRegex1 := regexp.MustCompile("^example-test1-[0-9A-Fa-f]{" + strconv.Itoa(cookieMaskTestCookieNameRandSize*2) + "}=[0-9A-Fa-f]{" + strconv.Itoa(cookieMaskTestCookieValueRandSize*2) + "}")
+	cookieRegex2 := regexp.MustCompile("^example-test2-[0-9A-Fa-f]{" + strconv.Itoa(cookieMaskTestCookieNameRandSize*2) + "}=[0-9A-Fa-f]{" + strconv.Itoa(cookieMaskTestCookieValueRandSize*2) + "}")
 	request, err := http.NewRequest("GET", "/", nil)
 	assert.NoError(t, err)
 	cookie1 := exampleCookieGen("foo1")
@@ -237,8 +237,8 @@ func TestDoubleCookiemaskNoMasking(t *testing.T) {
 
 func TestDoubleCookiemaskTopMasking(t *testing.T) {
 	/* setup */
-	cookieRegex1 := regexp.MustCompile("^example-test1-[0-9A-Fa-f]{" + strconv.Itoa(cookieNameRandSize*2) + "}=[0-9A-Fa-f]{" + strconv.Itoa(cookieValueRandSize*2) + "}")
-	cookieRegex2 := regexp.MustCompile("^example-test2-[0-9A-Fa-f]{" + strconv.Itoa(cookieNameRandSize*2) + "}=[0-9A-Fa-f]{" + strconv.Itoa(cookieValueRandSize*2) + "}")
+	cookieRegex1 := regexp.MustCompile("^example-test1-[0-9A-Fa-f]{" + strconv.Itoa(cookieMaskTestCookieNameRandSize*2) + "}=[0-9A-Fa-f]{" + strconv.Itoa(cookieMaskTestCookieValueRandSize*2) + "}")
+	cookieRegex2 := regexp.MustCompile("^example-test2-[0-9A-Fa-f]{" + strconv.Itoa(cookieMaskTestCookieNameRandSize*2) + "}=[0-9A-Fa-f]{" + strconv.Itoa(cookieMaskTestCookieValueRandSize*2) + "}")
 	request, err := http.NewRequest("GET", "/", nil)
 	assert.NoError(t, err)
 	cookie1 := exampleCookieGen("test1")
@@ -274,8 +274,8 @@ func TestDoubleCookiemaskTopMasking(t *testing.T) {
 
 func TestDoubleCookiemaskBottomMasking(t *testing.T) {
 	/* setup */
-	cookieRegex1 := regexp.MustCompile("^example-test1-[0-9A-Fa-f]{" + strconv.Itoa(cookieNameRandSize*2) + "}=[0-9A-Fa-f]{" + strconv.Itoa(cookieValueRandSize*2) + "}")
-	cookieRegex2 := regexp.MustCompile("^example-test2-[0-9A-Fa-f]{" + strconv.Itoa(cookieNameRandSize*2) + "}=[0-9A-Fa-f]{" + strconv.Itoa(cookieValueRandSize*2) + "}")
+	cookieRegex1 := regexp.MustCompile("^example-test1-[0-9A-Fa-f]{" + strconv.Itoa(cookieMaskTestCookieNameRandSize*2) + "}=[0-9A-Fa-f]{" + strconv.Itoa(cookieMaskTestCookieValueRandSize*2) + "}")
+	cookieRegex2 := regexp.MustCompile("^example-test2-[0-9A-Fa-f]{" + strconv.Itoa(cookieMaskTestCookieNameRandSize*2) + "}=[0-9A-Fa-f]{" + strconv.Itoa(cookieMaskTestCookieValueRandSize*2) + "}")
 	request, err := http.NewRequest("GET", "/", nil)
 	assert.NoError(t, err)
 	cookie1 := exampleCookieGen("foo")
@@ -311,8 +311,8 @@ func TestDoubleCookiemaskBottomMasking(t *testing.T) {
 
 func TestDoubleCookiemaskBothMasking(t *testing.T) {
 	/* setup */
-	cookieRegex1 := regexp.MustCompile("^example-test1-[0-9A-Fa-f]{" + strconv.Itoa(cookieNameRandSize*2) + "}=[0-9A-Fa-f]{" + strconv.Itoa(cookieValueRandSize*2) + "}")
-	cookieRegex2 := regexp.MustCompile("^example-test2-[0-9A-Fa-f]{" + strconv.Itoa(cookieNameRandSize*2) + "}=[0-9A-Fa-f]{" + strconv.Itoa(cookieValueRandSize*2) + "}")
+	cookieRegex1 := regexp.MustCompile("^example-test1-[0-9A-Fa-f]{" + strconv.Itoa(cookieMaskTestCookieNameRandSize*2) + "}=[0-9A-Fa-f]{" + strconv.Itoa(cookieMaskTestCookieValueRandSize*2) + "}")
+	cookieRegex2 := regexp.MustCompile("^example-test2-[0-9A-Fa-f]{" + strconv.Itoa(cookieMaskTestCookieNameRandSize*2) + "}=[0-9A-Fa-f]{" + strconv.Itoa(cookieMaskTestCookieValueRandSize*2) + "}")
 	request, err := http.NewRequest("GET", "/", nil)
 	assert.NoError(t, err)
 	cookie1 := exampleCookieGen("test1")
@@ -348,8 +348,8 @@ func TestDoubleCookiemaskBothMasking(t *testing.T) {
 
 func TestDoubleCookiemaskBottomErrorTopNoMasking(t *testing.T) {
 	/* setup */
-	cookieRegex1 := regexp.MustCompile("^example-test1-[0-9A-Fa-f]{" + strconv.Itoa(cookieNameRandSize*2) + "}=[0-9A-Fa-f]{" + strconv.Itoa(cookieValueRandSize*2) + "}")
-	cookieRegex2 := regexp.MustCompile("^example-error-[0-9A-Fa-f]{" + strconv.Itoa(cookieNameRandSize*2) + "}=[0-9A-Fa-f]{" + strconv.Itoa(cookieValueRandSize*2) + "}")
+	cookieRegex1 := regexp.MustCompile("^example-test1-[0-9A-Fa-f]{" + strconv.Itoa(cookieMaskTestCookieNameRandSize*2) + "}=[0-9A-Fa-f]{" + strconv.Itoa(cookieMaskTestCookieValueRandSize*2) + "}")
+	cookieRegex2 := regexp.MustCompile("^example-error-[0-9A-Fa-f]{" + strconv.Itoa(cookieMaskTestCookieNameRandSize*2) + "}=[0-9A-Fa-f]{" + strconv.Itoa(cookieMaskTestCookieValueRandSize*2) + "}")
 	request, err := http.NewRequest("GET", "/", nil)
 	assert.NoError(t, err)
 	cookie1 := exampleCookieGen("foo")
@@ -385,8 +385,8 @@ func TestDoubleCookiemaskBottomErrorTopNoMasking(t *testing.T) {
 
 func TestDoubleCookiemaskBottomErrorTopMasking(t *testing.T) {
 	/* setup */
-	cookieRegex1 := regexp.MustCompile("^example-test1-[0-9A-Fa-f]{" + strconv.Itoa(cookieNameRandSize*2) + "}=[0-9A-Fa-f]{" + strconv.Itoa(cookieValueRandSize*2) + "}")
-	cookieRegex2 := regexp.MustCompile("^example-error-[0-9A-Fa-f]{" + strconv.Itoa(cookieNameRandSize*2) + "}=[0-9A-Fa-f]{" + strconv.Itoa(cookieValueRandSize*2) + "}")
+	cookieRegex1 := regexp.MustCompile("^example-test1-[0-9A-Fa-f]{" + strconv.Itoa(cookieMaskTestCookieNameRandSize*2) + "}=[0-9A-Fa-f]{" + strconv.Itoa(cookieMaskTestCookieValueRandSize*2) + "}")
+	cookieRegex2 := regexp.MustCompile("^example-error-[0-9A-Fa-f]{" + strconv.Itoa(cookieMaskTestCookieNameRandSize*2) + "}=[0-9A-Fa-f]{" + strconv.Itoa(cookieMaskTestCookieValueRandSize*2) + "}")
 	request, err := http.NewRequest("GET", "/", nil)
 	assert.NoError(t, err)
 	cookie1 := exampleCookieGen("test1")
@@ -422,8 +422,8 @@ func TestDoubleCookiemaskBottomErrorTopMasking(t *testing.T) {
 
 func TestDoubleCookiemaskTopErrorBottomNoMasking(t *testing.T) {
 	/* setup */
-	cookieRegex1 := regexp.MustCompile("^example-error-[0-9A-Fa-f]{" + strconv.Itoa(cookieNameRandSize*2) + "}=[0-9A-Fa-f]{" + strconv.Itoa(cookieValueRandSize*2) + "}")
-	cookieRegex2 := regexp.MustCompile("^example-test2-[0-9A-Fa-f]{" + strconv.Itoa(cookieNameRandSize*2) + "}=[0-9A-Fa-f]{" + strconv.Itoa(cookieValueRandSize*2) + "}")
+	cookieRegex1 := regexp.MustCompile("^example-error-[0-9A-Fa-f]{" + strconv.Itoa(cookieMaskTestCookieNameRandSize*2) + "}=[0-9A-Fa-f]{" + strconv.Itoa(cookieMaskTestCookieValueRandSize*2) + "}")
+	cookieRegex2 := regexp.MustCompile("^example-test2-[0-9A-Fa-f]{" + strconv.Itoa(cookieMaskTestCookieNameRandSize*2) + "}=[0-9A-Fa-f]{" + strconv.Itoa(cookieMaskTestCookieValueRandSize*2) + "}")
 	request, err := http.NewRequest("GET", "/", nil)
 	assert.NoError(t, err)
 	cookie1 := exampleCookieGen("error")
