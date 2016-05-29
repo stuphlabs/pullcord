@@ -1,6 +1,7 @@
-package pullcord
+package test
 
 import (
+	. ".."
 	"encoding/hex"
 	"errors"
 	"fmt"

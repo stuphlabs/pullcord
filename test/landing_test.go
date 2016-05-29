@@ -1,6 +1,7 @@
-package pullcord
+package test
 
 import (
+	. ".."
 	"github.com/fitstar/falcore"
 	"net/http"
 	"testing"

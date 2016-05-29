@@ -1,4 +1,4 @@
-package pullcord
+package test
 
 import (
 	"testing"
