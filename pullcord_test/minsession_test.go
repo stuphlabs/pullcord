@@ -1,6 +1,7 @@
-package pullcord
+package pullcord_test
 
 import (
+	. "github.com/stuphlabs/pullcord"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"testing"
@@ -211,7 +212,7 @@ func TestMinSessionHandlerInvalidCookie(t *testing.T) {
 	var invalid_cookie http.Cookie
 	var local_cookies []*http.Cookie
 	invalid_cookie.Name = "testHandler-"
-	for i := 0; i < minSessionCookieNameRandSize; i++ {
+	for i := 0; i < MinSessionCookieNameRandSize; i++ {
 		invalid_cookie.Name += "ff"
 	}
 	invalid_cookie.Value = "foo"

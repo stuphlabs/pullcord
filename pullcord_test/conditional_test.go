@@ -1,6 +1,7 @@
-package pullcord
+package pullcord_test
 
 import (
+	. "github.com/stuphlabs/pullcord"
 	"errors"
 	"github.com/fitstar/falcore"
 	"github.com/stretchr/testify/assert"

@@ -8,7 +8,7 @@ import (
 	"strconv"
 )
 
-const minSessionCookieNameRandSize = 32
+const MinSessionCookieNameRandSize = 32
 const minSessionCookieValueRandSize = 128
 const minSessionCookieMaxAge = 2 * 60 * 60
 
@@ -26,7 +26,7 @@ type MinSessionHandler struct {
 
 func (handler *MinSessionHandler) CookieMask(incomingCookies []*http.Cookie) (forwardedCookies, setCookies []*http.Cookie, context map[string]interface{}, err error) {
 	new_cookie_needed := true
-	cookieNameRegex := regexp.MustCompile("^" + handler.name + "-[0-9A-Fa-f]{" + strconv.Itoa(minSessionCookieNameRandSize*2) + "}$")
+	cookieNameRegex := regexp.MustCompile("^" + handler.name + "-[0-9A-Fa-f]{" + strconv.Itoa(MinSessionCookieNameRandSize*2) + "}$")
 
 	for _, cookie := range incomingCookies {
 		if cookieNameRegex.MatchString(cookie.Name) {
@@ -51,7 +51,7 @@ func (handler *MinSessionHandler) CookieMask(incomingCookies []*http.Cookie) (fo
 	}
 
 	if new_cookie_needed {
-		nbytes := make([]byte, minSessionCookieNameRandSize)
+		nbytes := make([]byte, MinSessionCookieNameRandSize)
 		vbytes := make([]byte, minSessionCookieValueRandSize)
 
 		cookie_name := ""

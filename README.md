@@ -8,6 +8,6 @@ For more information, email [Charlie](mailto://charlie@stuphlabs.com) or [Michae
 
 ## Testing
 ```
-go test -v
+go test -v ./...
 ```
 
