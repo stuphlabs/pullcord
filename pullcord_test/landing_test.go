@@ -1,4 +1,4 @@
-package test
+package pullcord_test
 
 import (
 	. "github.com/stuphlabs/pullcord"
