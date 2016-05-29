@@ -1,7 +1,7 @@
 package test
 
 import (
-	. ".."
+	. "github.com/stuphlabs/pullcord"
 	"encoding/hex"
 	"errors"
 	"fmt"

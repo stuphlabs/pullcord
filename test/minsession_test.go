@@ -1,7 +1,7 @@
 package test
 
 import (
-	. ".."
+	. "github.com/stuphlabs/pullcord"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"testing"
