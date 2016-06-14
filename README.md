@@ -28,18 +28,18 @@ for our side projects (i.e. Gitolite, Trac, OpenVPN, SFTP, etc.), but this has
 required a server to be running all the time despite the fact that we'd only
 use this server for a few random hours a month. At least now that cloud
 computing has become more popular, we are no longer restricted to choosing
-between expensive dedicated servers or seriously overprovisioned and inflexible
+between expensive dedicated servers or Seriously over-provisioned and inflexible
 shared hosting. However, manually going into the various cloud consoles and
 turning servers on and off is a hassle at best, and even when another potential
 user is sufficiently trusted that they are given copies of the administrative
-credentials (often in an insecure way to begin wtih), it is unrealistic to
+credentials (often in an insecure way to begin with), it is unrealistic to
 think that such a user would log in to start and stop these servers as needed
 when doing so requires that they use an unfamiliar and very complicated
 interface that they realize is full of buttons that, if accidentally pressed,
 could incur extreme costs in a very short span of time. As a result, just as
 before modern cloud computing was an option, we have often resorted to either
 eating the hefty cost of a properly equipped server that is only used 1% of the
-time, or else using a seriously underpowered server that causes a great deal of
+time, or else using a seriously under-powered server that causes a great deal of
 frustration to the users and is still only used 1% of the time.
 One of the things that modern cloud computing has given us is the ability to
 quickly, easily, and automatically scale from as little as one server up to
@@ -85,3 +85,27 @@ Pullcord is used as a proxy for these servers, then the potentially vulnerable
 pieces of software would only be exposed to properly authenticated and
 authorized users of the Pullcord service.
 
+## Initial Design Considerations
+The proposed solution would have some tedious aspects (i.e. an HTTP proxying
+mechanism, a cookie handler, etc.), but the internal complexity should be
+relatively low, and so a minimalist design with modular functionality would
+likely be the best choice. At this point (which is admittedly after some
+initial development work), it would appear that this solution could be split
+into a few largely distinct components: the remote services monitoring system,
+the remote service launching/destructing (trigger) system, the user
+authentication system, the proxying system, and the configuration system.
+
+## Initial Development Considerations
+Many programming languages would be acceptable for this project, but I chose to
+use Go as it seemed well-suited for the task, and as such this seemed like a
+good opportunity to try out the language on a larger project than the original
+Go tutorial. There is a Go library called Falcore which could prove useful.
+Given the likely low algorithmic complexity involved with solving this problem,
+it should be possible to develop a solution using many minimal changes in an
+iterative development technique. This also has the advantage of lending the
+process to test-driven development techniques. However, it is important to
+continuously update the documentation, something which many developers
+(including myself) have often been bad at. By adding some tests to the
+continuous integration process to check that both code coverage and the
+documentation ratio doesn't drop below a certain threshold, it should be
+possible to keep me honest.
