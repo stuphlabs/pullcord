@@ -14,7 +14,12 @@ import (
 // service is currently inaccessible, a web page could be generated to allow
 // certain configurable actions to be taken, while an opaque web forwarder
 // could be used if the remote service is accessible.
-func NewConditionalFilter(test func(req *falcore.Request) (bool, error), onTrue falcore.RequestFilter, onFalse falcore.RequestFilter, onError falcore.RequestFilter) falcore.RequestFilter {
+func NewConditionalFilter(
+	test func(req *falcore.Request) (bool, error),
+	onTrue falcore.RequestFilter,
+	onFalse falcore.RequestFilter,
+	onError falcore.RequestFilter,
+) falcore.RequestFilter {
 	return falcore.NewRequestFilter(
 		func(req *falcore.Request) *http.Response {
 			test_true, err := test(req)
