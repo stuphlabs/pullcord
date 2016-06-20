@@ -24,7 +24,7 @@ import (
 // (and are to be allowed down the RequestFilter chain along with the rest of
 // the original request), plus an array of any new cookies associated with this
 // particular filter which are to be sent to the browser for storage (which
-// should happen seamlessly as part of the next respose), plus any session data
+// should happen seamlessly as part of the next response), plus any session data
 // which is to be forwarded down the RequestFilter chain as part of the context
 // map, and of course a possible error (which will cause the onError
 // RequestFilter chain to receive the context instead, with any new cookies

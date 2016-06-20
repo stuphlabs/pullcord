@@ -5,6 +5,8 @@ import (
 	"net/http"
 )
 
+// NewLandingFilter generates a Falcore RequestFilter that produces a simple
+// landing page.
 func NewLandingFilter() falcore.RequestFilter {
 	return falcore.NewRequestFilter(
 		func(req *falcore.Request) *http.Response {
