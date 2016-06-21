@@ -19,7 +19,7 @@ For more information, email [Charlie](mailto://charlie@stuphlabs.com) or
 
 ## Testing
 ```
-go test -v
+go test -v ./...
 ```
 
 ## The Main Problem
