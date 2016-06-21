@@ -1,4 +1,11 @@
-Pullcord [![Build Status](https://travis-ci.org/stuphlabs/pullcord.svg)](https://travis-ci.org/stuphlabs/pullcord) [![Stories in Ready](https://badge.waffle.io/stuphlabs/pullcord.png?label=ready&title=Ready)](https://waffle.io/stuphlabs/pullcord) [![Godoc](https://godoc.org/github.com/stuphlabs/pullcord?status.svg)](http://godoc.org/github.com/stuphlabs/pullcord)
+Pullcord \
+[![Build Status](https://travis-ci.org/stuphlabs/pullcord.svg)]\
+(https://travis-ci.org/stuphlabs/pullcord) \
+[![Stories in Ready]\
+(https://badge.waffle.io/stuphlabs/pullcord.png?label=ready&title=Ready)]\
+(https://waffle.io/stuphlabs/pullcord) \
+[![Godoc](https://godoc.org/github.com/stuphlabs/pullcord?status.svg)]\
+(http://godoc.org/github.com/stuphlabs/pullcord)
 ==========
 
 
