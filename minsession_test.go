@@ -6,15 +6,13 @@ import (
 	"testing"
 )
 
-/*
-	Tests if a MinSessionHandler will even give an initial cookie.
-
-	Steps:
-		1. Create a new MinSessionHandler to test.
-		2. Run the cookie mask with an empty list for the input
-		   cookies.
-		3. Verify that we received a cookie.
-*/
+// TestMinSessionHandlerFirstPass tests if a MinSessionHandler will even give an
+// initial cookie.
+//
+// Steps:
+// 	1. Create a new MinSessionHandler to test.
+// 	2. Run the cookie mask with an empty list for the input cookies.
+// 	3. Verify that we received a cookie.
 func TestMinSessionHandlerFirstPass(t *testing.T) {
 	/* setup */
 
@@ -35,17 +33,15 @@ func TestMinSessionHandlerFirstPass(t *testing.T) {
 	}
 }
 
-/*
-	Tests if a MinSessionHandler will accept a cookie it just gave us.
-
-	Steps:
-		1. Create a new MinSessionHandler to test.
-		2. Run the cookie mask with an empty list for the input
-		   cookies.
-		3. Run the cookie mask again, this time including the cookie
-		   we just received in the input cookie list.
-		4. Verify that we did not receive another cookie.
-*/
+// TestMinSessionHandlerReuseCookie tests if a MinSessionHandler will accept a
+// cookie it just gave us.
+//
+// Steps:
+// 	1. Create a new MinSessionHandler to test.
+// 	2. Run the cookie mask with an empty list for the input cookies.
+// 	3. Run the cookie mask again, this time including the cookie we just
+//	   received in the input cookie list.
+// 	4. Verify that we did not receive another cookie.
 func TestMinSessionHandlerReuseCookie(t *testing.T) {
 	/* setup */
 	var local_cookies []*http.Cookie
@@ -78,17 +74,16 @@ func TestMinSessionHandlerReuseCookie(t *testing.T) {
 	}
 }
 
-/*
-	Test if a MinSessionHandler preserves session data between requests.
-
-	Steps:
-		1. Create a MinSessionHandler to test.
-		2. Run the cookie mask to get a new cookie and session.
-		3. Insert a new entry into the session data.
-		4. Run the cookie mask again with the same cookie we received.
-		5. Verify that the new session contains the same data we added
-		   to the previous session.
-*/
+// TestMinSessionHandlerSessionDataPreservation tests if a MinSessionHandler
+// preserves session data between requests.
+//
+// Steps:
+// 	1. Create a MinSessionHandler to test.
+// 	2. Run the cookie mask to get a new cookie and session.
+// 	3. Insert a new entry into the session data.
+// 	4. Run the cookie mask again with the same cookie we received.
+// 	5. Verify that the new session contains the same data we added to the
+//	   previous session.
 func TestMinSessionHandlerSessionDataPreservation(t *testing.T) {
 	/* setup */
 	var local_cookies []*http.Cookie
@@ -135,17 +130,16 @@ func TestMinSessionHandlerSessionDataPreservation(t *testing.T) {
 	assert.Equal(t, expected_data[expected_key], actual_data2)
 }
 
-/*
-	Test if a MinSessionHandler recognizes a bad cookie.
-
-	Steps:
-		1. Create a new MinSessionHandler to test.
-		2. Run the cookie mask in order to get a good cookie.
-		3. Tamper with the cookie.
-		4. Run the cookie mask with the tampered cookie.
-		5. Verify that the bad cookie was rejected and replaced by
-		   another good cookie.
-*/
+// TestMinSessionHandlerBadCookie tests if a MinSessionHandler recognizes a bad
+// cookie.
+//
+// Steps:
+// 	1. Create a new MinSessionHandler to test.
+// 	2. Run the cookie mask in order to get a good cookie.
+// 	3. Tamper with the cookie.
+// 	4. Run the cookie mask with the tampered cookie.
+// 	5. Verify that the bad cookie was rejected and replaced by another good
+//	   cookie.
 func TestMinSessionHandlerBadCookie(t *testing.T) {
 	/* setup */
 	var local_cookies []*http.Cookie
@@ -194,18 +188,17 @@ func TestMinSessionHandlerBadCookie(t *testing.T) {
 	}
 }
 
-/*
-	Test if a MinSessionHandler rejects a cookie that it did not create.
-
-	Steps:
-		1. Forge a cookie that would match the MinSessionHandler's
-		   regular expression.
-		2. Create a new MinSessionHandler to test that will create
-		   cookies with the same naming mechanism as our foged cookie.
-		3. Run the cookie mask with the forged cookie.
-		4. Verify that the forged cookie was rejected and replaced by
-		   another cookie.
-*/
+// TestMinSessionHandlerInvalidCookie tests if a MinSessionHandler rejects a
+// cookie that it did not create.
+//
+// Steps:
+// 	1. Forge a cookie that would match the MinSessionHandler's regular
+//	   expression.
+// 	2. Create a new MinSessionHandler to test that will create cookies with
+//	   the same naming mechanism as our foged cookie.
+// 	3. Run the cookie mask with the forged cookie.
+// 	4. Verify that the forged cookie was rejected and replaced by another
+//	   cookie.
 func TestMinSessionHandlerInvalidCookie(t *testing.T) {
 	/* setup */
 	var invalid_cookie http.Cookie
@@ -243,29 +236,28 @@ func TestMinSessionHandlerInvalidCookie(t *testing.T) {
 	}
 }
 
-/*
-	Test if a MinSessionHandler can correctly track multiple sessions.
-
-	Steps:
-		 1. Create a new MinSessionHandler to test.
-		 2. Run the cookie mask with an empty cookie list.
-		 3. Save the cookie that we just received into cookie list 1.
-		 4. Set a value in the session we just received.
-		 5. Run the cookie mask with another empty cookie list.
-		 6. Save the cookie that we just received into cookie list 2.
-		 7. Set a value in the session we just received.
-		 8. Run the cookie mask with cookie list 2.
-		 9. Record what value was in the session we just received.
-		10. Set a new value in the session we just received.
-		11. Run the cookie mask with cookie list 1.
-		12. Record what value was in the session we just received.
-		13. Set a new value in the session we just received.
-		14. Run the cookie mask with cookie list 2.
-		15. Record what value was in the session we just received.
-		16. Verify that session data was not present initially.
-		17. Verify that the session data was what was expected for
-		    subsequent accesses with the same cookie.
-*/
+// TestMinSessionHandlerMultiSession tests if a MinSessionHandler can correctly
+// track multiple sessions.
+//
+// Steps:
+// 	 1. Create a new MinSessionHandler to test.
+// 	 2. Run the cookie mask with an empty cookie list.
+// 	 3. Save the cookie that we just received into cookie list 1.
+// 	 4. Set a value in the session we just received.
+// 	 5. Run the cookie mask with another empty cookie list.
+// 	 6. Save the cookie that we just received into cookie list 2.
+// 	 7. Set a value in the session we just received.
+// 	 8. Run the cookie mask with cookie list 2.
+// 	 9. Record what value was in the session we just received.
+// 	10. Set a new value in the session we just received.
+// 	11. Run the cookie mask with cookie list 1.
+// 	12. Record what value was in the session we just received.
+// 	13. Set a new value in the session we just received.
+// 	14. Run the cookie mask with cookie list 2.
+// 	15. Record what value was in the session we just received.
+// 	16. Verify that session data was not present initially.
+// 	17. Verify that the session data was what was expected for subsequent
+//	    accesses with the same cookie.
 func TestMinSessionHandlerMultiSession(t *testing.T) {
 	/* setup */
 	var (
@@ -352,23 +344,22 @@ func TestMinSessionHandlerMultiSession(t *testing.T) {
 	assert.Equal(t, expected_value5, actual_value5)
 }
 
-/*
-	Test if a MinSessionHandler destroys a session after a bad cookie.
-
-	Steps:
-		1. Create a MinSessionHandler to test.
-		2. Run the cookie mask with an empty cookie list.
-		3. Save the cookie we received into the good cookie list.
-		4. Tamper with a copy of the cookie we received, and save this
-		   bad cookie into the bad cookie list.
-		5. Set a value in the session we just received.
-		6. Run the cookie mask with the bad cookie list.
-		7. Run the cookie mask with the good cookie list.
-		8. Verify that the subsequent sessions we received did not
-		   contain the value we had previously set.
-		9. Verify that each time the provided cookie was rejected and
-		   we received a replacement cookie.
-*/
+// TestMinSessionHandlerBadCookieDestroysSession tests if a MinSessionHandler
+// destroys a session after a bad cookie.
+//
+// Steps:
+// 	1. Create a MinSessionHandler to test.
+// 	2. Run the cookie mask with an empty cookie list.
+// 	3. Save the cookie we received into the good cookie list.
+// 	4. Tamper with a copy of the cookie we received, and save this bad
+//	   cookie into the bad cookie list.
+// 	5. Set a value in the session we just received.
+// 	6. Run the cookie mask with the bad cookie list.
+// 	7. Run the cookie mask with the good cookie list.
+// 	8. Verify that the subsequent sessions we received did not contain the
+//	   value we had previously set.
+// 	9. Verify that each time the provided cookie was rejected and we
+//	   received a replacement cookie.
 func TestMinSessionHandlerBadCookieDestroysSession(t *testing.T) {
 	/* setup */
 	var (
@@ -446,44 +437,41 @@ func TestMinSessionHandlerBadCookieDestroysSession(t *testing.T) {
 	assert.Equal(t, expected_cookie_present3, actual_cookie_present3)
 }
 
-/*
-	Test if two MinSessionHandlers interfere with one another.
-
-	Steps:
-		 1. Create two MinSessionHandlers to test with.
-		 2. Run the cookie mask of the first MinSessionHendler with an
-		    empty cookie list.
-		 3. Save the cookie we just received into cookie list 1.
-		 4. Tamper with a copy of the cookie we just received and place
-		    it into cookie list 2.
-		 5. Set a value in the session from this first
-		    MinSessionHandler.
-		 6. Run the cookie mask of the second MinSessionHandler with
-		    cookie list 1.
-		 7. Record what cookies are being forwarded.
-		 8. Add the cookie we just received from the second
-		    MinSessionHandler into cookie lists 1 and 2.
-		 9. Set a value in the session from the second
-		    MinSessionHandler.
-		10. Run the cookie mask of the second MinSessionHandler with
-		    cookie list 2.
-		11. Record what cookies are being forwarded.
-		12. Record the value in the session we just received.
-		13. Run the cookie mask of the first MinSessionHandler with
-		    cookie list 2.
-		14. Record what cookies are being forwarded.
-		15. Look for the value in the session we just received.
-		16. Verify that the cookies from each MinSessionHandler were
-		    being properly forwarded by the opposite MinSessionHandler.
-		17. Verify that the correct cookie was accepted by the second
-		    MinSessionHandler.
-		18. Verify that the session data was preserved by the second
-		    MinSessionHandler.
-		19. Verify that the tampered cookie was rejected by the first
-		    MinSessionHandler.
-		20. Verify that the session data was destroyed by the first
-		    MinSessionHandler.
-*/
+// TestMinSessionHandlerNonInterfering tests if two MinSessionHandlers interfere
+// with one another.
+//
+// Steps:
+// 	 1. Create two MinSessionHandlers to test with.
+// 	 2. Run the cookie mask of the first MinSessionHendler with an empty
+// 	    cookie list.
+// 	 3. Save the cookie we just received into cookie list 1.
+// 	 4. Tamper with a copy of the cookie we just received and place it into
+// 	    cookie list 2.
+// 	 5. Set a value in the session from this first MinSessionHandler.
+// 	 6. Run the cookie mask of the second MinSessionHandler with cookie list
+// 	    1.
+// 	 7. Record what cookies are being forwarded.
+// 	 8. Add the cookie we just received from the second MinSessionHandler
+// 	    into cookie lists 1 and 2.
+// 	 9. Set a value in the session from the second MinSessionHandler.
+// 	10. Run the cookie mask of the second MinSessionHandler with cookie list
+// 	    2.
+// 	11. Record what cookies are being forwarded.
+// 	12. Record the value in the session we just received.
+// 	13. Run the cookie mask of the first MinSessionHandler with cookie list
+// 	    2.
+// 	14. Record what cookies are being forwarded.
+// 	15. Look for the value in the session we just received.
+// 	16. Verify that the cookies from each MinSessionHandler were being
+// 	    properly forwarded by the opposite MinSessionHandler.
+// 	17. Verify that the correct cookie was accepted by the second
+// 	    MinSessionHandler.
+// 	18. Verify that the session data was preserved by the second
+// 	    MinSessionHandler.
+// 	19. Verify that the tampered cookie was rejected by the first
+// 	    MinSessionHandler.
+// 	20. Verify that the session data was destroyed by the first
+// 	    MinSessionHandler.
 func TestMinSessionHandlerNonInterfering(t *testing.T) {
 	/* setup */
 	var (
