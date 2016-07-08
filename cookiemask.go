@@ -1,6 +1,8 @@
 package pullcord
 
 import (
+	"bytes"
+	"fmt"
 	"github.com/fitstar/falcore"
 	"net/http"
 	"strings"
@@ -40,36 +42,86 @@ func NewCookiemaskFilter(
 	masked falcore.RequestFilter,
 	onError falcore.RequestFilter,
 ) falcore.RequestFilter {
+	log().Debug("registering a new cookiemask filter")
+
 	return falcore.NewRequestFilter(
 		func(req *falcore.Request) *http.Response {
+			log().Debug("running cookiemask filter")
+
 			passthru_ckes, set_ckes, ctx_ovrd, err := maskCookies(
 				req.HttpRequest.Cookies(),
 			)
 
+			ctx_keys_buffer := new(bytes.Buffer)
 			for key, val := range ctx_ovrd {
+				ctx_keys_buffer.WriteString("\"" + key + "\",")
 				req.Context[key] = val
 			}
+			log().Debug(
+				fmt.Sprintf(
+					"cookiemask has set these context" +
+					" keys: [%s]",
+					ctx_keys_buffer.String(),
+				),
+			)
+
 
 			var resp *http.Response
 			if err != nil {
+				log().Info(
+					fmt.Sprintf(
+						"cookiemask filter's" +
+						" maskCookies call returned" +
+						" an error: %v",
+						err,
+					),
+				)
+
 				resp = onError.FilterRequest(req)
 			} else {
+				cke_keys_buffer := new(bytes.Buffer)
 				ckes_str := make([]string, len(passthru_ckes))
 				for n, cke := range passthru_ckes {
+					cke_keys_buffer.WriteString(
+						"\"" + cke.Name + "\",",
+					)
 					ckes_str[n] = cke.String()
 				}
+				log().Debug(
+					fmt.Sprintf(
+						"cookiemask forwarding" +
+						" cookies with these keys: %s",
+						cke_keys_buffer.String(),
+					),
+				)
 
 				req.HttpRequest.Header.Set(
 					"Cookie",
 					strings.Join(ckes_str, "; "),
 				)
 
+				log().Info(
+					"request has run through cookiemask," +
+					" now forwarding to next filter",
+				)
 				resp = masked.FilterRequest(req)
 			}
 
+			set_cke_keys_buffer := new(bytes.Buffer)
 			for _, cke := range set_ckes {
+				set_cke_keys_buffer.WriteString(
+					"\"" + cke.Name + "\",",
+				)
 				resp.Header.Add("Set-Cookie", cke.String())
 			}
+			log().Debug(
+				fmt.Sprintf(
+					"cookiemask sending back with the" +
+					" response new cookies with these" +
+					" keys: [%s]",
+					set_cke_keys_buffer.String(),
+				),
+			)
 
 			return resp
 		},
