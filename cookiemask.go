@@ -68,7 +68,7 @@ func NewCookiemaskFilter(
 
 			var resp *http.Response
 			if err != nil {
-				log().Info(
+				log().Err(
 					fmt.Sprintf(
 						"cookiemask filter's" +
 						" maskCookies call returned" +
@@ -90,7 +90,8 @@ func NewCookiemaskFilter(
 				log().Debug(
 					fmt.Sprintf(
 						"cookiemask forwarding" +
-						" cookies with these keys: %s",
+						" cookies with these keys:" +
+						" [%s]",
 						cke_keys_buffer.String(),
 					),
 				)
