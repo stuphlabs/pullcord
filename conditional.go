@@ -22,6 +22,7 @@ func NewConditionalFilter(
 	onError falcore.RequestFilter,
 ) falcore.RequestFilter {
 	log().Debug("registering a new conditional filter")
+
 	return falcore.NewRequestFilter(
 		func(req *falcore.Request) *http.Response {
 			log().Debug("running conditional filter")
@@ -42,14 +43,14 @@ func NewConditionalFilter(
 			} else if test_true {
 				log().Info(
 					"conditional filter's test returned" +
-					"true",
+					" true",
 				)
 
 				return onTrue.FilterRequest(req)
 			} else {
 				log().Info(
 					"conditional filter's test returned" +
-					"false",
+					" false",
 				)
 
 				return onFalse.FilterRequest(req)
