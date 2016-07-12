@@ -8,8 +8,12 @@ import (
 // NewLandingFilter generates a Falcore RequestFilter that produces a simple
 // landing page.
 func NewLandingFilter() falcore.RequestFilter {
+	log().Debug("registering a new landing filter")
+
 	return falcore.NewRequestFilter(
 		func(req *falcore.Request) *http.Response {
+			log().Info("running landing filter")
+
 			return falcore.StringResponse(
 				req.HttpRequest,
 				200,

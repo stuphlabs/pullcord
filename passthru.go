@@ -10,6 +10,8 @@ import (
 //
 // As such, this is the core of the proxying system.
 func NewPassthruFilter(host string, port int) falcore.RequestFilter {
+	log().Debug("registering a new passthru filter")
+
 	return filter.NewUpstream(
 		filter.NewUpstreamTransport(host, port, 0, nil),
 	)

@@ -1,4 +1,10 @@
 language: go
 
-script: go get github.com/stretchr/testify/assert && go get github.com/fitstar/falcore && go test && go test -cover
+sudo: required
+
+install: go get github.com/stretchr/testify/assert github.com/fitstar/falcore github.com/dustin/randbo
+
+#before_script: sudo ln -s /dev/stdout /dev/log
+
+script: go test -v ./... && go test -v -cover ./...
 
