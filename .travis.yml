@@ -1,4 +1,4 @@
 language: go
 
-script: go get github.com/stretchr/testify/assert && go get github.com/fitstar/falcore && go test && go test -cover
+script: touch /dev/log && go get github.com/stretchr/testify/assert && go get github.com/fitstar/falcore && go test && test -s /dev/log && go test -cover
 
