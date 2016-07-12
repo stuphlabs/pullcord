@@ -2,7 +2,7 @@ language: go
 
 sudo: required
 
-install: go get github.com/stretchr/testify/assert github.com/fitstar/falcore
+install: go get github.com/stretchr/testify/assert github.com/fitstar/falcore github.com/dustin/randbo
 
 #before_script: sudo ln -s /dev/stdout /dev/log
 
