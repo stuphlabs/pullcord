@@ -1,8 +1,10 @@
 language: go
 
+sudo: required
+
 install: go get github.com/stretchr/testify/assert github.com/fitstar/falcore
 
-before_script: ln -s /dev/stdout /dev/log
+before_script: sudo ln -s /dev/stdout /dev/log
 
 script: go test && test -s /dev/log
 
