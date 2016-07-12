@@ -1,4 +1,8 @@
 language: go
 
-script: touch /dev/log && go get github.com/stretchr/testify/assert && go get github.com/fitstar/falcore && go test && test -s /dev/log && go test -cover
+install: go get github.com/stretchr/testify/assert github.com/fitstar/falcore
+
+before_script: ln -s /dev/stdout /dev/log
+
+script: go test && test -s /dev/log
 
