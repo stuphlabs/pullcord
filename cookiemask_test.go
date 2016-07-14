@@ -32,13 +32,18 @@ func gostring(i interface{}) string {
 
 var cookieMaskTestPage = falcore.NewRequestFilter(
 	func(req *falcore.Request) *http.Response {
-		var content = "<html><body><h1>cookies</h1><ul>"
+		var content = "<html><body><h1>cookies</h1><ul id=\"cke\">"
 		for _, cke := range req.HttpRequest.Cookies() {
 			content += "<li>" + cke.String() + "</li>"
 		}
-		content += "</ul><h1>context</h1><ul>"
+		content += "</ul><h1>context</h1><ul id="\"ctx\">"
 		for name, ctx := range req.Context {
-			content += "<li>" + name + ": " + gostring(ctx)
+			content +=
+				"<li>" +
+				name +
+				": " +
+				gostring(ctx) +
+				"</li>"
 		}
 		content += "</ul></body></html>"
 		return falcore.StringResponse(
