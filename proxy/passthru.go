@@ -1,8 +1,9 @@
-package pullcord
+package proxy
 
 import (
 	"github.com/fitstar/falcore"
 	"github.com/fitstar/falcore/filter"
+	// "github.com/stuphlabs/pullcord"
 )
 
 // NewPassthruFilter generates a Falcore RequestFilter that proxies all requests

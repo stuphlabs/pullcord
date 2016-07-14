@@ -1,6 +1,7 @@
-package pullcord
+package monitor
 
 import (
+	// "github.com/stuphlabs/pullcord"
 	"log/syslog"
 	"sync"
 )

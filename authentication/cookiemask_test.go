@@ -1,4 +1,4 @@
-package pullcord
+package authentication
 
 import (
 	"encoding/hex"
@@ -7,6 +7,7 @@ import (
 	"github.com/dustin/randbo"
 	"github.com/fitstar/falcore"
 	"github.com/stretchr/testify/assert"
+	// "github.com/stuphlabs/pullcord"
 	"io/ioutil"
 	"net/http"
 	"regexp"

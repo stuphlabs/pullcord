@@ -1,7 +1,8 @@
-package pullcord
+package authentication
 
 import (
 	"github.com/stretchr/testify/assert"
+	// "github.com/stuphlabs/pullcord"
 	"net/http"
 	"testing"
 )

@@ -1,8 +1,9 @@
-package pullcord
+package proxy
 
 import (
 	"github.com/fitstar/falcore"
 	"github.com/stretchr/testify/assert"
+	"github.com/stuphlabs/pullcord"
 	"io/ioutil"
 	"net/http"
 	"regexp"
@@ -16,7 +17,7 @@ func TestPassthru(t *testing.T) {
 	assert.NoError(t, err)
 
 	landingPipeline := falcore.NewPipeline()
-	landingPipeline.Upstream.PushBack(NewLandingFilter())
+	landingPipeline.Upstream.PushBack(pullcord.NewLandingFilter())
 
 	landingServer := falcore.NewServer(58080, landingPipeline)
 

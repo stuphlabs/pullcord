@@ -1,9 +1,10 @@
-package pullcord
+package authentication
 
 import (
 	"bytes"
 	"fmt"
 	"github.com/fitstar/falcore"
+	// "github.com/stuphlabs/pullcord"
 	"net/http"
 	"strings"
 )
