@@ -36,7 +36,7 @@ var cookieMaskTestPage = falcore.NewRequestFilter(
 		for _, cke := range req.HttpRequest.Cookies() {
 			content += "<li>" + cke.String() + "</li>"
 		}
-		content += "</ul><h1>context</h1><ul id="\"ctx\">"
+		content += "</ul><h1>context</h1><ul id=\"ctx\">"
 		for name, ctx := range req.Context {
 			content +=
 				"<li>" +
