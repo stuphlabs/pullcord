@@ -1,10 +1,11 @@
-package pullcord
+package authentication
 
 import (
 	"bytes"
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	// "github.com/stuphlabs/pullcord"
 	"net/http"
 	"regexp"
 	"strconv"

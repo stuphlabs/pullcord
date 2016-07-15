@@ -1,6 +1,7 @@
-package pullcord
+package authentication
 
 import (
+	// "github.com/stuphlabs/pullcord"
 	"net/http"
 )
 
