@@ -13,6 +13,8 @@ if [ $UNIT_TEST_STATUS -ne 0 ]
 then
 	echo "\nUnit tests failed"
 	exit 1
+else
+	echo "\nUnit tests passed"
 fi
 
 echo "$UNIT_TEST_OUTPUT" | mawk '\
@@ -28,6 +30,8 @@ then
 	echo -n "\nCoverage test failed"
 	echo " (less than $COVERAGE_MINIMUM_PERCENTAGE% coverage)"
 	exit 1
+else
+	echo "\nCoverage test passed"
 fi
 
 echo "\n\nAll tests passed\n"
