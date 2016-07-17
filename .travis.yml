@@ -2,9 +2,9 @@ language: go
 
 sudo: required
 
-install: go get github.com/stretchr/testify/assert github.com/fitstar/falcore github.com/dustin/randbo
+install: .travis/install.sh
 
 #before_script: sudo ln -s /dev/stdout /dev/log
 
-script: go test -v ./... && go test -v -cover ./...
+script: .travis/tests.sh
 
