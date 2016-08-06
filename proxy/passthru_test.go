@@ -30,7 +30,7 @@ func TestPassthru(t *testing.T) {
 	landingPipeline := falcore.NewPipeline()
 	landingPipeline.Upstream.PushBack(pullcord.NewLandingFilter())
 
-	landingServer := falcore.NewServer(58080, landingPipeline)
+	landingServer := falcore.NewServer(0, landingPipeline)
 
 	regex, err := regexp.Compile("Pullcord Landing Page")
 	assert.NoError(t, err)
@@ -44,7 +44,7 @@ func TestPassthru(t *testing.T) {
 
 	_, response := falcore.TestWithRequest(
 		request,
-		NewPassthruFilter("localhost", 58080),
+		NewPassthruFilter("localhost", landingServer.Port()),
 		nil,
 	)
 	assert.Equal(t, 200, response.StatusCode)
