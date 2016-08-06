@@ -32,7 +32,7 @@ const UnknownServiceError = errorString(
 // monitorredService holds the information for a single service definition.
 type monitorredService struct {
 	address string
-	port uint16
+	port int
 	protocol string
 	gracePeriod time.Duration
 	lastChecked time.Time
@@ -68,7 +68,7 @@ type MinMonitor struct {
 func (monitor *MinMonitor) Add(
 	name string,
 	address string,
-	port uint16,
+	port int,
 	protocol string,
 	gracePeriod time.Duration,
 	deferProbe bool,

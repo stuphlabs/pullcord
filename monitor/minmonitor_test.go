@@ -22,31 +22,28 @@ func serveLandingPage(landingServer *falcore.Server) {
 func TestMinMonitorUpService(t *testing.T) {
 	testServiceName := "test"
 	testHost := "localhost"
-	testPort := uint16(58080)
 	testProtocol := "tcp"
 	gracePeriod := time.Duration(0)
 	deferProbe := true
-	serverStartupDuration, err := time.ParseDuration("1s")
-	assert.NoError(t, err)
 
 	landingPipeline := falcore.NewPipeline()
 	landingPipeline.Upstream.PushBack(pullcord.NewLandingFilter())
-	landingServer := falcore.NewServer(int(testPort), landingPipeline)
+	landingServer := falcore.NewServer(0, landingPipeline)
 	go serveLandingPage(landingServer)
 	defer landingServer.StopAccepting()
 
+	<- landingServer.AcceptReady
+
 	mon := NewMinMonitor()
-	err = mon.Add(
+	err := mon.Add(
 		testServiceName,
 		testHost,
-		testPort,
+		landingServer.Port(),
 		testProtocol,
 		gracePeriod,
 		deferProbe,
 	)
 	assert.NoError(t, err)
-
-	time.Sleep(serverStartupDuration)
 
 	up, err := mon.Status(testServiceName)
 	assert.NoError(t, err)
