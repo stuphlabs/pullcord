@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"regexp"
 	"testing"
-	"time"
 )
 
 // serveLandingPage is a testing helper function that creates a webserver that
@@ -38,9 +37,7 @@ func TestPassthru(t *testing.T) {
 	go serveLandingPage(landingServer)
 	defer landingServer.StopAccepting()
 
-	sleepDuration, err := time.ParseDuration("1s")
-	assert.NoError(t, err)
-	time.Sleep(sleepDuration)
+	<- landingServer.AcceptReady
 
 	_, response := falcore.TestWithRequest(
 		request,
