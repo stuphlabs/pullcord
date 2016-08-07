@@ -17,9 +17,9 @@ func (str errorString) Error() string {
 	return string(str)
 }
 
-// DuplicateServiceRagistrationError indicates that a service with that name
+// DuplicateServiceRegistrationError indicates that a service with that name
 // has already been registered to this monitor.
-const DuplicateServiceRagistrationError = errorString(
+const DuplicateServiceRegistrationError = errorString(
 	"A service with this name has already been registered",
 )
 
@@ -92,7 +92,7 @@ func (monitor *MinMonitor) Add(
 			),
 		)
 
-		return DuplicateServiceRagistrationError
+		return DuplicateServiceRegistrationError
 	}
 
 	monitor.table[name] = monitorredService{
@@ -154,16 +154,46 @@ func (monitor *MinMonitor) Reprobe(name string) (up bool, err error) {
 		svc.up = false
 		// TODO check what the error was
 
-		log().Warning(
-			fmt.Sprintf(
-				"minmonitor encountered an error while" +
-				" probing service \"%s\": %v",
-				name,
-				err,
-			),
-		)
+		switch typ := err.(type) {
+		case *net.OpError:
+			if typ.Addr != nil {
+				log().Info(
+					fmt.Sprintf(
+						"minmonitor received a" +
+						" connection refused" +
+						" (interpereted as a down" +
+						" status) from service \"%s\"",
+						name,
+					),
+				)
 
-		return false, err
+				return false, nil
+			} else {
+				log().Warning(
+					fmt.Sprintf(
+						"minmonitor encountered an" +
+						" error while probing service" +
+						" \"%s\": %v",
+						name,
+						err,
+					),
+				)
+
+				return false, err
+			}
+		default:
+			log().Warning(
+				fmt.Sprintf(
+					"minmonitor encountered an unknown" +
+					" error while probing service \"%s\":" +
+					" %v",
+					name,
+					err,
+				),
+			)
+
+			return false, err
+		}
 	} else {
 		defer conn.Close()
 		svc.up = true
