@@ -230,6 +230,15 @@ func (monitor *MinMonitor) Status(name string) (up bool, err error) {
 	if (! svc.up) || time.Now().After(
 		svc.lastChecked.Add(svc.GracePeriod),
 	) {
+		log().Info(
+			fmt.Sprintf(
+				"minmonitor must reprobe as either the grace" +
+				" period has lapsed or the previous probe" +
+				" indicated a down status for service: \"%s\"",
+				name,
+			),
+		)
+
 		return monitor.Reprobe(name)
 	} else {
 		log().Info(
