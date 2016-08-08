@@ -29,14 +29,32 @@ const UnknownServiceError = errorString(
 	"No service has been registered with the requested name",
 )
 
-// monitorredService holds the information for a single service definition.
-type monitorredService struct {
-	address string
-	port int
-	protocol string
-	gracePeriod time.Duration
+// MonitorredService holds the information for a single service definition.
+type MonitorredService struct {
+	Address string
+	Port int
+	Protocol string
+	GracePeriod time.Duration
 	lastChecked time.Time
 	up bool
+}
+
+func NewMonitorredService(
+	address string,
+	port int,
+	protocol string,
+	gracePeriod time.Duration,
+) (service *MonitorredService, err error) {
+	result := MonitorredService{
+		address,
+		port,
+		protocol,
+		gracePeriod,
+		time.Time{},
+		false,
+	}
+
+	return &result, nil
 }
 
 // MinMonitor is a minimal service monitor not intended to be used in
@@ -46,7 +64,7 @@ type monitorredService struct {
 // possible to explicitly re-probe a service regardless of the status of the
 // cache.
 type MinMonitor struct {
-	table map[string]monitorredService
+	table map[string]*MonitorredService
 }
 
 // Add adds a named service to the monitor. The named service is associated
@@ -67,10 +85,7 @@ type MinMonitor struct {
 // involving regular expressions or callback functions).
 func (monitor *MinMonitor) Add(
 	name string,
-	address string,
-	port int,
-	protocol string,
-	gracePeriod time.Duration,
+	service *MonitorredService,
 	deferProbe bool,
 ) (err error) {
 	osvc, previousEntryExists := monitor.table[name]
@@ -83,26 +98,19 @@ func (monitor *MinMonitor) Add(
 				" service at protocol \"%s\" address \"%s\"" +
 				" port \"%d\"",
 				name,
-				osvc.protocol,
-				osvc.address,
-				osvc.port,
-				protocol,
-				address,
-				port,
+				osvc.Protocol,
+				osvc.Address,
+				osvc.Port,
+				service.Protocol,
+				service.Address,
+				service.Port,
 			),
 		)
 
 		return DuplicateServiceRegistrationError
 	}
 
-	monitor.table[name] = monitorredService{
-		address: address,
-		port: port,
-		protocol: protocol,
-		gracePeriod: gracePeriod,
-		lastChecked: time.Time{},
-		up: false,
-	}
+	monitor.table[name] = service
 
 	if ! deferProbe {
 		_, err := monitor.Reprobe(name)
@@ -146,8 +154,8 @@ func (monitor *MinMonitor) Reprobe(name string) (up bool, err error) {
 	}
 
 	conn, err := net.Dial(
-		svc.protocol,
-		svc.address + ":" + strconv.Itoa(int(svc.port)),
+		svc.Protocol,
+		svc.Address + ":" + strconv.Itoa(int(svc.Port)),
 	)
 	svc.lastChecked = time.Now()
 	if err != nil {
@@ -236,7 +244,7 @@ func (monitor *MinMonitor) Status(name string) (up bool, err error) {
 	}
 
 	if (! svc.up) || time.Now().After(
-		svc.lastChecked.Add(svc.gracePeriod),
+		svc.lastChecked.Add(svc.GracePeriod),
 	) {
 		return monitor.Reprobe(name)
 	} else {
@@ -288,7 +296,7 @@ func NewMinMonitor() *MinMonitor {
 	log().Info("initializing minimal service monitor")
 
 	var result MinMonitor
-	result.table = make(map[string]monitorredService)
+	result.table = make(map[string]*MonitorredService)
 
 	return &result
 }

@@ -36,13 +36,17 @@ func TestMinMonitorUpService(t *testing.T) {
 
 	<- landingServer.AcceptReady
 
-	mon := NewMinMonitor()
-	err := mon.Add(
-		testServiceName,
+	service, err := NewMonitorredService(
 		testHost,
 		landingServer.Port(),
 		testProtocol,
 		gracePeriod,
+	)
+	assert.NoError(t, err)
+	mon := NewMinMonitor()
+	err = mon.Add(
+		testServiceName,
+		service,
 		deferProbe,
 	)
 	assert.NoError(t, err)
@@ -70,13 +74,17 @@ func TestMinMonitorDownService(t *testing.T) {
 	err = server.Close()
 	assert.NoError(t, err)
 
-	mon := NewMinMonitor()
-	err = mon.Add(
-		testServiceName,
+	svc, err := NewMonitorredService(
 		testHost,
 		testPort,
 		testProtocol,
 		gracePeriod,
+	)
+	assert.NoError(t, err)
+	mon := NewMinMonitor()
+	err = mon.Add(
+		testServiceName,
+		svc,
 		deferProbe,
 	)
 	assert.NoError(t, err)
@@ -96,13 +104,17 @@ func TestMinMonitorInvalidService(t *testing.T) {
 	gracePeriod := time.Duration(0)
 	deferProbe := true
 
-	mon := NewMinMonitor()
-	err := mon.Add(
-		testServiceName,
+	svc, err := NewMonitorredService(
 		testHost,
 		testPort,
 		testProtocol,
 		gracePeriod,
+	)
+	assert.NoError(t, err)
+	mon := NewMinMonitor()
+	err = mon.Add(
+		testServiceName,
+		svc,
 		deferProbe,
 	)
 	assert.NoError(t, err)
@@ -129,13 +141,17 @@ func TestMinMonitorUpReprobe(t *testing.T) {
 
 	<- landingServer.AcceptReady
 
-	mon := NewMinMonitor()
-	err := mon.Add(
-		testServiceName,
+	svc, err := NewMonitorredService(
 		testHost,
 		landingServer.Port(),
 		testProtocol,
 		gracePeriod,
+	)
+	assert.NoError(t, err)
+	mon := NewMinMonitor()
+	err = mon.Add(
+		testServiceName,
+		svc,
 		deferProbe,
 	)
 	assert.NoError(t, err)
@@ -163,13 +179,17 @@ func TestMinMonitorDownReprobe(t *testing.T) {
 	err = server.Close()
 	assert.NoError(t, err)
 
-	mon := NewMinMonitor()
-	err = mon.Add(
-		testServiceName,
+	svc, err := NewMonitorredService(
 		testHost,
 		testPort,
 		testProtocol,
 		gracePeriod,
+	)
+	assert.NoError(t, err)
+	mon := NewMinMonitor()
+	err = mon.Add(
+		testServiceName,
+		svc,
 		deferProbe,
 	)
 	assert.NoError(t, err)
@@ -197,13 +217,17 @@ func TestMinMonitorSetStatusUp(t *testing.T) {
 	err = server.Close()
 	assert.NoError(t, err)
 
-	mon := NewMinMonitor()
-	err = mon.Add(
-		testServiceName,
+	svc, err := NewMonitorredService(
 		testHost,
 		testPort,
 		testProtocol,
 		gracePeriod,
+	)
+	assert.NoError(t, err)
+	mon := NewMinMonitor()
+	err = mon.Add(
+		testServiceName,
+		svc,
 		deferProbe,
 	)
 	assert.NoError(t, err)
@@ -274,23 +298,31 @@ func TestMinMonitorAddExistant(t *testing.T) {
 
 	<- landingServer.AcceptReady
 
-	mon := NewMinMonitor()
-	err := mon.Add(
-		testServiceName,
+	svc, err := NewMonitorredService(
 		testHost,
 		landingServer.Port(),
 		testProtocol,
 		gracePeriod,
+	)
+	assert.NoError(t, err)
+	mon := NewMinMonitor()
+	err = mon.Add(
+		testServiceName,
+		svc,
 		deferProbe,
 	)
 	assert.NoError(t, err)
 
-	err = mon.Add(
-		testServiceName,
+	svc2, err := NewMonitorredService(
 		testHost,
 		landingServer.Port() + 1,
 		testProtocol,
 		gracePeriod,
+	)
+	assert.NoError(t, err)
+	err = mon.Add(
+		testServiceName,
+		svc2,
 		deferProbe,
 	)
 	assert.Error(t, err)
