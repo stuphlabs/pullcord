@@ -162,9 +162,9 @@ func (monitor *MinMonitor) Reprobe(name string) (up bool, err error) {
 		svc.up = false
 		// TODO check what the error was
 
-		switch typ := err.(type) {
+		switch castErr := err.(type) {
 		case *net.OpError:
-			if typ.Addr != nil {
+			if castErr.Addr != nil {
 				log().Info(
 					fmt.Sprintf(
 						"minmonitor received a" +
