@@ -86,7 +86,6 @@ type MinMonitor struct {
 func (monitor *MinMonitor) Add(
 	name string,
 	service *MonitorredService,
-	deferProbe bool,
 ) (err error) {
 	osvc, previousEntryExists := monitor.table[name]
 	if previousEntryExists {
@@ -111,21 +110,6 @@ func (monitor *MinMonitor) Add(
 	}
 
 	monitor.table[name] = service
-
-	if ! deferProbe {
-		_, err := monitor.Reprobe(name)
-
-		if err != nil {
-			log().Warning(
-				fmt.Sprintf(
-					"minmonitor had an error during the" +
-					" initial probe for service \"%s\": %v",
-					name,
-					err,
-				),
-			)
-		}
-	}
 
 	log().Info(
 		fmt.Sprintf(

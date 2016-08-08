@@ -26,7 +26,6 @@ func TestMinMonitorUpService(t *testing.T) {
 	testHost := "localhost"
 	testProtocol := "tcp"
 	gracePeriod := time.Duration(0)
-	deferProbe := true
 
 	landingPipeline := falcore.NewPipeline()
 	landingPipeline.Upstream.PushBack(pullcord.NewLandingFilter())
@@ -47,7 +46,6 @@ func TestMinMonitorUpService(t *testing.T) {
 	err = mon.Add(
 		testServiceName,
 		service,
-		deferProbe,
 	)
 	assert.NoError(t, err)
 
@@ -63,7 +61,6 @@ func TestMinMonitorDownService(t *testing.T) {
 	testHost := "localhost"
 	testProtocol := "tcp"
 	gracePeriod := time.Duration(0)
-	deferProbe := true
 
 	server, err := net.Listen(testProtocol, ":0")
 	assert.NoError(t, err)
@@ -85,7 +82,6 @@ func TestMinMonitorDownService(t *testing.T) {
 	err = mon.Add(
 		testServiceName,
 		svc,
-		deferProbe,
 	)
 	assert.NoError(t, err)
 
@@ -102,7 +98,6 @@ func TestMinMonitorInvalidService(t *testing.T) {
 	testPort := 80
 	testProtocol := "tcp"
 	gracePeriod := time.Duration(0)
-	deferProbe := true
 
 	svc, err := NewMonitorredService(
 		testHost,
@@ -115,7 +110,6 @@ func TestMinMonitorInvalidService(t *testing.T) {
 	err = mon.Add(
 		testServiceName,
 		svc,
-		deferProbe,
 	)
 	assert.NoError(t, err)
 
@@ -131,7 +125,6 @@ func TestMinMonitorUpReprobe(t *testing.T) {
 	testHost := "localhost"
 	testProtocol := "tcp"
 	gracePeriod := time.Duration(0)
-	deferProbe := true
 
 	landingPipeline := falcore.NewPipeline()
 	landingPipeline.Upstream.PushBack(pullcord.NewLandingFilter())
@@ -152,7 +145,6 @@ func TestMinMonitorUpReprobe(t *testing.T) {
 	err = mon.Add(
 		testServiceName,
 		svc,
-		deferProbe,
 	)
 	assert.NoError(t, err)
 
@@ -168,7 +160,6 @@ func TestMinMonitorDownReprobe(t *testing.T) {
 	testHost := "localhost"
 	testProtocol := "tcp"
 	gracePeriod := time.Duration(0)
-	deferProbe := true
 
 	server, err := net.Listen(testProtocol, ":0")
 	assert.NoError(t, err)
@@ -190,7 +181,6 @@ func TestMinMonitorDownReprobe(t *testing.T) {
 	err = mon.Add(
 		testServiceName,
 		svc,
-		deferProbe,
 	)
 	assert.NoError(t, err)
 
@@ -206,7 +196,6 @@ func TestMinMonitorSetStatusUp(t *testing.T) {
 	testHost := "localhost"
 	testProtocol := "tcp"
 	gracePeriod := time.Duration(0)
-	deferProbe := true
 
 	server, err := net.Listen(testProtocol, ":0")
 	assert.NoError(t, err)
@@ -228,7 +217,6 @@ func TestMinMonitorSetStatusUp(t *testing.T) {
 	err = mon.Add(
 		testServiceName,
 		svc,
-		deferProbe,
 	)
 	assert.NoError(t, err)
 
@@ -288,7 +276,6 @@ func TestMinMonitorAddExistant(t *testing.T) {
 	testHost := "localhost"
 	testProtocol := "tcp"
 	gracePeriod := time.Duration(0)
-	deferProbe := true
 
 	landingPipeline := falcore.NewPipeline()
 	landingPipeline.Upstream.PushBack(pullcord.NewLandingFilter())
@@ -309,7 +296,6 @@ func TestMinMonitorAddExistant(t *testing.T) {
 	err = mon.Add(
 		testServiceName,
 		svc,
-		deferProbe,
 	)
 	assert.NoError(t, err)
 
@@ -323,7 +309,6 @@ func TestMinMonitorAddExistant(t *testing.T) {
 	err = mon.Add(
 		testServiceName,
 		svc2,
-		deferProbe,
 	)
 	assert.Error(t, err)
 	assert.Equal(t, DuplicateServiceRegistrationError, err)
