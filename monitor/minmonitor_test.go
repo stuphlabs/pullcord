@@ -1,10 +1,13 @@
 package monitor
 
 import (
+	"bufio"
+	"fmt"
 	"github.com/fitstar/falcore"
 	"github.com/stretchr/testify/assert"
 	"github.com/stuphlabs/pullcord"
 	"net"
+	"os"
 	"strconv"
 	"testing"
 	"time"
@@ -281,16 +284,16 @@ func TestMinMonitorTrueNegative(t *testing.T) {
 	testProtocol := "tcp"
 	gracePeriod := time.Duration(0)
 
-	landingPipeline := falcore.NewPipeline()
-	landingPipeline.Upstream.PushBack(pullcord.NewLandingFilter())
-	landingServer := falcore.NewServer(0, landingPipeline)
-	go serveLandingPage(landingServer)
-
-	<- landingServer.AcceptReady
+	server, err := net.Listen(testProtocol, ":0")
+	assert.NoError(t, err)
+	_, rawPort, err := net.SplitHostPort(server.Addr().String())
+	assert.NoError(t, err)
+	testPort, err := strconv.Atoi(rawPort)
+	assert.NoError(t, err)
 
 	service, err := NewMonitorredService(
 		testHost,
-		landingServer.Port(),
+		testPort,
 		testProtocol,
 		gracePeriod,
 	)
@@ -306,14 +309,29 @@ func TestMinMonitorTrueNegative(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, up)
 
-	landingServer.StopAccepting()
-
-	// Unfortunately, falcore.Server does not provide an externally visible
-	// channel for indicating when the server is down like it does for when
-	// the server is up.
-	sleepTime, err := time.ParseDuration("5s")
+	err = server.Close()
 	assert.NoError(t, err)
-	time.Sleep(sleepTime)
+
+	// The socket is kept open for an amount of time after being prompted
+	// to close in case any more TCP packets show up. Unfortunately we'll
+	// just have to wait.
+	tcpTimeoutFile, err := os.Open(
+		"/proc/sys/net/ipv4/tcp_fin_timeout",
+	)
+	defer tcpTimeoutFile.Close()
+	assert.NoError(t, err)
+	tcpTimeoutReader := bufio.NewReader(tcpTimeoutFile)
+	line, err := tcpTimeoutReader.ReadString('\n')
+	assert.NoError(t, err)
+	line = line[:len(line) - 1]
+	tcpTimeout, err := strconv.Atoi(line)
+	assert.NoError(t, err)
+	sleepSeconds := tcpTimeout + 1
+	sleepDuration, err := time.ParseDuration(
+		fmt.Sprintf("%ds", sleepSeconds),
+	)
+	assert.NoError(t, err)
+	time.Sleep(sleepDuration)
 
 	up, err = mon.Status(testServiceName)
 	assert.NoError(t, err)
