@@ -65,9 +65,10 @@ func TestGoodPasswordFromHash(t *testing.T) {
 		0xbb, 0x5f, 0x1c, 0xa2, 0x78, 0xfb, 0x51, 0xfe, 0x10, 0xb7,
 		0xde, 0xd3, 0x56, 0x5e,
 	}
+	hashStruct := Pbkdf2Hash{hash, salt, iterations}
 
 	store := NewInMemPwdStore()
-	err := store.SetPbkdf2Hash(identifier, hash, salt, iterations)
+	err := store.SetPbkdf2Hash(identifier, hashStruct)
 	assert.NoError(t, err)
 
 	err = store.CheckPassword(identifier, password)
@@ -96,9 +97,10 @@ func TestBadPasswordFromHash(t *testing.T) {
 		0xbb, 0x5f, 0x1c, 0xa2, 0x78, 0xfb, 0x51, 0xfe, 0x10, 0xb7,
 		0xde, 0xd3, 0x56, 0x5e,
 	}
+	hashStruct := Pbkdf2Hash{hash, salt, iterations}
 
 	store := NewInMemPwdStore()
-	err := store.SetPbkdf2Hash(identifier, hash, salt, iterations)
+	err := store.SetPbkdf2Hash(identifier, hashStruct)
 	assert.NoError(t, err)
 
 	err = store.CheckPassword(identifier, password)
@@ -127,9 +129,10 @@ func TestInsufficientIterationsHash(t *testing.T) {
 		0xbb, 0x5f, 0x1c, 0xa2, 0x78, 0xfb, 0x51, 0xfe, 0x10, 0xb7,
 		0xde, 0xd3, 0x56, 0x5e,
 	}
+	hashStruct := Pbkdf2Hash{hash, salt, iterations}
 
 	store := NewInMemPwdStore()
-	err := store.SetPbkdf2Hash(identifier, hash, salt, iterations)
+	err := store.SetPbkdf2Hash(identifier, hashStruct)
 	assert.Error(t, err)
 	assert.Equal(t, InsufficientIterationsError, err)
 }
