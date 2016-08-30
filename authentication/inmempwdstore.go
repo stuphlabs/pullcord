@@ -13,7 +13,7 @@ const Pbkdf2KeyLength = 64
 
 // Pbkdf2MinIterations is the minimum number of iterations allowed for PBKDF2
 // hashes.
-const Pbkdf2MinIterations = 4096
+const Pbkdf2MinIterations = uint16(4096)
 
 type errorString string
 
