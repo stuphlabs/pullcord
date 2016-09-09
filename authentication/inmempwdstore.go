@@ -29,7 +29,7 @@ const InsufficientIterationsError = errorString(
 	"The number of iterations must be at least Pbkdf2MinIterations",
 )
 
-// InsufficientIterationsError is the error object that is returned if the
+// InsufficientEntropyError is the error object that is returned if the
 // operating system does not have enough entropy to generated a random salt of
 // length Pbkdf2KeyLength.
 const InsufficientEntropyError = errorString(
