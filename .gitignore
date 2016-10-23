@@ -2,5 +2,11 @@
 pullcord
 scale-down
 scaledown
+
+# don't include temporary or other miscellaneous local files
 *~
 *.swp
+*.bak
+
+# don't include generated output files
+*.out
