@@ -19,7 +19,9 @@ func TestMinSessionHandlerFirstPass(t *testing.T) {
 
 	/* run */
 	handler := NewMinSessionHandler("testHandler", "/", "example.com")
-	fwd, stc, ctx, err := handler.CookieMask(nil)
+	sesh, err := handler.GetSession()
+	assert.NoError(t, err)
+	fwd, stc, err := sesh.CookieMask(nil)
 
 	/* check */
 	assert.NoError(t, err)
@@ -28,10 +30,12 @@ func TestMinSessionHandlerFirstPass(t *testing.T) {
 	if stc != nil {
 		assert.Equal(t, 1, len(stc))
 	}
-	assert.NotNil(t, ctx)
-	if ctx != nil {
-		assert.Equal(t, 0, len(ctx))
+	assert.NotNil(t, sesh)
+	/*
+	if sesh != nil {
+		assert.Equal(t, 0, len(sesh))
 	}
+	*/
 }
 
 // TestMinSessionHandlerReuseCookie tests if a MinSessionHandler will accept a
@@ -49,11 +53,15 @@ func TestMinSessionHandlerReuseCookie(t *testing.T) {
 
 	/* run */
 	handler := NewMinSessionHandler("testHandler", "/", "example.com")
-	fwd1, stc1, ctx1, err1 := handler.CookieMask(nil)
+	sesh1, err := handler.GetSession()
+	assert.NoError(t, err)
+	fwd1, stc1, err1 := sesh1.CookieMask(nil)
 	for _, cookie := range stc1 {
 		local_cookies = append(local_cookies, cookie)
 	}
-	fwd2, stc2, ctx2, err2 := handler.CookieMask(local_cookies)
+	sesh2, err := handler.GetSession()
+	assert.NoError(t, err)
+	fwd2, stc2, err2 := sesh2.CookieMask(local_cookies)
 
 	/* check */
 	assert.NoError(t, err1)
@@ -65,14 +73,18 @@ func TestMinSessionHandlerReuseCookie(t *testing.T) {
 		assert.Equal(t, 1, len(stc1))
 	}
 	assert.Nil(t, stc2)
-	assert.NotNil(t, ctx1)
-	if ctx1 != nil {
-		assert.Equal(t, 0, len(ctx1))
+	assert.NotNil(t, sesh1)
+	/*
+	if sesh1 != nil {
+		assert.Equal(t, 0, len(sesh1))
 	}
-	assert.NotNil(t, ctx2)
-	if ctx2 != nil {
-		assert.Equal(t, 0, len(ctx2))
+	*/
+	assert.NotNil(t, sesh2)
+	/*
+	if sesh2 != nil {
+		assert.Equal(t, 0, len(sesh2))
 	}
+	*/
 }
 
 // TestMinSessionHandlerSessionDataPreservation tests if a MinSessionHandler
@@ -93,19 +105,26 @@ func TestMinSessionHandlerSessionDataPreservation(t *testing.T) {
 
 	/* run */
 	handler := NewMinSessionHandler("testHandler", "/", "example.com")
-	fwd1, stc1, ctx1, err1 := handler.CookieMask(nil)
+	sesh1, err := handler.GetSession()
+	assert.NoError(t, err)
+	fwd1, stc1, err1 := sesh1.CookieMask(nil)
+	_, present1 := sesh1.GetValue(expected_key)
 	for _, cookie := range stc1 {
 		local_cookies = append(local_cookies, cookie)
 
 		/* intermediate check */
-		_, present1 := ctx1[expected_key]
-		assert.False(t, present1)
+		_, present1 := sesh1.GetValue(expected_key)
+		assert.Error(t, present1)
+		assert.Equal(t, present1, NoSuchSessionValueError)
 
 		expected_string := "saving data into " + cookie.Name + " cookie"
 		expected_data[expected_key] = expected_string
-		ctx1[expected_key] = expected_string
+		err := sesh1.SetValue(expected_key, expected_string)
+		assert.NoError(t, err)
 	}
-	fwd2, stc2, ctx2, err2 := handler.CookieMask(local_cookies)
+	sesh2, err := handler.GetSession()
+	assert.NoError(t, err)
+	fwd2, stc2, err2 := sesh2.CookieMask(local_cookies)
 
 	/* check */
 	assert.NoError(t, err1)
@@ -117,17 +136,20 @@ func TestMinSessionHandlerSessionDataPreservation(t *testing.T) {
 		assert.Equal(t, 1, len(stc1))
 	}
 	assert.Nil(t, stc2)
-	assert.NotNil(t, ctx1)
-	assert.NotNil(t, ctx2)
-	if ctx2 != nil {
-		assert.Equal(t, 1, len(ctx2))
+	assert.NotNil(t, sesh1)
+	assert.NotNil(t, sesh2)
+	/*
+	if sesh2 != nil {
+		assert.Equal(t, 1, len(sesh2))
 	}
+	*/
 
-	_, present1 := ctx1[expected_key]
-	assert.True(t, present1)
+	assert.Error(t, present1)
+	assert.Equal(t, present1, NoSuchSessionValueError)
 
-	actual_data2, present2 := ctx2[expected_key]
-	assert.True(t, present2)
+	actual_data2, present2 := sesh2.GetValue(expected_key)
+	assert.NoError(t, present2)
+	assert.NotEqual(t, present2, NoSuchSessionValueError)
 	assert.Equal(t, expected_data[expected_key], actual_data2)
 }
 
@@ -148,14 +170,18 @@ func TestMinSessionHandlerBadCookie(t *testing.T) {
 
 	/* run */
 	handler := NewMinSessionHandler("testHandler", "/", "example.com")
-	fwd1, stc1, ctx1, err1 := handler.CookieMask(nil)
+	sesh1, err := handler.GetSession()
+	assert.NoError(t, err)
+	fwd1, stc1, err1 := sesh1.CookieMask(nil)
 	for _, cookie := range stc1 {
 		cookie.Value = cookie.Value + "bad"
 		bad_cookie.Name = cookie.Name
 		bad_cookie.Value = cookie.Value
 		local_cookies = append(local_cookies, cookie)
 	}
-	fwd2, stc2, ctx2, err2 := handler.CookieMask(local_cookies)
+	sesh2, err := handler.GetSession()
+	assert.NoError(t, err)
+	fwd2, stc2, err2 := sesh2.CookieMask(local_cookies)
 
 	/* check */
 	assert.NoError(t, err1)
@@ -179,14 +205,18 @@ func TestMinSessionHandlerBadCookie(t *testing.T) {
 		}
 	}
 	assert.True(t, bad_cookie_deleted)
-	assert.NotNil(t, ctx1)
-	if ctx1 != nil {
-		assert.Equal(t, 0, len(ctx1))
+	assert.NotNil(t, sesh1)
+	/*
+	if sesh1 != nil {
+		assert.Equal(t, 0, len(sesh1))
 	}
-	assert.NotNil(t, ctx2)
-	if ctx2 != nil {
-		assert.Equal(t, 0, len(ctx2))
+	*/
+	assert.NotNil(t, sesh2)
+	/*
+	if sesh2 != nil {
+		assert.Equal(t, 0, len(sesh2))
 	}
+	*/
 }
 
 // TestMinSessionHandlerInvalidCookie tests if a MinSessionHandler rejects a
@@ -213,7 +243,9 @@ func TestMinSessionHandlerInvalidCookie(t *testing.T) {
 
 	/* run */
 	handler := NewMinSessionHandler("testHandler", "/", "example.com")
-	fwd, stc, ctx, err := handler.CookieMask(local_cookies)
+	sesh, err := handler.GetSession()
+	assert.NoError(t, err)
+	fwd, stc, err := sesh.CookieMask(local_cookies)
 
 	/* check */
 	assert.NoError(t, err)
@@ -231,10 +263,12 @@ func TestMinSessionHandlerInvalidCookie(t *testing.T) {
 		}
 	}
 	assert.True(t, bad_cookie_deleted)
-	assert.NotNil(t, ctx)
-	if ctx != nil {
-		assert.Equal(t, 0, len(ctx))
+	assert.NotNil(t, sesh)
+	/*
+	if sesh != nil {
+		assert.Equal(t, 0, len(sesh))
 	}
+	*/
 }
 
 // TestMinSessionHandlerMultiSession tests if a MinSessionHandler can correctly
@@ -264,17 +298,17 @@ func TestMinSessionHandlerMultiSession(t *testing.T) {
 	var (
 		local_cookies1    []*http.Cookie
 		local_cookies2    []*http.Cookie
-		ctx_key           = "test key"
-		expected_present1 = false
-		actual_present1   bool
-		expected_present2 = false
-		actual_present2   bool
-		expected_present3 = true
-		actual_present3   bool
-		expected_present4 = true
-		actual_present4   bool
-		expected_present5 = true
-		actual_present5   bool
+		sesh_key           = "test key"
+		expected_present1 = NoSuchSessionValueError
+		actual_present1   error
+		expected_present2 = NoSuchSessionValueError
+		actual_present2   error
+		expected_present3 = error(nil)
+		actual_present3   error
+		expected_present4 = error(nil)
+		actual_present4   error
+		expected_present5 = error(nil)
+		actual_present5   error
 		expected_value3   = "test 3"
 		actual_value3     interface{}
 		expected_value4   = "test 4"
@@ -289,29 +323,42 @@ func TestMinSessionHandlerMultiSession(t *testing.T) {
 	/* run */
 	handler := NewMinSessionHandler("testHandler", "/", "example.com")
 
-	fwd1, stc1, ctx1, err1 := handler.CookieMask(local_cookies1)
+	sesh1, err := handler.GetSession()
+	assert.NoError(t, err)
+	fwd1, stc1, err1 := sesh1.CookieMask(local_cookies1)
 	for _, cookie := range stc1 {
 		local_cookies1 = append(local_cookies1, cookie)
 	}
-	_, actual_present1 = ctx1[ctx_key]
-	ctx1[ctx_key] = save_value1
+	_, actual_present1 = sesh1.GetValue(sesh_key)
+	err = sesh1.SetValue(sesh_key, save_value1)
+	assert.NoError(t, err)
 
-	fwd2, stc2, ctx2, err2 := handler.CookieMask(local_cookies2)
+	sesh2, err := handler.GetSession()
+	assert.NoError(t, err)
+	fwd2, stc2, err2 := sesh2.CookieMask(local_cookies2)
 	for _, cookie := range stc2 {
 		local_cookies2 = append(local_cookies2, cookie)
 	}
-	_, actual_present2 = ctx2[ctx_key]
-	ctx2[ctx_key] = save_value2
+	_, actual_present2 = sesh2.GetValue(sesh_key)
+	err = sesh2.SetValue(sesh_key, save_value2)
+	assert.NoError(t, err)
 
-	fwd3, stc3, ctx3, err3 := handler.CookieMask(local_cookies2)
-	actual_value3, actual_present3 = ctx3[ctx_key]
-	ctx3[ctx_key] = save_value3
+	sesh3, err := handler.GetSession()
+	assert.NoError(t, err)
+	fwd3, stc3, err3 := sesh3.CookieMask(local_cookies2)
+	actual_value3, actual_present3 = sesh3.GetValue(sesh_key)
+	err = sesh3.SetValue(sesh_key, save_value3)
+	assert.NoError(t, err)
 
-	fwd4, stc4, ctx4, err4 := handler.CookieMask(local_cookies1)
-	actual_value4, actual_present4 = ctx4[ctx_key]
+	sesh4, err := handler.GetSession()
+	assert.NoError(t, err)
+	fwd4, stc4, err4 := sesh4.CookieMask(local_cookies1)
+	actual_value4, actual_present4 = sesh4.GetValue(sesh_key)
 
-	fwd5, stc5, ctx5, err5 := handler.CookieMask(local_cookies2)
-	actual_value5, actual_present5 = ctx5[ctx_key]
+	sesh5, err := handler.GetSession()
+	assert.NoError(t, err)
+	fwd5, stc5, err5 := sesh5.CookieMask(local_cookies2)
+	actual_value5, actual_present5 = sesh5.GetValue(sesh_key)
 
 	/* check */
 	assert.NoError(t, err1)
@@ -367,13 +414,13 @@ func TestMinSessionHandlerBadCookieDestroysSession(t *testing.T) {
 		good_cookies             []*http.Cookie
 		bad_cookies              []*http.Cookie
 		bad_cookie               http.Cookie
-		ctx_key                  = "test key"
-		expected_ctx_present1    = false
-		actual_ctx_present1      bool
-		expected_ctx_present2    = false
-		actual_ctx_present2      bool
-		expected_ctx_present3    = false
-		actual_ctx_present3      bool
+		sesh_key                  = "test key"
+		expected_sesh_present1    = NoSuchSessionValueError
+		actual_sesh_present1      error
+		expected_sesh_present2    = NoSuchSessionValueError
+		actual_sesh_present2      error
+		expected_sesh_present3    = NoSuchSessionValueError
+		actual_sesh_present3      error
 		expected_cookie_present2 = true
 		actual_cookie_present2   bool
 		expected_cookie_present3 = true
@@ -384,33 +431,40 @@ func TestMinSessionHandlerBadCookieDestroysSession(t *testing.T) {
 	/* run */
 	handler := NewMinSessionHandler("testHandler", "/", "example.com")
 
-	fwd1, stc1, ctx1, err1 := handler.CookieMask(nil)
+	sesh1, err := handler.GetSession()
+	assert.NoError(t, err)
+	fwd1, stc1, err1 := sesh1.CookieMask(nil)
 	for _, good_cookie := range stc1 {
 		good_cookies = append(good_cookies, good_cookie)
 		bad_cookie.Name = good_cookie.Name
 		bad_cookie.Value = good_cookie.Value + " bar"
 		bad_cookies = append(bad_cookies, &bad_cookie)
 	}
-	_, actual_ctx_present1 = ctx1[ctx_key]
-	ctx1[ctx_key] = save_value
+	_, actual_sesh_present1 = sesh1.GetValue(sesh_key)
+	err = sesh1.SetValue(sesh_key, save_value)
+	assert.NoError(t, err)
 
-	fwd2, stc2, ctx2, err2 := handler.CookieMask(bad_cookies)
+	sesh2, err := handler.GetSession()
+	assert.NoError(t, err)
+	fwd2, stc2, err2 := sesh2.CookieMask(bad_cookies)
 	actual_cookie_present2 = false
 	for _, cookie := range stc2 {
 		if cookie.Name == bad_cookie.Name {
 			actual_cookie_present2 = true
 		}
 	}
-	_, actual_ctx_present2 = ctx2[ctx_key]
+	_, actual_sesh_present2 = sesh2.GetValue(sesh_key)
 
-	fwd3, stc3, ctx3, err3 := handler.CookieMask(good_cookies)
+	sesh3, err := handler.GetSession()
+	assert.NoError(t, err)
+	fwd3, stc3, err3 := sesh3.CookieMask(good_cookies)
 	actual_cookie_present3 = false
 	for _, cookie := range stc3 {
 		if cookie.Name == bad_cookie.Name {
 			actual_cookie_present3 = true
 		}
 	}
-	_, actual_ctx_present3 = ctx3[ctx_key]
+	_, actual_sesh_present3 = sesh3.GetValue(sesh_key)
 
 	/* check */
 	assert.NoError(t, err1)
@@ -431,9 +485,9 @@ func TestMinSessionHandlerBadCookieDestroysSession(t *testing.T) {
 	if stc3 != nil {
 		assert.Equal(t, 2, len(stc3))
 	}
-	assert.Equal(t, expected_ctx_present1, actual_ctx_present1)
-	assert.Equal(t, expected_ctx_present2, actual_ctx_present2)
-	assert.Equal(t, expected_ctx_present3, actual_ctx_present3)
+	assert.Equal(t, expected_sesh_present1, actual_sesh_present1)
+	assert.Equal(t, expected_sesh_present2, actual_sesh_present2)
+	assert.Equal(t, expected_sesh_present3, actual_sesh_present3)
 	assert.Equal(t, expected_cookie_present2, actual_cookie_present2)
 	assert.Equal(t, expected_cookie_present3, actual_cookie_present3)
 }
@@ -478,15 +532,15 @@ func TestMinSessionHandlerNonInterfering(t *testing.T) {
 	var (
 		local_cookies1    []*http.Cookie
 		local_cookies2    []*http.Cookie
-		ctx_key           = "test key"
-		expected_present1 = false
-		actual_present1   bool
-		expected_present2 = false
-		actual_present2   bool
-		expected_present3 = true
-		actual_present3   bool
-		expected_present4 = false
-		actual_present4   bool
+		sesh_key           = "test key"
+		expected_present1 = NoSuchSessionValueError
+		actual_present1   error
+		expected_present2 = NoSuchSessionValueError
+		actual_present2   error
+		expected_present3 = error(nil)
+		actual_present3   error
+		expected_present4 = NoSuchSessionValueError
+		actual_present4   error
 		save_value1       = "saved 1"
 		save_value2       = "saved 2"
 		expected_value3   = save_value2
@@ -497,7 +551,9 @@ func TestMinSessionHandlerNonInterfering(t *testing.T) {
 	handler1 := NewMinSessionHandler("testHandler1", "/", "example.com")
 	handler2 := NewMinSessionHandler("testHandler2", "/", "example.com")
 
-	fwd1, stc1, ctx1, err1 := handler1.CookieMask(local_cookies1)
+	sesh1, err := handler1.GetSession()
+	assert.NoError(t, err)
+	fwd1, stc1, err1 := sesh1.CookieMask(local_cookies1)
 	for _, cookie := range stc1 {
 		var bad_cookie http.Cookie
 		local_cookies1 = append(local_cookies1, cookie)
@@ -505,22 +561,30 @@ func TestMinSessionHandlerNonInterfering(t *testing.T) {
 		bad_cookie.Value = cookie.Value + " bar"
 		local_cookies2 = append(local_cookies2, &bad_cookie)
 	}
-	_, actual_present1 = ctx1[ctx_key]
-	ctx1[ctx_key] = save_value1
+	_, actual_present1 = sesh1.GetValue(sesh_key)
+	err = sesh1.SetValue(sesh_key, save_value1)
+	assert.NoError(t, err)
 
-	fwd2, stc2, ctx2, err2 := handler2.CookieMask(local_cookies1)
+	sesh2, err := handler2.GetSession()
+	assert.NoError(t, err)
+	fwd2, stc2, err2 := sesh2.CookieMask(local_cookies1)
 	for _, cookie := range stc2 {
 		local_cookies1 = append(local_cookies1, cookie)
 		local_cookies2 = append(local_cookies2, cookie)
 	}
-	_, actual_present2 = ctx2[ctx_key]
-	ctx2[ctx_key] = save_value2
+	_, actual_present2 = sesh2.GetValue(sesh_key)
+	err = sesh2.SetValue(sesh_key, save_value2)
+	assert.NoError(t, err)
 
-	fwd3, stc3, ctx3, err3 := handler2.CookieMask(local_cookies2)
-	actual_value3, actual_present3 = ctx3[ctx_key]
+	sesh3, err := handler2.GetSession()
+	assert.NoError(t, err)
+	fwd3, stc3, err3 := sesh3.CookieMask(local_cookies2)
+	actual_value3, actual_present3 = sesh3.GetValue(sesh_key)
 
-	fwd4, stc4, ctx4, err4 := handler1.CookieMask(local_cookies2)
-	_, actual_present4 = ctx4[ctx_key]
+	sesh4, err := handler1.GetSession()
+	assert.NoError(t, err)
+	fwd4, stc4, err4 := sesh4.CookieMask(local_cookies2)
+	_, actual_present4 = sesh4.GetValue(sesh_key)
 
 	/* check */
 	assert.NoError(t, err1)
