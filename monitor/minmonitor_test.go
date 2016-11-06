@@ -2,13 +2,17 @@ package monitor
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"github.com/fitstar/falcore"
 	"github.com/stretchr/testify/assert"
 	"github.com/stuphlabs/pullcord"
+	"io/ioutil"
 	"net"
+	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 )
@@ -419,4 +423,432 @@ func TestMinMonitorAddExistant(t *testing.T) {
 	)
 	assert.Error(t, err)
 	assert.Equal(t, DuplicateServiceRegistrationError, err)
+}
+
+func TestMonitorFilterUp(t *testing.T) {
+	request, err := http.NewRequest("GET", "http://localhost", nil)
+	assert.NoError(t, err)
+
+	testServiceName := "test"
+	testHost := "localhost"
+	testProtocol := "tcp"
+	gracePeriod := time.Duration(0)
+
+	landingPipeline := falcore.NewPipeline()
+	landingPipeline.Upstream.PushBack(pullcord.NewLandingFilter())
+	landingServer := falcore.NewServer(0, landingPipeline)
+	go serveLandingPage(landingServer)
+	defer landingServer.StopAccepting()
+
+	<- landingServer.AcceptReady
+
+	service, err := NewMonitorredService(
+		testHost,
+		landingServer.Port(),
+		testProtocol,
+		gracePeriod,
+	)
+	assert.NoError(t, err)
+	mon := NewMinMonitor()
+	err = mon.Add(
+		testServiceName,
+		service,
+	)
+	assert.NoError(t, err)
+
+	filter, err := mon.NewMonitorFilter(testServiceName, nil, nil, nil)
+	assert.NoError(t, err)
+
+	_, response := falcore.TestWithRequest(
+		request,
+		filter,
+		nil,
+	)
+
+	assert.Equal(t, 200, response.StatusCode)
+	contents, err := ioutil.ReadAll(response.Body)
+	assert.NoError(t, err)
+	assert.True(
+		t,
+		strings.Contains(string(contents), "Pullcord Landing Page"),
+		"content is: " + string(contents),
+	)
+}
+
+func TestMonitorFilterDown(t *testing.T) {
+	request, err := http.NewRequest("GET", "http://localhost", nil)
+	assert.NoError(t, err)
+
+	testServiceName := "test"
+	testHost := "localhost"
+	testProtocol := "tcp"
+	gracePeriod := time.Duration(0)
+
+	server, err := net.Listen(testProtocol, ":0")
+	assert.NoError(t, err)
+	_, rawPort, err := net.SplitHostPort(server.Addr().String())
+	assert.NoError(t, err)
+	testPort, err := strconv.Atoi(rawPort)
+	assert.NoError(t, err)
+	err = server.Close()
+	assert.NoError(t, err)
+
+	svc, err := NewMonitorredService(
+		testHost,
+		testPort,
+		testProtocol,
+		gracePeriod,
+	)
+	assert.NoError(t, err)
+	mon := NewMinMonitor()
+	err = mon.Add(
+		testServiceName,
+		svc,
+	)
+	assert.NoError(t, err)
+
+	filter, err := mon.NewMonitorFilter(testServiceName, nil, nil, nil)
+	assert.NoError(t, err)
+
+	_, response := falcore.TestWithRequest(
+		request,
+		filter,
+		nil,
+	)
+
+	assert.Equal(t, 503, response.StatusCode)
+	contents, err := ioutil.ReadAll(response.Body)
+	assert.NoError(t, err)
+	assert.True(
+		t,
+		strings.Contains(string(contents), "Service Not Ready"),
+		"content is: " + string(contents),
+	)
+}
+
+func TestMonitorFilterBadServiceName(t *testing.T) {
+	mon := NewMinMonitor()
+	_, err := mon.NewMonitorFilter("error", nil, nil, nil)
+	assert.Error(t, err)
+}
+
+type counterTriggerHandler struct {
+	name string
+	count uint
+}
+
+func (th *counterTriggerHandler) TriggerString(name string) error {
+	if name == th.name {
+		th.count += 1
+		return nil
+	} else {
+		return errors.New("bad trigger string")
+	}
+}
+
+func TestMonitorFilterUpTriggers(t *testing.T) {
+	request, err := http.NewRequest("GET", "http://localhost", nil)
+	assert.NoError(t, err)
+
+	testServiceName := "test"
+	testHost := "localhost"
+	testProtocol := "tcp"
+	gracePeriod := time.Duration(0)
+
+	landingPipeline := falcore.NewPipeline()
+	landingPipeline.Upstream.PushBack(pullcord.NewLandingFilter())
+	landingServer := falcore.NewServer(0, landingPipeline)
+	go serveLandingPage(landingServer)
+	defer landingServer.StopAccepting()
+
+	<- landingServer.AcceptReady
+
+	service, err := NewMonitorredService(
+		testHost,
+		landingServer.Port(),
+		testProtocol,
+		gracePeriod,
+	)
+	assert.NoError(t, err)
+	mon := NewMinMonitor()
+	err = mon.Add(
+		testServiceName,
+		service,
+	)
+	assert.NoError(t, err)
+
+	onDown := &counterTriggerHandler{testServiceName, 0}
+	onUp := &counterTriggerHandler{testServiceName, 0}
+	always := &counterTriggerHandler{testServiceName, 0}
+
+	filter, err := mon.NewMonitorFilter(
+		testServiceName,
+		onDown,
+		onUp,
+		always,
+	)
+	assert.NoError(t, err)
+
+	_, response := falcore.TestWithRequest(
+		request,
+		filter,
+		nil,
+	)
+
+	assert.Equal(t, 200, response.StatusCode)
+	contents, err := ioutil.ReadAll(response.Body)
+	assert.NoError(t, err)
+	assert.True(
+		t,
+		strings.Contains(string(contents), "Pullcord Landing Page"),
+		"content is: " + string(contents),
+	)
+	assert.Equal(t, uint(0), onDown.count)
+	assert.Equal(t, uint(1), onUp.count)
+	assert.Equal(t, uint(1), always.count)
+}
+
+func TestMonitorFilterDownTriggers(t *testing.T) {
+	request, err := http.NewRequest("GET", "http://localhost", nil)
+	assert.NoError(t, err)
+
+	testServiceName := "test"
+	testHost := "localhost"
+	testProtocol := "tcp"
+	gracePeriod := time.Duration(0)
+
+	server, err := net.Listen(testProtocol, ":0")
+	assert.NoError(t, err)
+	_, rawPort, err := net.SplitHostPort(server.Addr().String())
+	assert.NoError(t, err)
+	testPort, err := strconv.Atoi(rawPort)
+	assert.NoError(t, err)
+	err = server.Close()
+	assert.NoError(t, err)
+
+	svc, err := NewMonitorredService(
+		testHost,
+		testPort,
+		testProtocol,
+		gracePeriod,
+	)
+	assert.NoError(t, err)
+	mon := NewMinMonitor()
+	err = mon.Add(
+		testServiceName,
+		svc,
+	)
+	assert.NoError(t, err)
+
+	onDown := &counterTriggerHandler{testServiceName, 0}
+	onUp := &counterTriggerHandler{testServiceName, 0}
+	always := &counterTriggerHandler{testServiceName, 0}
+
+	filter, err := mon.NewMonitorFilter(
+		testServiceName,
+		onDown,
+		onUp,
+		always,
+	)
+	assert.NoError(t, err)
+
+	_, response := falcore.TestWithRequest(
+		request,
+		filter,
+		nil,
+	)
+
+	assert.Equal(t, 503, response.StatusCode)
+	contents, err := ioutil.ReadAll(response.Body)
+	assert.NoError(t, err)
+	assert.True(
+		t,
+		strings.Contains(string(contents), "Service Not Ready"),
+		"content is: " + string(contents),
+	)
+	assert.Equal(t, uint(1), onDown.count)
+	assert.Equal(t, uint(0), onUp.count)
+	assert.Equal(t, uint(1), always.count)
+}
+
+func TestMonitorFilterUpOnUpTriggerError(t *testing.T) {
+	request, err := http.NewRequest("GET", "http://localhost", nil)
+	assert.NoError(t, err)
+
+	testServiceName := "test"
+	testHost := "localhost"
+	testProtocol := "tcp"
+	gracePeriod := time.Duration(0)
+
+	landingPipeline := falcore.NewPipeline()
+	landingPipeline.Upstream.PushBack(pullcord.NewLandingFilter())
+	landingServer := falcore.NewServer(0, landingPipeline)
+	go serveLandingPage(landingServer)
+	defer landingServer.StopAccepting()
+
+	<- landingServer.AcceptReady
+
+	service, err := NewMonitorredService(
+		testHost,
+		landingServer.Port(),
+		testProtocol,
+		gracePeriod,
+	)
+	assert.NoError(t, err)
+	mon := NewMinMonitor()
+	err = mon.Add(
+		testServiceName,
+		service,
+	)
+	assert.NoError(t, err)
+
+	onDown := &counterTriggerHandler{testServiceName, 0}
+	onUp := &counterTriggerHandler{"error", 0}
+	always := &counterTriggerHandler{testServiceName, 0}
+
+	filter, err := mon.NewMonitorFilter(
+		testServiceName,
+		onDown,
+		onUp,
+		always,
+	)
+	assert.NoError(t, err)
+
+	_, response := falcore.TestWithRequest(
+		request,
+		filter,
+		nil,
+	)
+
+	assert.Equal(t, 500, response.StatusCode)
+	contents, err := ioutil.ReadAll(response.Body)
+	assert.NoError(t, err)
+	assert.True(
+		t,
+		strings.Contains(string(contents), "Internal Server Error"),
+		"content is: " + string(contents),
+	)
+	assert.Equal(t, uint(0), onUp.count)
+}
+
+func TestMonitorFilterDownOnDownTriggerError(t *testing.T) {
+	request, err := http.NewRequest("GET", "http://localhost", nil)
+	assert.NoError(t, err)
+
+	testServiceName := "test"
+	testHost := "localhost"
+	testProtocol := "tcp"
+	gracePeriod := time.Duration(0)
+
+	server, err := net.Listen(testProtocol, ":0")
+	assert.NoError(t, err)
+	_, rawPort, err := net.SplitHostPort(server.Addr().String())
+	assert.NoError(t, err)
+	testPort, err := strconv.Atoi(rawPort)
+	assert.NoError(t, err)
+	err = server.Close()
+	assert.NoError(t, err)
+
+	svc, err := NewMonitorredService(
+		testHost,
+		testPort,
+		testProtocol,
+		gracePeriod,
+	)
+	assert.NoError(t, err)
+	mon := NewMinMonitor()
+	err = mon.Add(
+		testServiceName,
+		svc,
+	)
+	assert.NoError(t, err)
+
+	onDown := &counterTriggerHandler{"error", 0}
+	onUp := &counterTriggerHandler{testServiceName, 0}
+	always := &counterTriggerHandler{testServiceName, 0}
+
+	filter, err := mon.NewMonitorFilter(
+		testServiceName,
+		onDown,
+		onUp,
+		always,
+	)
+	assert.NoError(t, err)
+
+	_, response := falcore.TestWithRequest(
+		request,
+		filter,
+		nil,
+	)
+
+	assert.Equal(t, 500, response.StatusCode)
+	contents, err := ioutil.ReadAll(response.Body)
+	assert.NoError(t, err)
+	assert.True(
+		t,
+		strings.Contains(string(contents), "Internal Server Error"),
+		"content is: " + string(contents),
+	)
+	assert.Equal(t, uint(0), onDown.count)
+}
+
+func TestMonitorFilterDownAlwaysTriggerError(t *testing.T) {
+	request, err := http.NewRequest("GET", "http://localhost", nil)
+	assert.NoError(t, err)
+
+	testServiceName := "test"
+	testHost := "localhost"
+	testProtocol := "tcp"
+	gracePeriod := time.Duration(0)
+
+	server, err := net.Listen(testProtocol, ":0")
+	assert.NoError(t, err)
+	_, rawPort, err := net.SplitHostPort(server.Addr().String())
+	assert.NoError(t, err)
+	testPort, err := strconv.Atoi(rawPort)
+	assert.NoError(t, err)
+	err = server.Close()
+	assert.NoError(t, err)
+
+	svc, err := NewMonitorredService(
+		testHost,
+		testPort,
+		testProtocol,
+		gracePeriod,
+	)
+	assert.NoError(t, err)
+	mon := NewMinMonitor()
+	err = mon.Add(
+		testServiceName,
+		svc,
+	)
+	assert.NoError(t, err)
+
+	onDown := &counterTriggerHandler{testServiceName, 0}
+	onUp := &counterTriggerHandler{testServiceName, 0}
+	always := &counterTriggerHandler{"error", 0}
+
+	filter, err := mon.NewMonitorFilter(
+		testServiceName,
+		onDown,
+		onUp,
+		always,
+	)
+	assert.NoError(t, err)
+
+	_, response := falcore.TestWithRequest(
+		request,
+		filter,
+		nil,
+	)
+
+	assert.Equal(t, 500, response.StatusCode)
+	contents, err := ioutil.ReadAll(response.Body)
+	assert.NoError(t, err)
+	assert.True(
+		t,
+		strings.Contains(string(contents), "Internal Server Error"),
+		"content is: " + string(contents),
+	)
+	assert.Equal(t, uint(0), always.count)
 }
