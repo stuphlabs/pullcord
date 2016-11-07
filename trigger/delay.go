@@ -16,16 +16,15 @@ type DelayTrigger struct {
 	c chan<- string
 }
 
-func delaytrigger(tr TriggerHandler, dla time.Duration, ac <-chan string) {
-	var tmr *time.Timer
-	var arg string
+func delaytrigger(
+	tr TriggerHandler,
+	dla time.Duration,
+	iarg string,
+	ac <-chan string,
+) {
+	tmr := time.NewTimer(dla)
+	arg := iarg
 	for {
-		var c *<-chan time.Time
-		if tmr == nil {
-			c = nil
-		} else {
-			c = &tmr.C
-		}
 		select {
 		case narg, ok := <-ac:
 			if tmr != nil && !tmr.Stop() {
@@ -37,7 +36,7 @@ func delaytrigger(tr TriggerHandler, dla time.Duration, ac <-chan string) {
 				arg = narg
 				tmr.Reset(dla)
 			}
-		case <-*c:
+		case <-tmr.C:
 			if err := tr.TriggerString(arg); err != nil {
 				log().Err(
 					fmt.Sprintf(
@@ -47,7 +46,7 @@ func delaytrigger(tr TriggerHandler, dla time.Duration, ac <-chan string) {
 					),
 				)
 			}
-			tmr = nil
+			tmr.Stop()
 		}
 	}
 }
@@ -61,10 +60,10 @@ func (dt *DelayTrigger) TriggerString(arg string) error {
 		fc := make(chan string)
 		dt.c = fc
 
-		go delaytrigger(dt.Trigger, dt.Delay, fc)
+		go delaytrigger(dt.Trigger, dt.Delay, arg, fc)
+	} else {
+		dt.c <-arg
 	}
-
-	dt.c <-arg
 
 	return nil
 }

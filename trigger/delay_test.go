@@ -22,7 +22,7 @@ func (th *counterTriggerHandler) TriggerString(name string) error {
 	}
 }
 
-func TestDelayTrigger(t *testing.T) {
+func TestDelayTriggerSingleDelay(t *testing.T) {
 	testString := "testing"
 	cth := &counterTriggerHandler{testString, 0}
 
@@ -31,11 +31,109 @@ func TestDelayTrigger(t *testing.T) {
 	dt.Delay = time.Second
 
 	err := dt.TriggerString(testString)
-	assert.Error(t, err)
+	assert.NoError(t, err)
+	assert.Equal(t, uint(0), cth.count)
+
+	time.Sleep(2*time.Second)
+
 	assert.Equal(t, uint(1), cth.count)
+}
 
-	time.Sleep(time.Second)
+func TestDelayTriggerDoubleDelay(t *testing.T) {
+	testString := "testing"
+	cth := &counterTriggerHandler{testString, 0}
 
-	assert.Equal(t, uint(2), cth.count)
+	var dt DelayTrigger
+	dt.Trigger = cth
+	dt.Delay = 3 * time.Second
+
+	err := dt.TriggerString(testString)
+	assert.NoError(t, err)
+	assert.Equal(t, uint(0), cth.count)
+
+	time.Sleep(2 * time.Second)
+	assert.Equal(t, uint(0), cth.count)
+	err = dt.TriggerString(testString)
+	assert.NoError(t, err)
+	assert.Equal(t, uint(0), cth.count)
+
+	time.Sleep(2 * time.Second)
+	// the trigger would have definitely fired by now if the second delay
+	// hadn't occurred when it did
+	assert.Equal(t, uint(0), cth.count)
+
+	time.Sleep(2*time.Second)
+	assert.Equal(t, uint(1), cth.count)
+}
+
+func TestDelayTriggerErrorMasking(t *testing.T) {
+	testString := "testing"
+	cth := &counterTriggerHandler{testString, 0}
+
+	var dt DelayTrigger
+	dt.Trigger = cth
+	dt.Delay = time.Second
+
+	err := dt.TriggerString("error")
+	assert.NoError(t, err)
+	assert.Equal(t, uint(0), cth.count)
+
+	time.Sleep(2*time.Second)
+
+	assert.Equal(t, uint(0), cth.count)
+}
+
+func TestDelayTriggerReplaceError(t *testing.T) {
+	testString := "testing"
+	cth := &counterTriggerHandler{testString, 0}
+
+	var dt DelayTrigger
+	dt.Trigger = cth
+	dt.Delay = 3 * time.Second
+
+	err := dt.TriggerString("error")
+	assert.NoError(t, err)
+	assert.Equal(t, uint(0), cth.count)
+
+	time.Sleep(2 * time.Second)
+	assert.Equal(t, uint(0), cth.count)
+	err = dt.TriggerString(testString)
+	assert.NoError(t, err)
+	assert.Equal(t, uint(0), cth.count)
+
+	time.Sleep(2 * time.Second)
+	// the trigger would have definitely fired by now if the second delay
+	// hadn't occurred when it did
+	assert.Equal(t, uint(0), cth.count)
+
+	time.Sleep(2*time.Second)
+	assert.Equal(t, uint(1), cth.count)
+}
+
+func TestDelayTriggerIntroduceError(t *testing.T) {
+	testString := "testing"
+	cth := &counterTriggerHandler{testString, 0}
+
+	var dt DelayTrigger
+	dt.Trigger = cth
+	dt.Delay = 3 * time.Second
+
+	err := dt.TriggerString(testString)
+	assert.NoError(t, err)
+	assert.Equal(t, uint(0), cth.count)
+
+	time.Sleep(2 * time.Second)
+	assert.Equal(t, uint(0), cth.count)
+	err = dt.TriggerString("error")
+	assert.NoError(t, err)
+	assert.Equal(t, uint(0), cth.count)
+
+	time.Sleep(2 * time.Second)
+	// the trigger would have definitely fired by now if the second delay
+	// hadn't occurred when it did
+	assert.Equal(t, uint(0), cth.count)
+
+	time.Sleep(2*time.Second)
+	assert.Equal(t, uint(0), cth.count)
 }
 
