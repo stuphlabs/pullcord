@@ -2,8 +2,12 @@ package monitor
 
 import (
 	"fmt"
+	"github.com/fitstar/falcore"
 	// "github.com/stuphlabs/pullcord"
+	"github.com/stuphlabs/pullcord/proxy"
+	"github.com/stuphlabs/pullcord/trigger"
 	"net"
+	"net/http"
 	"strconv"
 	"time"
 )
@@ -282,6 +286,195 @@ func (monitor *MinMonitor) SetStatusUp(name string) (err error) {
 	svc.up = true
 
 	return nil
+}
+
+// NewMonitorFilter produces a Falcore RequestFilter for a given named service.
+// This filter will forward to the service if it is up, otherwise it will
+// display an error page to the requester. There are also optional triggers
+// which would be run if the service is down (presumably to bring it up), or if
+// the service is already up, or in either case, respectively.
+func (monitor *MinMonitor) NewMonitorFilter(
+	name string,
+	onDown trigger.TriggerHandler,
+	onUp trigger.TriggerHandler,
+	always trigger.TriggerHandler,
+) (falcore.RequestFilter, error) {
+	svc, serviceExists := monitor.table[name]
+	if ! serviceExists {
+		log().Err(
+			fmt.Sprintf(
+				"minmonitor cannot create a request filter" +
+				" for unknown service: \"%s\"",
+				name,
+			),
+		)
+
+		return nil, UnknownServiceError
+	}
+
+	log().Info(
+		fmt.Sprintf(
+			"minmonitor is creating a monitorfilter for service:" +
+			" \"%s\"",
+			name,
+		),
+	)
+
+	passthru := proxy.NewPassthruFilter(svc.Address, svc.Port)
+
+	filter := func(req *falcore.Request) *http.Response {
+		log().Debug("running minmonitor filter")
+
+		up, err := monitor.Status(name)
+		if err != nil {
+			log().Warning(
+				fmt.Sprintf(
+					"minmonitor filter received an error" +
+					" while requesting the status for" +
+					" service \"%s\": %v",
+					name,
+					err,
+				),
+			)
+			return falcore.StringResponse(
+				req.HttpRequest,
+				500,
+				nil,
+				"<html><head><title>Pullcord - Internal" +
+				" Server Error</title></head><body><h1>" +
+				"Pullcord - Internal Server Error</h1><p>An" +
+				" internal server error has occurred, but it" +
+				" might not be serious. However, If the" +
+				" problem persists, the site administrator" +
+				" should be contacted.</p></body></html>",
+			)
+		}
+
+		if always != nil {
+			err = always.TriggerString(name)
+			if err != nil {
+				log().Warning(
+					fmt.Sprintf(
+						"minmonitor filter received" +
+						" an error while running the" +
+						" always trigger on service" +
+						" \"%s\": %v",
+						name,
+						err,
+					),
+				)
+				return falcore.StringResponse(
+					req.HttpRequest,
+					500,
+					nil,
+					"<html><head><title>Pullcord -" +
+					" Internal Server Error</title>" +
+					"</head><body><h1>Pullcord -" +
+					" Internal Server Error</h1><p>" +
+					"An internal server error has" +
+					" occurred, but it might not be" +
+					" serious. However, if the problem" +
+					" persists, the site administrator" +
+					" should be contacted.</p></body>" +
+					"</html>",
+				)
+			}
+		}
+
+		if up {
+			if onUp != nil {
+				err = onUp.TriggerString(name)
+				if err != nil {
+					log().Warning(
+						fmt.Sprintf(
+							"minmonitor filter" +
+							" received an error" +
+							" while running the" +
+							" onDown trigger on" +
+							" service \"%s\":" +
+							" %v",
+							name,
+							err,
+						),
+					)
+					return falcore.StringResponse(
+						req.HttpRequest,
+						500,
+						nil,
+						"<html><head><title>Pullcord" +
+						" - Internal Server Error" +
+						"</title></head><body><h1>" +
+						"Pullcord - Internal Server" +
+						" Error</h1><p>An internal" +
+						" server error has occurred," +
+						" but it might not be" +
+						" serious. However, if the" +
+						" problem persists, the site" +
+						" administrator should be" +
+						" contacted.</p></body></html>",
+					)
+				}
+			}
+
+			log().Debug("minmonitor filter passthru")
+			return passthru.FilterRequest(req)
+		}
+
+		if onDown != nil {
+			err = onDown.TriggerString(name)
+			if err != nil {
+				log().Warning(
+					fmt.Sprintf(
+						"minmonitor filter received" +
+						" an error while running the" +
+						" onDown trigger on service" +
+						" \"%s\": %v",
+						name,
+						err,
+					),
+				)
+				return falcore.StringResponse(
+					req.HttpRequest,
+					500,
+					nil,
+					"<html><head><title>Pullcord -" +
+					" Internal Server Error</title>" +
+					"</head><body><h1>Pullcord -" +
+					" Internal Server Error</h1><p>" +
+					"An internal server error has" +
+					" occurred, but it might not be" +
+					" serious. However, If the problem" +
+					" persists, the site administrator" +
+					" should be contacted.</p></body>" +
+					"</html>",
+				)
+			}
+		}
+
+		log().Info(
+			fmt.Sprintf(
+				"minmonitor filter has reached a down" +
+				" service (\"%s\"), but any triggers have" +
+				" fired successfully",
+				name,
+			),
+		)
+		return falcore.StringResponse(
+			req.HttpRequest,
+			503,
+			nil,
+			"<html><head><title>Pullcord - Service Not Ready"+
+			"</title></head><body><h1>Pullcord - Service Not" +
+			" Ready</h1><p>The requested service is not yet" +
+			" ready, but any trigger to start the service has" +
+			" been started successfully, so hopefully the" +
+			" service will be up in a few minutes.</p><p>If you" +
+			" would like further information, please contact the" +
+			" site administrator.</p></body></html>",
+		)
+	}
+
+	return falcore.NewRequestFilter(filter), nil
 }
 
 // NewMinMonitor constructs a new MinMonitor.
