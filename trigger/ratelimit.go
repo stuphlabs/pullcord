@@ -21,11 +21,24 @@ type RateLimitTrigger struct {
 	previousTriggers []time.Time
 }
 
+func NewRateLimitTrigger(
+	guardedTrigger TriggerHandler,
+	maxAllowed uint,
+	period time.Duration,
+) (*RateLimitTrigger) {
+	return &RateLimitTrigger{
+		guardedTrigger,
+		maxAllowed,
+		period,
+		nil,
+	}
+}
+
 // TriggerString implements the required string-based triggering function to
 // make RateLimitTrigger a valid TriggerHandler implementation. If the rate
 // limit is exceeded, RateLimitExceededError will be returned, and the guarded
 // trigger will not be called.
-func (rlt *RateLimitTrigger) TriggerString(arg string) error {
+func (rlt *RateLimitTrigger) Trigger() error {
 	now := time.Now()
 
 	if rlt.previousTriggers != nil {
@@ -44,6 +57,6 @@ func (rlt *RateLimitTrigger) TriggerString(arg string) error {
 
 	rlt.previousTriggers = append(rlt.previousTriggers, now)
 
-	return rlt.GuardedTrigger.TriggerString(arg)
+	return rlt.GuardedTrigger.Trigger()
 }
 

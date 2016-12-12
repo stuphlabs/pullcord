@@ -16,7 +16,7 @@ func goRemoveAll(dir string) {
 }
 
 func TestShellTriggerTee(t *testing.T) {
-	testCommand := "tee"
+	testCommand := "/bin/sh"
 	testMessage := "foo"
 	testFileEnding := "testShellTrigger.txt"
 
@@ -24,10 +24,13 @@ func TestShellTriggerTee(t *testing.T) {
 	defer goRemoveAll(tmpdir)
 	assert.NoError(t, err)
 	testFile := tmpdir + "/" + testFileEnding
-	testArgs := []string{testFile}
+	testArgs := []string{
+		"-c",
+		`printf "` + testMessage + `" > ` + testFile,
+	}
 
 	handler := NewShellTriggerHandler(testCommand, testArgs)
-	err = handler.TriggerString(testMessage)
+	err = handler.Trigger()
 
 	assert.NoError(t, err)
 	data, err := ioutil.ReadFile(testFile)
@@ -38,10 +41,9 @@ func TestShellTriggerTee(t *testing.T) {
 func TestShellTriggerFail(t *testing.T) {
 	testCommand := "["
 	testArgs := []string{"1", "-eq", "0"}
-	testMessage := "foo"
 
 	handler := NewShellTriggerHandler(testCommand, testArgs)
-	err := handler.TriggerString(testMessage)
+	err := handler.Trigger()
 
 	assert.Error(t, err)
 }

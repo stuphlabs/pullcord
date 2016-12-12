@@ -9,9 +9,9 @@ import (
 	"strings"
 )
 
-// NewCookiemaskFilter generates a Falcore RequestFilter that will apply a
-// "cookie mask" function before forwarding the (possibly modified) request to
-// the next RequestFilter in the chain (which may ultimately lead to a proxy).
+// CookiemaskFilter is a falcore.RequestFilter that will apply a "cookie mask"
+// function before forwarding the (possibly modified) request to the next
+// RequestFilter in the chain (which may ultimately lead to a proxy).
 //
 // As HTTP clients typically have internal cookie managers sophisticated enough
 // to send multiple cookies (with possibly different scopes or properties) with
@@ -33,94 +33,94 @@ import (
 // RequestFilter chain to receive the context instead, with any new cookies
 // still being added to the response, even though the onError chain will
 // receive no cookies as part of the request).
-func NewCookiemaskFilter(
-	handler SessionHandler,
-	masked falcore.RequestFilter,
-	onError falcore.RequestFilter,
-) falcore.RequestFilter {
-	log().Debug("registering a new cookiemask filter")
+type CookiemaskFilter struct {
+	Handler SessionHandler
+	Masked falcore.RequestFilter
+	OnError falcore.RequestFilter
+}
 
-	maskCookies := func(req *falcore.Request) *http.Response {
-		log().Debug("running cookiemask filter")
+// FilterRequest implements the required function to allow CookiemaskFilter to
+// be a falcore.RequestFilter.
+func (filter *CookiemaskFilter) FilterRequest(
+	req *falcore.Request,
+) (*http.Response) {
+	log().Debug("running cookiemask filter")
 
-		sesh, err := handler.GetSession()
-		if err != nil {
-			log().Err(
-				fmt.Sprintf(
-					"cookiemask filter was unable to get" +
-					" a new session from the session" +
-					" handler: %v",
-					err,
-				),
-			)
-
-			return onError.FilterRequest(req)
-		}
-
-		req.Context["session"] = sesh
-
-		passthru_ckes, set_ckes, err := sesh.CookieMask(
-			req.HttpRequest.Cookies(),
-		)
-
-		var resp *http.Response
-		if err != nil {
-			log().Err(
-				fmt.Sprintf(
-					"cookiemask filter's call to the" +
-					" session handler's CookieMask" +
-					" function returned an error: %v",
-					err,
-				),
-			)
-
-			resp = onError.FilterRequest(req)
-		} else {
-			cke_keys_buffer := new(bytes.Buffer)
-			ckes_str := make([]string, len(passthru_ckes))
-			for n, cke := range passthru_ckes {
-				cke_keys_buffer.WriteString(
-					"\"" + cke.Name + "\",",
-				)
-				ckes_str[n] = cke.String()
-			}
-			log().Debug(
-				fmt.Sprintf(
-					"cookiemask forwarding  cookies with" +
-					" these keys: [%s]",
-					cke_keys_buffer.String(),
-				),
-			)
-
-			req.HttpRequest.Header.Set(
-				"Cookie",
-				strings.Join(ckes_str, "; "),
-			)
-
-			log().Info(
-				"request has run through cookiemask, now" +
-				" forwarding to next filter",
-			)
-			resp = masked.FilterRequest(req)
-		}
-
-		set_cke_keys_buffer := new(bytes.Buffer)
-		for _, cke := range set_ckes {
-			set_cke_keys_buffer.WriteString(
-				"\"" + cke.Name + "\",",
-			)
-			resp.Header.Add("Set-Cookie", cke.String())
-		}
-		log().Debug(
+	sesh, err := filter.Handler.GetSession()
+	if err != nil {
+		log().Err(
 			fmt.Sprintf(
-				"cookiemask sending back with the response" +
-				" new cookies with these keys: [%s]",
-				set_cke_keys_buffer.String(),
+				"cookiemask filter was unable to get" +
+				" a new session from the session" +
+				" handler: %v",
+				err,
 			),
 		)
 
-		return resp
+		return filter.OnError.FilterRequest(req)
 	}
 
-	return falcore.NewRequestFilter(maskCookies)
+	req.Context["session"] = sesh
+
+	passthru_ckes, set_ckes, err := sesh.CookieMask(
+		req.HttpRequest.Cookies(),
+	)
+
+	var resp *http.Response
+	if err != nil {
+		log().Err(
+			fmt.Sprintf(
+				"cookiemask filter's call to the" +
+				" session handler's CookieMask" +
+				" function returned an error: %v",
+				err,
+			),
+		)
+
+		resp = filter.OnError.FilterRequest(req)
+	} else {
+		cke_keys_buffer := new(bytes.Buffer)
+		ckes_str := make([]string, len(passthru_ckes))
+		for n, cke := range passthru_ckes {
+			cke_keys_buffer.WriteString(
+				"\"" + cke.Name + "\",",
+			)
+			ckes_str[n] = cke.String()
+		}
+		log().Debug(
+			fmt.Sprintf(
+				"cookiemask forwarding  cookies with" +
+				" these keys: [%s]",
+				cke_keys_buffer.String(),
+			),
+		)
+
+		req.HttpRequest.Header.Set(
+			"Cookie",
+			strings.Join(ckes_str, "; "),
+		)
+
+		log().Info(
+			"request has run through cookiemask, now" +
+			" forwarding to next filter",
+		)
+		resp = filter.Masked.FilterRequest(req)
+	}
+
+	set_cke_keys_buffer := new(bytes.Buffer)
+	for _, cke := range set_ckes {
+		set_cke_keys_buffer.WriteString(
+			"\"" + cke.Name + "\",",
+		)
+		resp.Header.Add("Set-Cookie", cke.String())
+	}
+	log().Debug(
+		fmt.Sprintf(
+			"cookiemask sending back with the response" +
+			" new cookies with these keys: [%s]",
+			set_cke_keys_buffer.String(),
+		),
+	)
+
+	return resp
 }

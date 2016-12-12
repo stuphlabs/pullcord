@@ -8,25 +8,22 @@ import (
 )
 
 func TestRateLimit(t *testing.T) {
-	testString := "testing"
-	cth := &counterTriggerHandler{testString, 0}
+	cth := &counterTriggerHandler{}
 
-	var rlt RateLimitTrigger
-	rlt.GuardedTrigger = cth
-	rlt.MaxAllowed = 1
-	rlt.Period = time.Second
-	err := rlt.TriggerString(testString)
+	rlt := NewRateLimitTrigger(cth, 1, time.Second)
+
+	err := rlt.Trigger()
 	assert.NoError(t, err)
-	assert.Equal(t, uint(1), cth.count)
+	assert.Equal(t, 1, cth.count)
 
-	err = rlt.TriggerString(testString)
+	err = rlt.Trigger()
 	assert.Error(t, err)
 	assert.Equal(t, RateLimitExceededError, err)
-	assert.Equal(t, uint(1), cth.count)
+	assert.Equal(t, 1, cth.count)
 
 	time.Sleep(time.Second)
-	err = rlt.TriggerString(testString)
+	err = rlt.Trigger()
 	assert.NoError(t, err)
-	assert.Equal(t, uint(2), cth.count)
+	assert.Equal(t, 2, cth.count)
 }
 

@@ -11,33 +11,41 @@ import (
 // The obvious analogy would be a screen saver, which will start after a
 // certain period has elapsed, but the timer is reset quite often.
 type DelayTrigger struct {
-	Trigger TriggerHandler
+	DelayedTrigger TriggerHandler
 	Delay time.Duration
-	c chan<- string
+	c chan<- interface{}
+}
+
+func NewDelayTrigger(
+	delayedTrigger TriggerHandler,
+	delay time.Duration,
+) (*DelayTrigger) {
+	return &DelayTrigger{
+		delayedTrigger,
+		delay,
+		nil,
+	}
 }
 
 func delaytrigger(
 	tr TriggerHandler,
 	dla time.Duration,
-	iarg string,
-	ac <-chan string,
+	ac <-chan interface{},
 ) {
 	tmr := time.NewTimer(dla)
-	arg := iarg
 	for {
 		select {
-		case narg, ok := <-ac:
+		case _, ok := <-ac:
 			if tmr != nil && !tmr.Stop() {
 				<-tmr.C
 			}
 			if !ok {
 				return
 			} else {
-				arg = narg
 				tmr.Reset(dla)
 			}
 		case <-tmr.C:
-			if err := tr.TriggerString(arg); err != nil {
+			if err := tr.Trigger(); err != nil {
 				log().Err(
 					fmt.Sprintf(
 						"delaytrigger received an",
@@ -55,14 +63,14 @@ func delaytrigger(
 // make DelayTrigger a valid TriggerHandler implementation. This function
 // effectively cancels any previous trigger and replaces it with a call using
 // only this most recent string value.
-func (dt *DelayTrigger) TriggerString(arg string) error {
+func (dt *DelayTrigger) Trigger() error {
 	if dt.c == nil {
-		fc := make(chan string)
+		fc := make(chan interface{})
 		dt.c = fc
 
-		go delaytrigger(dt.Trigger, dt.Delay, arg, fc)
+		go delaytrigger(dt.DelayedTrigger, dt.Delay, fc)
 	} else {
-		dt.c <-arg
+		dt.c <-nil
 	}
 
 	return nil

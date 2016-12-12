@@ -13,9 +13,9 @@ type CompoundTrigger struct {
 
 // TriggerString implements the required string-based triggering function to
 // make CompoundTrigger a valid TriggerHandler implementation.
-func (ct *CompoundTrigger) TriggerString(arg string) error {
+func (ct *CompoundTrigger) Trigger() error {
 	for _, t := range ct.Triggers {
-		if err := t.TriggerString(arg); err != nil {
+		if err := t.Trigger(); err != nil {
 			return err
 		}
 	}

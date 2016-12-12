@@ -8,64 +8,57 @@ import (
 )
 
 type counterTriggerHandler struct {
-	name string
-	count uint
+	count int
 }
 
-func (th *counterTriggerHandler) TriggerString(name string) error {
-	if name == th.name {
+func (th *counterTriggerHandler) Trigger() error {
+	if th.count >= 0 {
 		th.count += 1
 		return nil
 	} else {
-		return errors.New("bad error string")
+		return errors.New("this trigger always errors")
 	}
 }
 
 func TestCompoundTriggerNoErrors(t *testing.T) {
-	testString := "testing"
-
-	th1 := &counterTriggerHandler{testString, 0}
-	th2 := &counterTriggerHandler{testString, 0}
+	th1 := &counterTriggerHandler{}
+	th2 := &counterTriggerHandler{}
 
 	ct := CompoundTrigger{[]TriggerHandler{th1, th2}}
 
-	err := ct.TriggerString(testString)
+	err := ct.Trigger()
 	assert.NoError(t, err)
 
-	err = ct.TriggerString(testString)
+	err = ct.Trigger()
 	assert.NoError(t, err)
 
-	assert.Equal(t, uint(2), th1.count)
-	assert.Equal(t, uint(2), th2.count)
+	assert.Equal(t, 2, th1.count)
+	assert.Equal(t, 2, th2.count)
 }
 
 func TestCompoundTriggerAllErrors(t *testing.T) {
-	testString := "testing"
-
-	th1 := &counterTriggerHandler{testString, 0}
-	th2 := &counterTriggerHandler{testString, 0}
+	th1 := &counterTriggerHandler{-1}
+	th2 := &counterTriggerHandler{-1}
 
 	ct := CompoundTrigger{[]TriggerHandler{th1, th2}}
 
-	err := ct.TriggerString("error")
+	err := ct.Trigger()
 	assert.Error(t, err)
 
-	assert.Equal(t, uint(0), th1.count)
-	assert.Equal(t, uint(0), th2.count)
+	assert.Equal(t, -1, th1.count)
+	assert.Equal(t, -1, th2.count)
 }
 
 func TestCompoundTriggerSomeErrors(t *testing.T) {
-	testString := "testing"
-
-	th1 := &counterTriggerHandler{testString, 0}
-	th2 := &counterTriggerHandler{"error", 0}
+	th1 := &counterTriggerHandler{}
+	th2 := &counterTriggerHandler{-1}
 
 	ct := CompoundTrigger{[]TriggerHandler{th1, th2}}
 
-	err := ct.TriggerString(testString)
+	err := ct.Trigger()
 	assert.Error(t, err)
 
-	assert.Equal(t, uint(1), th1.count)
-	assert.Equal(t, uint(0), th2.count)
+	assert.Equal(t, 1, th1.count)
+	assert.Equal(t, -1, th2.count)
 }
 
