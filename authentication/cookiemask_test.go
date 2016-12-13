@@ -140,13 +140,14 @@ func TestCookiemaskCookieless(t *testing.T) {
 	assert.NoError(t, err)
 
 	/* run */
+	filter := CookiemaskFilter{
+		NewMinSessionHandler("test", "/", "example.com"),
+		cookieMaskTestPage,
+		errorPage,
+	}
 	_, response := falcore.TestWithRequest(
 		request,
-		NewCookiemaskFilter(
-			NewMinSessionHandler("test", "/", "example.com"),
-			cookieMaskTestPage,
-			errorPage,
-		),
+		&filter,
 		nil,
 	)
 
@@ -197,13 +198,14 @@ func TestCookiemaskNoMasking(t *testing.T) {
 	request.AddCookie(&cookie)
 
 	/* run */
+	filter := CookiemaskFilter{
+		NewMinSessionHandler("test", "/", "example.com"),
+		cookieMaskTestPage,
+		errorPage,
+	}
 	_, response := falcore.TestWithRequest(
 		request,
-		NewCookiemaskFilter(
-			NewMinSessionHandler("test", "/", "example.com"),
-			cookieMaskTestPage,
-			errorPage,
-		),
+		&filter,
 		nil,
 	)
 
@@ -260,13 +262,14 @@ func TestCookiemaskError(t *testing.T) {
 	request.AddCookie(&cookie)
 
 	/* run */
+	filter := CookiemaskFilter{
+		handlerAlwaysErrors,
+		cookieMaskTestPage,
+		errorPage,
+	}
 	_, response := falcore.TestWithRequest(
 		request,
-		NewCookiemaskFilter(
-			handlerAlwaysErrors,
-			cookieMaskTestPage,
-			errorPage,
-		),
+		&filter,
 		nil,
 	)
 
@@ -311,13 +314,14 @@ func TestCookiemaskMasking(t *testing.T) {
 	request.AddCookie(cookie)
 
 	/* run */
+	filter := CookiemaskFilter{
+		handler,
+		cookieMaskTestPage,
+		errorPage,
+	}
 	_, response := falcore.TestWithRequest(
 		request,
-		NewCookiemaskFilter(
-			handler,
-			cookieMaskTestPage,
-			errorPage,
-		),
+		&filter,
 		nil,
 	)
 
@@ -379,21 +383,23 @@ func TestDoubleCookiemaskNoMasking(t *testing.T) {
 	request.AddCookie(&cookie2)
 
 	/* run */
+	innerFilter := CookiemaskFilter{
+		NewMinSessionHandler(
+			"test2",
+			"/",
+			"example.com",
+		),
+		cookieMaskTestPage,
+		errorPage,
+	}
+	outerFilter := CookiemaskFilter{
+		NewMinSessionHandler("test1", "/", "example.com"),
+		&innerFilter,
+		errorPage,
+	}
 	_, response := falcore.TestWithRequest(
 		request,
-		NewCookiemaskFilter(
-			NewMinSessionHandler("test1", "/", "example.com"),
-			NewCookiemaskFilter(
-				NewMinSessionHandler(
-					"test2",
-					"/",
-					"example.com",
-				),
-				cookieMaskTestPage,
-				errorPage,
-			),
-			errorPage,
-		),
+		&outerFilter,
 		nil,
 	)
 
@@ -476,21 +482,23 @@ func TestDoubleCookiemaskTopMasking(t *testing.T) {
 	request.AddCookie(&cookie2)
 
 	/* run */
+	innerFilter := CookiemaskFilter{
+		NewMinSessionHandler(
+			"test2",
+			"/",
+			"example.com",
+		),
+		cookieMaskTestPage,
+		errorPage,
+	}
+	outerFilter := CookiemaskFilter{
+		handler1,
+		&innerFilter,
+		errorPage,
+	}
 	_, response := falcore.TestWithRequest(
 		request,
-		NewCookiemaskFilter(
-			handler1,
-			NewCookiemaskFilter(
-				NewMinSessionHandler(
-					"test2",
-					"/",
-					"example.com",
-				),
-				cookieMaskTestPage,
-				errorPage,
-			),
-			errorPage,
-		),
+		&outerFilter,
 		nil,
 	)
 
@@ -573,17 +581,19 @@ func TestDoubleCookiemaskBottomMasking(t *testing.T) {
 	request.AddCookie(cookie2)
 
 	/* run */
+	innerFilter := CookiemaskFilter{
+		handler2,
+		cookieMaskTestPage,
+		errorPage,
+	}
+	outerFilter := CookiemaskFilter{
+		NewMinSessionHandler("test1", "/", "example.com"),
+		&innerFilter,
+		errorPage,
+	}
 	_, response := falcore.TestWithRequest(
 		request,
-		NewCookiemaskFilter(
-			NewMinSessionHandler("test1", "/", "example.com"),
-			NewCookiemaskFilter(
-				handler2,
-				cookieMaskTestPage,
-				errorPage,
-			),
-			errorPage,
-		),
+		&outerFilter,
 		nil,
 	)
 
@@ -670,17 +680,19 @@ func TestDoubleCookiemaskBothMasking(t *testing.T) {
 	request.AddCookie(cookie2)
 
 	/* run */
+	innerFilter := CookiemaskFilter{
+		handler2,
+		cookieMaskTestPage,
+		errorPage,
+	}
+	outerFilter := CookiemaskFilter{
+		handler1,
+		&innerFilter,
+		errorPage,
+	}
 	_, response := falcore.TestWithRequest(
 		request,
-		NewCookiemaskFilter(
-			handler1,
-			NewCookiemaskFilter(
-				handler2,
-				cookieMaskTestPage,
-				errorPage,
-			),
-			errorPage,
-		),
+		&outerFilter,
 		nil,
 	)
 
@@ -756,17 +768,19 @@ func TestDoubleCookiemaskBottomErrorTopNoMasking(t *testing.T) {
 	request.AddCookie(&cookie2)
 
 	/* run */
+	innerFilter := CookiemaskFilter{
+		handlerAlwaysErrors,
+		cookieMaskTestPage,
+		errorPage,
+	}
+	outerFilter := CookiemaskFilter{
+		NewMinSessionHandler("test1", "/", "example.com"),
+		&innerFilter,
+		errorPage,
+	}
 	_, response := falcore.TestWithRequest(
 		request,
-		NewCookiemaskFilter(
-			NewMinSessionHandler("test1", "/", "example.com"),
-			NewCookiemaskFilter(
-				handlerAlwaysErrors,
-				cookieMaskTestPage,
-				errorPage,
-			),
-			errorPage,
-		),
+		&outerFilter,
 		nil,
 	)
 
@@ -847,17 +861,19 @@ func TestDoubleCookiemaskBottomErrorTopMasking(t *testing.T) {
 	request.AddCookie(&cookie2)
 
 	/* run */
+	innerFilter := CookiemaskFilter{
+		handlerAlwaysErrors,
+		cookieMaskTestPage,
+		errorPage,
+	}
+	outerFilter := CookiemaskFilter{
+		handler1,
+		&innerFilter,
+		errorPage,
+	}
 	_, response := falcore.TestWithRequest(
 		request,
-		NewCookiemaskFilter(
-			handler1,
-			NewCookiemaskFilter(
-				handlerAlwaysErrors,
-				cookieMaskTestPage,
-				errorPage,
-			),
-			errorPage,
-		),
+		&outerFilter,
 		nil,
 	)
 
@@ -933,21 +949,23 @@ func TestDoubleCookiemaskTopErrorBottomNoMasking(t *testing.T) {
 	request.AddCookie(&cookie2)
 
 	/* run */
+	innerFilter := CookiemaskFilter{
+		NewMinSessionHandler(
+			"test2",
+			"/",
+			"example.com",
+		),
+		cookieMaskTestPage,
+		errorPage,
+	}
+	outerFilter := CookiemaskFilter{
+		handlerAlwaysErrors,
+		&innerFilter,
+		errorPage,
+	}
 	_, response := falcore.TestWithRequest(
 		request,
-		NewCookiemaskFilter(
-			handlerAlwaysErrors,
-			NewCookiemaskFilter(
-				NewMinSessionHandler(
-					"test2",
-					"/",
-					"example.com",
-				),
-				cookieMaskTestPage,
-				errorPage,
-			),
-			errorPage,
-		),
+		&outerFilter,
 		nil,
 	)
 

@@ -8,117 +8,122 @@ import (
 )
 
 func TestDelayTriggerSingleDelay(t *testing.T) {
-	testString := "testing"
-	cth := &counterTriggerHandler{testString, 0}
+	cth := &counterTriggerHandler{}
 
-	var dt DelayTrigger
-	dt.Trigger = cth
-	dt.Delay = time.Second
+	dt := NewDelayTrigger(cth, time.Second)
 
-	err := dt.TriggerString(testString)
+	err := dt.Trigger()
 	assert.NoError(t, err)
-	assert.Equal(t, uint(0), cth.count)
+	assert.Equal(t, 0, cth.count)
 
 	time.Sleep(2*time.Second)
 
-	assert.Equal(t, uint(1), cth.count)
+	assert.Equal(t, 1, cth.count)
 }
 
 func TestDelayTriggerDoubleDelay(t *testing.T) {
-	testString := "testing"
-	cth := &counterTriggerHandler{testString, 0}
+	cth := &counterTriggerHandler{}
 
-	var dt DelayTrigger
-	dt.Trigger = cth
-	dt.Delay = 3 * time.Second
+	dt := NewDelayTrigger(
+		cth,
+		3 * time.Second,
+	)
 
-	err := dt.TriggerString(testString)
+	err := dt.Trigger()
 	assert.NoError(t, err)
-	assert.Equal(t, uint(0), cth.count)
+	assert.Equal(t, 0, cth.count)
 
 	time.Sleep(2 * time.Second)
-	assert.Equal(t, uint(0), cth.count)
-	err = dt.TriggerString(testString)
+	assert.Equal(t, 0, cth.count)
+	err = dt.Trigger()
 	assert.NoError(t, err)
-	assert.Equal(t, uint(0), cth.count)
+	assert.Equal(t, 0, cth.count)
 
 	time.Sleep(2 * time.Second)
 	// the trigger would have definitely fired by now if the second delay
 	// hadn't occurred when it did
-	assert.Equal(t, uint(0), cth.count)
+	assert.Equal(t, 0, cth.count)
 
 	time.Sleep(2*time.Second)
-	assert.Equal(t, uint(1), cth.count)
+	assert.Equal(t, 1, cth.count)
 }
 
 func TestDelayTriggerErrorMasking(t *testing.T) {
-	testString := "testing"
-	cth := &counterTriggerHandler{testString, 0}
+	cth := &counterTriggerHandler{-1}
 
-	var dt DelayTrigger
-	dt.Trigger = cth
-	dt.Delay = time.Second
+	dt := NewDelayTrigger(
+		cth,
+		time.Second,
+	)
 
-	err := dt.TriggerString("error")
+	err := dt.Trigger()
 	assert.NoError(t, err)
-	assert.Equal(t, uint(0), cth.count)
+	assert.Equal(t, -1, cth.count)
 
 	time.Sleep(2*time.Second)
 
-	assert.Equal(t, uint(0), cth.count)
+	assert.Equal(t, -1, cth.count)
 }
 
 func TestDelayTriggerReplaceError(t *testing.T) {
-	testString := "testing"
-	cth := &counterTriggerHandler{testString, 0}
+	cth := &counterTriggerHandler{-1}
 
-	var dt DelayTrigger
-	dt.Trigger = cth
-	dt.Delay = 3 * time.Second
+	dt := NewDelayTrigger(
+		cth,
+		3 * time.Second,
+	)
 
-	err := dt.TriggerString("error")
+	err := dt.Trigger()
 	assert.NoError(t, err)
-	assert.Equal(t, uint(0), cth.count)
+	assert.Equal(t, -1, cth.count)
 
 	time.Sleep(2 * time.Second)
-	assert.Equal(t, uint(0), cth.count)
-	err = dt.TriggerString(testString)
+	assert.Equal(t, -1, cth.count)
+	err = dt.Trigger()
 	assert.NoError(t, err)
-	assert.Equal(t, uint(0), cth.count)
+	assert.Equal(t, -1, cth.count)
 
 	time.Sleep(2 * time.Second)
 	// the trigger would have definitely fired by now if the second delay
 	// hadn't occurred when it did
-	assert.Equal(t, uint(0), cth.count)
+	assert.Equal(t, -1, cth.count)
+
+	// removes error situation
+	cth.count = 0
+	assert.Equal(t, 0, cth.count)
 
 	time.Sleep(2*time.Second)
-	assert.Equal(t, uint(1), cth.count)
+	assert.Equal(t, 1, cth.count)
 }
 
 func TestDelayTriggerIntroduceError(t *testing.T) {
-	testString := "testing"
-	cth := &counterTriggerHandler{testString, 0}
+	cth := &counterTriggerHandler{}
 
-	var dt DelayTrigger
-	dt.Trigger = cth
-	dt.Delay = 3 * time.Second
+	dt := NewDelayTrigger(
+		cth,
+		3 * time.Second,
+	)
 
-	err := dt.TriggerString(testString)
+	err := dt.Trigger()
 	assert.NoError(t, err)
-	assert.Equal(t, uint(0), cth.count)
+	assert.Equal(t, 0, cth.count)
 
 	time.Sleep(2 * time.Second)
-	assert.Equal(t, uint(0), cth.count)
-	err = dt.TriggerString("error")
+	assert.Equal(t, 0, cth.count)
+	err = dt.Trigger()
 	assert.NoError(t, err)
-	assert.Equal(t, uint(0), cth.count)
+	assert.Equal(t, 0, cth.count)
+
+	// introduces error situation
+	cth.count = -1
+	assert.Equal(t, -1, cth.count)
 
 	time.Sleep(2 * time.Second)
 	// the trigger would have definitely fired by now if the second delay
 	// hadn't occurred when it did
-	assert.Equal(t, uint(0), cth.count)
+	assert.Equal(t, -1, cth.count)
 
 	time.Sleep(2*time.Second)
-	assert.Equal(t, uint(0), cth.count)
+	assert.Equal(t, -1, cth.count)
 }
 

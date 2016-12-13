@@ -63,7 +63,7 @@ func loginPage(
 	)
 }
 
-func (handler *LoginHandler) handleLogin(
+func (handler *LoginHandler) FilterRequest(
 	request *falcore.Request,
 ) *http.Response {
 	errString := ""
@@ -232,32 +232,6 @@ func (handler *LoginHandler) handleLogin(
 			passwordKey,
 			xsrfKey,
 			nextXsrfToken,
-		),
-	)
-}
-
-// NewLoginFilter generates a Falcore RequestFilter that presents a login page
-// to unauthenticated users while getting out of the way as quickly as possible
-// for authenticated users. While no requests of any kind will make it past
-// this layer in the event of an unauthenticated user, a request from an
-// authenticated user will be passed along with the only modifications being an
-// attempt to remove any trace that this layer existed. So long as the
-// LoginHandler's identifier is unique, requests being passed through this
-// login filter should not interfere in any way with the behavior of a
-// third-party web app that exists downstream from this filter.
-func NewLoginFilter(
-	sessionHandler SessionHandler,
-	loginHandler LoginHandler,
-) falcore.RequestFilter {
-	log().Info("initializing login handler")
-
-	return NewCookiemaskFilter(
-		sessionHandler,
-		falcore.NewRequestFilter(loginHandler.handleLogin),
-		falcore.NewRequestFilter(
-			func (request *falcore.Request) *http.Response {
-				return internalServerError(request)
-			},
 		),
 	)
 }
