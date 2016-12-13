@@ -7,6 +7,7 @@ import (
 	"crypto/subtle"
 	"encoding/base64"
 	"encoding/json"
+	"github.com/proidiot/gone/errors"
 	// "github.com/stuphlabs/pullcord"
 	"golang.org/x/crypto/pbkdf2"
 )
@@ -18,23 +19,17 @@ const Pbkdf2KeyLength = 64
 // hashes.
 const Pbkdf2MinIterations = uint16(4096)
 
-type errorString string
-
-func (str errorString) Error() string {
-	return string(str)
-}
-
 // InsufficientIterationsError is the error object that is returned if the
 // requested number of iterations for a new PBKDF2 hash is less than
 // Pbkdf2MinIterations.
-const InsufficientIterationsError = errorString(
+const InsufficientIterationsError = errors.New(
 	"The number of iterations must be at least Pbkdf2MinIterations",
 )
 
 // InsufficientEntropyError is the error object that is returned if the
 // operating system does not have enough entropy to generated a random salt of
 // length Pbkdf2KeyLength.
-const InsufficientEntropyError = errorString(
+const InsufficientEntropyError = errors.New(
 	"The amount of entropy available from the operating system was not" +
 	" enough to generate a salt of length Pbkdf2KeyLength",
 )
@@ -49,27 +44,27 @@ const InsufficientEntropyError = errorString(
 // identifier lookup process is implemented is likely to leak information about
 // the presence of a user. Perhaps that issue will be fixed at a later time,
 // but it is worth at least knowing for the time being.
-const NoSuchIdentifierError = errorString(
+const NoSuchIdentifierError = errors.New(
 	"The given identifier does not have an entry in the password store",
 )
 
 // BadPasswordError is the error object that is returned if the given
 // identifier (probably a username) does exist in the password store, but the
 // given password does not generate a matching hash.
-const BadPasswordError = errorString(
+const BadPasswordError = errors.New(
 	"The hash generated from the given password does not match the hash" +
 	" associated with the given identifier in the password store",
 )
 
 // IncorrectSaltLengthError is the error object that is returned if the given
 // base64 encoded salt does not decode to exactly Pbkdf2KeyLength bytes.
-const IncorrectSaltLengthError = errorString(
+const IncorrectSaltLengthError = errors.New(
 	"The base64 encoded salt does not decode to Pbkdf2KeyLength bytes.",
 )
 
 // IncorrectHashLengthError is the error object that is returned if the given
 // base64 encoded hash does not decode to exactly Pbkdf2KeyLength bytes.
-const IncorrectHashLengthError = errorString(
+const IncorrectHashLengthError = errors.New(
 	"The base64 encoded hash does not decode to Pbkdf2KeyLength bytes.",
 )
 

@@ -1,6 +1,7 @@
 package authentication
 
 import (
+	"github.com/proidiot/gone/errors"
 	// "github.com/stuphlabs/pullcord"
 	"net/http"
 )
@@ -8,7 +9,7 @@ import (
 // NoSuchSessionValueError is the error constant that would be returned in the
 // event that a given key requested from a Session using its GetValue function
 // is not present in the session.
-const NoSuchSessionValueError = errorString(
+const NoSuchSessionValueError = errors.New(
 	"The session does not have a the requested value.",
 )
 

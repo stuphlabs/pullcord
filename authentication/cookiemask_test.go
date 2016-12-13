@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/dustin/randbo"
 	"github.com/fitstar/falcore"
+	"github.com/proidiot/gone/errors"
 	"github.com/stretchr/testify/assert"
 	// "github.com/stuphlabs/pullcord"
 	"io/ioutil"
@@ -88,7 +89,7 @@ type alwaysErrorSessionHandler struct {
 }
 
 func (handler alwaysErrorSessionHandler) GetSession() (Session, error) {
-	return nil, errorString(
+	return nil, errors.New(
 		"Ran GetSession on an instance of alwaysErrorSessionHandler",
 	)
 }
@@ -97,13 +98,13 @@ type alwaysErrorSession struct{
 }
 
 func (sesh alwaysErrorSession) GetValue(key string) (interface{}, error) {
-	return nil, errorString(
+	return nil, errors.New(
 		"Ran GetValue on an instance of alwaysErrorSession",
 	)
 }
 
 func (sesh alwaysErrorSession) SetValue(key string, val interface{}) (error) {
-	return errorString(
+	return errors.New(
 		"Ran SetValue on an instance of alwaysErrorSession",
 	)
 }
@@ -113,7 +114,7 @@ func (sesh alwaysErrorSession) CookieMask(inc []*http.Cookie) (
 	[]*http.Cookie,
 	error,
 ) {
-	return nil, nil, errorString(
+	return nil, nil, errors.New(
 		"Ran CookieMask on an instance of alwaysErrorSession",
 	)
 }
