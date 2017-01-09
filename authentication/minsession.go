@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	"github.com/proidiot/gone/errors"
 	// "github.com/stuphlabs/pullcord"
 	"net/http"
 	"regexp"
@@ -15,7 +16,7 @@ const minSessionCookieNameRandSize = 32
 const minSessionCookieValueRandSize = 128
 const minSessionCookieMaxAge = 2 * 60 * 60
 
-const rngCollisionError = errorString(
+const rngCollisionError = errors.New(
 	"The random number generator produced a colliding value. This is" +
 	" perfectly fine if it occurs extremely rarely, but if it occurs" +
 	" more than once, it would be extremely concerning.",

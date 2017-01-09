@@ -3,6 +3,7 @@ package monitor
 import (
 	"fmt"
 	"github.com/fitstar/falcore"
+	"github.com/proidiot/gone/errors"
 	// "github.com/stuphlabs/pullcord"
 	"github.com/stuphlabs/pullcord/proxy"
 	"github.com/stuphlabs/pullcord/trigger"
@@ -12,24 +13,15 @@ import (
 	"time"
 )
 
-// errorString is an unexported error type used for error constants.
-type errorString string
-
-// Error allows the unexported error type used for some error constants in this
-// package to adhere to the standard error interface.
-func (str errorString) Error() string {
-	return string(str)
-}
-
 // DuplicateServiceRegistrationError indicates that a service with that name
 // has already been registered to this monitor.
-const DuplicateServiceRegistrationError = errorString(
+const DuplicateServiceRegistrationError = errors.New(
 	"A service with this name has already been registered",
 )
 
 // UnknownServiceError indicates that no service with the given name has been
 // registered.
-const UnknownServiceError = errorString(
+const UnknownServiceError = errors.New(
 	"No service has been registered with the requested name",
 )
 
