@@ -82,27 +82,28 @@ func TestInitialLoginPage(t *testing.T) {
 		"/",
 		"example.com",
 	)
-	passwordChecker := NewInMemPwdStore()
-	err := passwordChecker.SetPassword(
-		testUser,
-		testPassword,
-		Pbkdf2MinIterations,
-	)
+	hash, err := GetPbkdf2Hash(testPassword, Pbkdf2MinIterations)
 	assert.NoError(t, err)
+	passwordChecker := InMemPwdStore{
+		map[string]*Pbkdf2Hash{
+			testUser: hash,
+		},
+	}
 
 	request, err := http.NewRequest("GET", "/", nil)
 	assert.NoError(t, err)
 
 	/* run */
-	var handler LoginHandler
-	handler.Identifier = "testLoginHandler"
-	handler.PasswordChecker = passwordChecker
-	handler.Downstream = downstreamFilter
-	loginHandler := NewLoginFilter(
+	handler := &LoginHandler{
+		"testLoginHandler",
+		&passwordChecker,
+		downstreamFilter,
+	}
+	filter := &CookiemaskFilter{
 		sessionHandler,
 		handler,
-	)
-	_, response := falcore.TestWithRequest(request, loginHandler, nil)
+	}
+	_, response := falcore.TestWithRequest(request, filter, nil)
 
 	/* check */
 	assert.Equal(t, 200, response.StatusCode)
@@ -143,13 +144,13 @@ func TestNoXsrfLoginPage(t *testing.T) {
 		"/",
 		"example.com",
 	)
-	passwordChecker := NewInMemPwdStore()
-	err := passwordChecker.SetPassword(
-		testUser,
-		testPassword,
-		Pbkdf2MinIterations,
-	)
+	hash, err := GetPbkdf2Hash(testPassword, Pbkdf2MinIterations)
 	assert.NoError(t, err)
+	passwordChecker := InMemPwdStore{
+		map[string]*Pbkdf2Hash{
+			testUser: hash,
+		},
+	}
 
 	request1, err := http.NewRequest("GET", "/", nil)
 	assert.NoError(t, err)
@@ -167,23 +168,24 @@ func TestNoXsrfLoginPage(t *testing.T) {
 	assert.NoError(t, err)
 
 	/* run */
-	var handler LoginHandler
-	handler.Identifier = "testLoginHandler"
-	handler.PasswordChecker = passwordChecker
-	handler.Downstream = downstreamFilter
-	loginHandler := NewLoginFilter(
+	handler := &LoginHandler{
+		"testLoginHandler",
+		&passwordChecker,
+		downstreamFilter,
+	}
+	filter := &CookiemaskFilter{
 		sessionHandler,
 		handler,
-	)
+	}
 
-	_, response1 := falcore.TestWithRequest(request1, loginHandler, nil)
+	_, response1 := falcore.TestWithRequest(request1, filter, nil)
 	assert.Equal(t, 200, response1.StatusCode)
 	assert.NotEmpty(t, response1.Header["Set-Cookie"])
 	for _, cke := range response1.Cookies() {
 		request2.AddCookie(cke)
 	}
 
-	_, response2 := falcore.TestWithRequest(request2, loginHandler, nil)
+	_, response2 := falcore.TestWithRequest(request2, filter, nil)
 
 	/* check */
 	assert.Equal(t, 200, response2.StatusCode)
@@ -217,13 +219,13 @@ func TestBadXsrfLoginPage(t *testing.T) {
 		"/",
 		"example.com",
 	)
-	passwordChecker := NewInMemPwdStore()
-	err := passwordChecker.SetPassword(
-		testUser,
-		testPassword,
-		Pbkdf2MinIterations,
-	)
+	hash, err := GetPbkdf2Hash(testPassword, Pbkdf2MinIterations)
 	assert.NoError(t, err)
+	passwordChecker := InMemPwdStore{
+		map[string]*Pbkdf2Hash{
+			testUser: hash,
+		},
+	}
 
 	request1, err := http.NewRequest("GET", "/", nil)
 	assert.NoError(t, err)
@@ -242,23 +244,25 @@ func TestBadXsrfLoginPage(t *testing.T) {
 	assert.NoError(t, err)
 
 	/* run */
-	var handler LoginHandler
-	handler.Identifier = "testLoginHandler"
-	handler.PasswordChecker = passwordChecker
-	handler.Downstream = downstreamFilter
-	loginHandler := NewLoginFilter(
+	handler := &LoginHandler{
+		"testLoginHandler",
+		&passwordChecker,
+		downstreamFilter,
+	}
+	filter := &CookiemaskFilter{
 		sessionHandler,
 		handler,
-	)
+	}
 
-	_, response1 := falcore.TestWithRequest(request1, loginHandler, nil)
+
+	_, response1 := falcore.TestWithRequest(request1, filter, nil)
 	assert.Equal(t, 200, response1.StatusCode)
 	assert.NotEmpty(t, response1.Header["Set-Cookie"])
 	for _, cke := range response1.Cookies() {
 		request2.AddCookie(cke)
 	}
 
-	_, response2 := falcore.TestWithRequest(request2, loginHandler, nil)
+	_, response2 := falcore.TestWithRequest(request2, filter, nil)
 
 	/* check */
 	assert.Equal(t, 200, response2.StatusCode)
@@ -292,28 +296,29 @@ func TestNoUsernameLoginPage(t *testing.T) {
 		"/",
 		"example.com",
 	)
-	passwordChecker := NewInMemPwdStore()
-	err := passwordChecker.SetPassword(
-		testUser,
-		testPassword,
-		Pbkdf2MinIterations,
-	)
+	hash, err := GetPbkdf2Hash(testPassword, Pbkdf2MinIterations)
 	assert.NoError(t, err)
+	passwordChecker := InMemPwdStore{
+		map[string]*Pbkdf2Hash{
+			testUser: hash,
+		},
+	}
 
 	request1, err := http.NewRequest("GET", "/", nil)
 	assert.NoError(t, err)
 
 	/* run */
-	var handler LoginHandler
-	handler.Identifier = "testLoginHandler"
-	handler.PasswordChecker = passwordChecker
-	handler.Downstream = downstreamFilter
-	loginHandler := NewLoginFilter(
+	handler := &LoginHandler{
+		"testLoginHandler",
+		&passwordChecker,
+		downstreamFilter,
+	}
+	filter := &CookiemaskFilter{
 		sessionHandler,
 		handler,
-	)
+	}
 
-	_, response1 := falcore.TestWithRequest(request1, loginHandler, nil)
+	_, response1 := falcore.TestWithRequest(request1, filter, nil)
 	assert.Equal(t, 200, response1.StatusCode)
 	assert.NotEmpty(t, response1.Header["Set-Cookie"])
 
@@ -340,7 +345,7 @@ func TestNoUsernameLoginPage(t *testing.T) {
 		request2.AddCookie(cke)
 	}
 
-	_, response2 := falcore.TestWithRequest(request2, loginHandler, nil)
+	_, response2 := falcore.TestWithRequest(request2, filter, nil)
 
 	/* check */
 	assert.Equal(t, 200, response2.StatusCode)
@@ -374,28 +379,29 @@ func TestNoPasswordLoginPage(t *testing.T) {
 		"/",
 		"example.com",
 	)
-	passwordChecker := NewInMemPwdStore()
-	err := passwordChecker.SetPassword(
-		testUser,
-		testPassword,
-		Pbkdf2MinIterations,
-	)
+	hash, err := GetPbkdf2Hash(testPassword, Pbkdf2MinIterations)
 	assert.NoError(t, err)
+	passwordChecker := InMemPwdStore{
+		map[string]*Pbkdf2Hash{
+			testUser: hash,
+		},
+	}
 
 	request1, err := http.NewRequest("GET", "/", nil)
 	assert.NoError(t, err)
 
 	/* run */
-	var handler LoginHandler
-	handler.Identifier = "testLoginHandler"
-	handler.PasswordChecker = passwordChecker
-	handler.Downstream = downstreamFilter
-	loginHandler := NewLoginFilter(
+	handler := &LoginHandler{
+		"testLoginHandler",
+		&passwordChecker,
+		downstreamFilter,
+	}
+	filter := &CookiemaskFilter{
 		sessionHandler,
 		handler,
-	)
+	}
 
-	_, response1 := falcore.TestWithRequest(request1, loginHandler, nil)
+	_, response1 := falcore.TestWithRequest(request1, filter, nil)
 	assert.Equal(t, 200, response1.StatusCode)
 	assert.NotEmpty(t, response1.Header["Set-Cookie"])
 
@@ -423,7 +429,7 @@ func TestNoPasswordLoginPage(t *testing.T) {
 		request2.AddCookie(cke)
 	}
 
-	_, response2 := falcore.TestWithRequest(request2, loginHandler, nil)
+	_, response2 := falcore.TestWithRequest(request2, filter, nil)
 
 	/* check */
 	assert.Equal(t, 200, response2.StatusCode)
@@ -457,28 +463,29 @@ func TestUsernameArrayLoginPage(t *testing.T) {
 		"/",
 		"example.com",
 	)
-	passwordChecker := NewInMemPwdStore()
-	err := passwordChecker.SetPassword(
-		testUser,
-		testPassword,
-		Pbkdf2MinIterations,
-	)
+	hash, err := GetPbkdf2Hash(testPassword, Pbkdf2MinIterations)
 	assert.NoError(t, err)
+	passwordChecker := InMemPwdStore{
+		map[string]*Pbkdf2Hash{
+			testUser: hash,
+		},
+	}
 
 	request1, err := http.NewRequest("GET", "/", nil)
 	assert.NoError(t, err)
 
 	/* run */
-	var handler LoginHandler
-	handler.Identifier = "testLoginHandler"
-	handler.PasswordChecker = passwordChecker
-	handler.Downstream = downstreamFilter
-	loginHandler := NewLoginFilter(
+	handler := &LoginHandler{
+		"testLoginHandler",
+		&passwordChecker,
+		downstreamFilter,
+	}
+	filter := &CookiemaskFilter{
 		sessionHandler,
 		handler,
-	)
+	}
 
-	_, response1 := falcore.TestWithRequest(request1, loginHandler, nil)
+	_, response1 := falcore.TestWithRequest(request1, filter, nil)
 	assert.Equal(t, 200, response1.StatusCode)
 	assert.NotEmpty(t, response1.Header["Set-Cookie"])
 
@@ -510,7 +517,7 @@ func TestUsernameArrayLoginPage(t *testing.T) {
 		request2.AddCookie(cke)
 	}
 
-	_, response2 := falcore.TestWithRequest(request2, loginHandler, nil)
+	_, response2 := falcore.TestWithRequest(request2, filter, nil)
 
 	/* check */
 	assert.Equal(t, 200, response2.StatusCode)
@@ -544,28 +551,29 @@ func TestBadUsernameLoginPage(t *testing.T) {
 		"/",
 		"example.com",
 	)
-	passwordChecker := NewInMemPwdStore()
-	err := passwordChecker.SetPassword(
-		testUser,
-		testPassword,
-		Pbkdf2MinIterations,
-	)
+	hash, err := GetPbkdf2Hash(testPassword, Pbkdf2MinIterations)
 	assert.NoError(t, err)
+	passwordChecker := InMemPwdStore{
+		map[string]*Pbkdf2Hash{
+			testUser: hash,
+		},
+	}
 
 	request1, err := http.NewRequest("GET", "/", nil)
 	assert.NoError(t, err)
 
 	/* run */
-	var handler LoginHandler
-	handler.Identifier = "testLoginHandler"
-	handler.PasswordChecker = passwordChecker
-	handler.Downstream = downstreamFilter
-	loginHandler := NewLoginFilter(
+	handler := &LoginHandler{
+		"testLoginHandler",
+		&passwordChecker,
+		downstreamFilter,
+	}
+	filter := &CookiemaskFilter{
 		sessionHandler,
 		handler,
-	)
+	}
 
-	_, response1 := falcore.TestWithRequest(request1, loginHandler, nil)
+	_, response1 := falcore.TestWithRequest(request1, filter, nil)
 	assert.Equal(t, 200, response1.StatusCode)
 	assert.NotEmpty(t, response1.Header["Set-Cookie"])
 
@@ -596,7 +604,7 @@ func TestBadUsernameLoginPage(t *testing.T) {
 		request2.AddCookie(cke)
 	}
 
-	_, response2 := falcore.TestWithRequest(request2, loginHandler, nil)
+	_, response2 := falcore.TestWithRequest(request2, filter, nil)
 
 	/* check */
 	assert.Equal(t, 200, response2.StatusCode)
@@ -630,28 +638,29 @@ func TestBadPasswordLoginPage(t *testing.T) {
 		"/",
 		"example.com",
 	)
-	passwordChecker := NewInMemPwdStore()
-	err := passwordChecker.SetPassword(
-		testUser,
-		testPassword,
-		Pbkdf2MinIterations,
-	)
+	hash, err := GetPbkdf2Hash(testPassword, Pbkdf2MinIterations)
 	assert.NoError(t, err)
+	passwordChecker := InMemPwdStore{
+		map[string]*Pbkdf2Hash{
+			testUser: hash,
+		},
+	}
 
 	request1, err := http.NewRequest("GET", "/", nil)
 	assert.NoError(t, err)
 
 	/* run */
-	var handler LoginHandler
-	handler.Identifier = "testLoginHandler"
-	handler.PasswordChecker = passwordChecker
-	handler.Downstream = downstreamFilter
-	loginHandler := NewLoginFilter(
+	handler := &LoginHandler{
+		"testLoginHandler",
+		&passwordChecker,
+		downstreamFilter,
+	}
+	filter := &CookiemaskFilter{
 		sessionHandler,
 		handler,
-	)
+	}
 
-	_, response1 := falcore.TestWithRequest(request1, loginHandler, nil)
+	_, response1 := falcore.TestWithRequest(request1, filter, nil)
 	assert.Equal(t, 200, response1.StatusCode)
 	assert.NotEmpty(t, response1.Header["Set-Cookie"])
 
@@ -682,7 +691,7 @@ func TestBadPasswordLoginPage(t *testing.T) {
 		request2.AddCookie(cke)
 	}
 
-	_, response2 := falcore.TestWithRequest(request2, loginHandler, nil)
+	_, response2 := falcore.TestWithRequest(request2, filter, nil)
 
 	/* check */
 	assert.Equal(t, 200, response2.StatusCode)
@@ -716,28 +725,29 @@ func TestGoodLoginPage(t *testing.T) {
 		"/",
 		"example.com",
 	)
-	passwordChecker := NewInMemPwdStore()
-	err := passwordChecker.SetPassword(
-		testUser,
-		testPassword,
-		Pbkdf2MinIterations,
-	)
+	hash, err := GetPbkdf2Hash(testPassword, Pbkdf2MinIterations)
 	assert.NoError(t, err)
+	passwordChecker := InMemPwdStore{
+		map[string]*Pbkdf2Hash{
+			testUser: hash,
+		},
+	}
 
 	request1, err := http.NewRequest("GET", "/", nil)
 	assert.NoError(t, err)
 
 	/* run */
-	var handler LoginHandler
-	handler.Identifier = "testLoginHandler"
-	handler.PasswordChecker = passwordChecker
-	handler.Downstream = downstreamFilter
-	loginHandler := NewLoginFilter(
+	handler := &LoginHandler{
+		"testLoginHandler",
+		&passwordChecker,
+		downstreamFilter,
+	}
+	filter := &CookiemaskFilter{
 		sessionHandler,
 		handler,
-	)
+	}
 
-	_, response1 := falcore.TestWithRequest(request1, loginHandler, nil)
+	_, response1 := falcore.TestWithRequest(request1, filter, nil)
 	assert.Equal(t, 200, response1.StatusCode)
 	assert.NotEmpty(t, response1.Header["Set-Cookie"])
 
@@ -768,7 +778,7 @@ func TestGoodLoginPage(t *testing.T) {
 		request2.AddCookie(cke)
 	}
 
-	_, response2 := falcore.TestWithRequest(request2, loginHandler, nil)
+	_, response2 := falcore.TestWithRequest(request2, filter, nil)
 
 	/* check */
 	assert.Equal(t, 200, response2.StatusCode)
@@ -802,28 +812,29 @@ func TestPassthruLoginPage(t *testing.T) {
 		"/",
 		"example.com",
 	)
-	passwordChecker := NewInMemPwdStore()
-	err := passwordChecker.SetPassword(
-		testUser,
-		testPassword,
-		Pbkdf2MinIterations,
-	)
+	hash, err := GetPbkdf2Hash(testPassword, Pbkdf2MinIterations)
 	assert.NoError(t, err)
+	passwordChecker := InMemPwdStore{
+		map[string]*Pbkdf2Hash{
+			testUser: hash,
+		},
+	}
 
 	request1, err := http.NewRequest("GET", "/", nil)
 	assert.NoError(t, err)
 
 	/* run */
-	var handler LoginHandler
-	handler.Identifier = "testLoginHandler"
-	handler.PasswordChecker = passwordChecker
-	handler.Downstream = downstreamFilter
-	loginHandler := NewLoginFilter(
+	handler := &LoginHandler{
+		"testLoginHandler",
+		&passwordChecker,
+		downstreamFilter,
+	}
+	filter := &CookiemaskFilter{
 		sessionHandler,
 		handler,
-	)
+	}
 
-	_, response1 := falcore.TestWithRequest(request1, loginHandler, nil)
+	_, response1 := falcore.TestWithRequest(request1, filter, nil)
 	assert.Equal(t, 200, response1.StatusCode)
 	assert.NotEmpty(t, response1.Header["Set-Cookie"])
 
@@ -854,7 +865,7 @@ func TestPassthruLoginPage(t *testing.T) {
 		request2.AddCookie(cke)
 	}
 
-	_, response2 := falcore.TestWithRequest(request2, loginHandler, nil)
+	_, response2 := falcore.TestWithRequest(request2, filter, nil)
 
 	assert.Equal(t, 200, response2.StatusCode)
 
@@ -872,7 +883,7 @@ func TestPassthruLoginPage(t *testing.T) {
 		request3.AddCookie(cke)
 	}
 
-	_, response3 := falcore.TestWithRequest(request3, loginHandler, nil)
+	_, response3 := falcore.TestWithRequest(request3, filter, nil)
 
 
 	/* check */

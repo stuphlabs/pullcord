@@ -13,7 +13,7 @@ import (
 func TestLandingPage(t *testing.T) {
 	request, err := http.NewRequest("GET", "/", nil)
 	assert.NoError(t, err)
-	_, response := falcore.TestWithRequest(request, NewLandingFilter(), nil)
+	_, response := falcore.TestWithRequest(request, &LandingFilter{}, nil)
 	assert.Equal(t, 200, response.StatusCode)
 }
 
@@ -27,7 +27,7 @@ func TestAnotherLandingPage(t *testing.T) {
 		nil,
 	)
 	assert.NoError(t, err)
-	_, response := falcore.TestWithRequest(request, NewLandingFilter(), nil)
+	_, response := falcore.TestWithRequest(request, &LandingFilter{}, nil)
 	assert.Equal(t, 200, response.StatusCode)
 }
 
@@ -37,7 +37,7 @@ func TestAnotherLandingPage(t *testing.T) {
 func TestPostLandingPage(t *testing.T) {
 	request, err := http.NewRequest("POST", "/", nil)
 	assert.NoError(t, err)
-	_, response := falcore.TestWithRequest(request, NewLandingFilter(), nil)
+	_, response := falcore.TestWithRequest(request, &LandingFilter{}, nil)
 	assert.Equal(t, 200, response.StatusCode)
 }
 

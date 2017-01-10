@@ -27,7 +27,7 @@ func TestPassthru(t *testing.T) {
 	assert.NoError(t, err)
 
 	landingPipeline := falcore.NewPipeline()
-	landingPipeline.Upstream.PushBack(pullcord.NewLandingFilter())
+	landingPipeline.Upstream.PushBack(&pullcord.LandingFilter{})
 
 	landingServer := falcore.NewServer(0, landingPipeline)
 

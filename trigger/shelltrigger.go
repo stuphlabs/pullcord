@@ -5,7 +5,6 @@ import (
 	"fmt"
 	// "github.com/stuphlabs/pullcord"
 	"os/exec"
-	"strings"
 )
 
 // ShellTriggerHandler is a basic TriggerHandler that calls a stored shell
@@ -21,15 +20,9 @@ type ShellTriggerHandler struct {
 // TriggerString function required by all TriggerHandler instances.
 //
 // In this case, the message will be passed to the command via stdin.
-func (handler *ShellTriggerHandler) TriggerString(message string) (err error) {
-	log().Debug(
-		fmt.Sprintf(
-			"shelltrigger running trigger for message: %s",
-			message,
-		),
-	)
+func (handler *ShellTriggerHandler) Trigger() (err error) {
+	log().Debug("shelltrigger running trigger")
 	cmd := exec.Command(handler.command, handler.args...)
-	cmd.Stdin = strings.NewReader(message)
 	var stdout bytes.Buffer
 	cmd.Stdout = &stdout
 	err = cmd.Run()

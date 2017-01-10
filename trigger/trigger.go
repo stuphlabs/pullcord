@@ -15,6 +15,6 @@ import (
 // arbitrary string. A minimal amount of additional structure could be achieved
 // through the use of serialization format like JSON.
 type TriggerHandler interface {
-	TriggerString(message string) (err error)
+	Trigger() (err error)
 }
 

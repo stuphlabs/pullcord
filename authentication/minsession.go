@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	"github.com/proidiot/gone/errors"
 	// "github.com/stuphlabs/pullcord"
 	"net/http"
 	"regexp"
@@ -15,7 +16,7 @@ const minSessionCookieNameRandSize = 32
 const minSessionCookieValueRandSize = 128
 const minSessionCookieMaxAge = 2 * 60 * 60
 
-const rngCollisionError = errorString(
+const rngCollisionError = errors.New(
 	"The random number generator produced a colliding value. This is" +
 	" perfectly fine if it occurs extremely rarely, but if it occurs" +
 	" more than once, it would be extremely concerning.",
@@ -23,30 +24,25 @@ const rngCollisionError = errorString(
 
 // MinSessionHandler is a somewhat minimalist form of a SessionHandler.
 type MinSessionHandler struct {
+	Name   string
+	Path   string
+	Domain string
 	table  map[string]*MinSession
-	name   string
-	path   string
-	domain string
 }
 
-// NewMinSessionHandler constructs a new MinSessionHandler given a unique name
-// (which will be given to all the cookies), and a path and domain (the two of
-// which will simply be sent to the browser along with the cookie, and otherwise
-// have no bearing on functionality).
-func NewMinSessionHandler(
-	handlerName string,
-	handlerPath string,
-	handlerDomain string,
-) *MinSessionHandler {
-	log().Info("initializing minimal session handler")
+func NewMinSessionHandler(name, path, domain string) (*MinSessionHandler) {
+	return &MinSessionHandler{
+		name,
+		path,
+		domain,
+		make(map[string]*MinSession),
+	}
+}
 
-	var result MinSessionHandler
-	result.table = make(map[string]*MinSession)
-	result.name = handlerName
-	result.path = handlerPath
-	result.domain = handlerDomain
-
-	return &result
+func (handler *MinSessionHandler) assureTableInitialized() {
+	if handler.table == nil {
+		handler.table = make(map[string]*MinSession)
+	}
 }
 
 func (handler *MinSessionHandler) GetSession() (Session, error) {
@@ -58,16 +54,20 @@ func (handler *MinSessionHandler) GetSession() (Session, error) {
 		),
 	)
 
+	handler.assureTableInitialized()
+
 	var sesh MinSession
-	var ims internalMinSession
-	sesh.ion = &ims
-	sesh.ion.data = make(map[string]interface{})
+	var core minSessionCore
+	sesh.core = &core
+	sesh.core.data = make(map[string]interface{})
 	sesh.handler = handler
 	return &sesh, nil
 }
 
 func (handler *MinSessionHandler) genCookie() (*http.Cookie, error) {
 	log().Debug("minsession generating cookie")
+
+	handler.assureTableInitialized()
 
 	var randReadErr error
 	var otherErr error
@@ -87,7 +87,7 @@ func (handler *MinSessionHandler) genCookie() (*http.Cookie, error) {
 			return nil, randReadErr
 		}
 
-		cookie_name = handler.name + "-" + hex.EncodeToString(nbytes)
+		cookie_name = handler.Name + "-" + hex.EncodeToString(nbytes)
 		// Slower than adding an else on the next if, but clearer.
 		name_gen_needed = false
 
@@ -121,32 +121,31 @@ func (handler *MinSessionHandler) genCookie() (*http.Cookie, error) {
 
 	var cke http.Cookie
 	cke.Name = cookie_name
-	// TODO delete
-	log().Debug(fmt.Sprintf("got %v", handler))
 	cke.Value = hex.EncodeToString(vbytes)
-	cke.Path = handler.path
-	cke.Domain = handler.domain
+	cke.Path = handler.Path
+	cke.Domain = handler.Domain
 	cke.MaxAge = minSessionCookieMaxAge
-	cke.Secure = true
+	// TODO make configurable
+	cke.Secure = false
 	cke.HttpOnly = true
 
 	return &cke, otherErr
 }
 
-type internalMinSession struct {
+type minSessionCore struct {
 	cvalue string
 	data   map[string]interface{}
 }
 
 type MinSession struct {
-	ion *internalMinSession
+	core *minSessionCore
 	handler *MinSessionHandler
 }
 
 func (sesh *MinSession) GetValue(key string) (interface{}, error) {
 	log().Debug(fmt.Sprintf("minsession requesting value for: %s", key))
 
-	value, present := sesh.ion.data[key]
+	value, present := sesh.core.data[key]
 	if ! present {
 		return nil, NoSuchSessionValueError
 	} else {
@@ -157,13 +156,13 @@ func (sesh *MinSession) GetValue(key string) (interface{}, error) {
 func (sesh *MinSession) GetValues() (map[string]interface{}) {
 	log().Debug("minsession requesting all values")
 
-	return sesh.ion.data
+	return sesh.core.data
 }
 
 func (sesh *MinSession) SetValue(key string, value interface{}) (error) {
 	log().Debug(fmt.Sprintf("minsession setting value for: %s", key))
 
-	sesh.ion.data[key] = value
+	sesh.core.data[key] = value
 	return nil
 }
 
@@ -179,7 +178,7 @@ func (sesh *MinSession) CookieMask(incomingCookies []*http.Cookie) (
 	new_cookie_needed := true
 	cookieNameRegex := regexp.MustCompile(
 		"^" +
-		sesh.handler.name +
+		sesh.handler.Name +
 		"-[0-9A-Fa-f]{" +
 		strconv.Itoa(minSessionCookieNameRandSize * 2) +
 		"}$",
@@ -193,7 +192,7 @@ func (sesh *MinSession) CookieMask(incomingCookies []*http.Cookie) (
 			sesh2, present := sesh.handler.table[cookie.Name]
 			if present &&
 			    len(cookie.Value) > 0 &&
-			    cookie.Value == sesh2.ion.cvalue {
+			    cookie.Value == sesh2.core.cvalue {
 				log().Debug(
 					fmt.Sprintf(
 						"minsession cookiemask" +
@@ -210,8 +209,8 @@ func (sesh *MinSession) CookieMask(incomingCookies []*http.Cookie) (
 				// be faster to copy any recently set values
 				// into the already established session than
 				// vice-versa.
-				for key, val := range sesh.ion.data {
-					sesh2.ion.data[key] = val
+				for key, val := range sesh.core.data {
+					sesh2.core.data[key] = val
 				}
 
 				// This should replace a new empty session with
@@ -220,7 +219,7 @@ func (sesh *MinSession) CookieMask(incomingCookies []*http.Cookie) (
 				// established sessions as well? I hope so, at
 				// least... Anyway, we can't just exit here in
 				// case such a scenario occurs.
-				sesh.ion = sesh2.ion
+				sesh.core = sesh2.core
 			} else {
 				if present {
 					// TODO: configurable info vs warn?
@@ -306,7 +305,7 @@ func (sesh *MinSession) CookieMask(incomingCookies []*http.Cookie) (
 			),
 		)
 
-		sesh.ion.cvalue = new_cookie.Value
+		sesh.core.cvalue = new_cookie.Value
 		sesh.handler.table[new_cookie.Name] = sesh
 		log().Debug(
 			fmt.Sprintf(

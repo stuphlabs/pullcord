@@ -35,21 +35,24 @@ func TestMinMonitorUpService(t *testing.T) {
 	gracePeriod := time.Duration(0)
 
 	landingPipeline := falcore.NewPipeline()
-	landingPipeline.Upstream.PushBack(pullcord.NewLandingFilter())
+	landingPipeline.Upstream.PushBack(&pullcord.LandingFilter{})
 	landingServer := falcore.NewServer(0, landingPipeline)
 	go serveLandingPage(landingServer)
 	defer landingServer.StopAccepting()
 
 	<- landingServer.AcceptReady
 
-	service, err := NewMonitorredService(
+	service, err := NewMinMonitorredService(
 		testHost,
 		landingServer.Port(),
 		testProtocol,
 		gracePeriod,
+		nil,
+		nil,
+		nil,
 	)
 	assert.NoError(t, err)
-	mon := NewMinMonitor()
+	mon := MinMonitor{}
 	err = mon.Add(
 		testServiceName,
 		service,
@@ -78,14 +81,17 @@ func TestMinMonitorDownService(t *testing.T) {
 	err = server.Close()
 	assert.NoError(t, err)
 
-	svc, err := NewMonitorredService(
+	svc, err := NewMinMonitorredService(
 		testHost,
 		testPort,
 		testProtocol,
 		gracePeriod,
+		nil,
+		nil,
+		nil,
 	)
 	assert.NoError(t, err)
-	mon := NewMinMonitor()
+	mon := MinMonitor{}
 	err = mon.Add(
 		testServiceName,
 		svc,
@@ -106,14 +112,17 @@ func TestMinMonitorInvalidService(t *testing.T) {
 	testProtocol := "tcp"
 	gracePeriod := time.Duration(0)
 
-	svc, err := NewMonitorredService(
+	svc, err := NewMinMonitorredService(
 		testHost,
 		testPort,
 		testProtocol,
 		gracePeriod,
+		nil,
+		nil,
+		nil,
 	)
 	assert.NoError(t, err)
-	mon := NewMinMonitor()
+	mon := MinMonitor{}
 	err = mon.Add(
 		testServiceName,
 		svc,
@@ -134,21 +143,24 @@ func TestMinMonitorUpReprobe(t *testing.T) {
 	gracePeriod := time.Duration(0)
 
 	landingPipeline := falcore.NewPipeline()
-	landingPipeline.Upstream.PushBack(pullcord.NewLandingFilter())
+	landingPipeline.Upstream.PushBack(&pullcord.LandingFilter{})
 	landingServer := falcore.NewServer(0, landingPipeline)
 	go serveLandingPage(landingServer)
 	defer landingServer.StopAccepting()
 
 	<- landingServer.AcceptReady
 
-	svc, err := NewMonitorredService(
+	svc, err := NewMinMonitorredService(
 		testHost,
 		landingServer.Port(),
 		testProtocol,
 		gracePeriod,
+		nil,
+		nil,
+		nil,
 	)
 	assert.NoError(t, err)
-	mon := NewMinMonitor()
+	mon := MinMonitor{}
 	err = mon.Add(
 		testServiceName,
 		svc,
@@ -177,14 +189,17 @@ func TestMinMonitorDownReprobe(t *testing.T) {
 	err = server.Close()
 	assert.NoError(t, err)
 
-	svc, err := NewMonitorredService(
+	svc, err := NewMinMonitorredService(
 		testHost,
 		testPort,
 		testProtocol,
 		gracePeriod,
+		nil,
+		nil,
+		nil,
 	)
 	assert.NoError(t, err)
-	mon := NewMinMonitor()
+	mon := MinMonitor{}
 	err = mon.Add(
 		testServiceName,
 		svc,
@@ -214,14 +229,17 @@ func TestMinMonitorSetStatusUp(t *testing.T) {
 	err = server.Close()
 	assert.NoError(t, err)
 
-	svc, err := NewMonitorredService(
+	svc, err := NewMinMonitorredService(
 		testHost,
 		testPort,
 		testProtocol,
 		gracePeriod,
+		nil,
+		nil,
+		nil,
 	)
 	assert.NoError(t, err)
-	mon := NewMinMonitor()
+	mon := MinMonitor{}
 	err = mon.Add(
 		testServiceName,
 		svc,
@@ -249,20 +267,23 @@ func TestMinMonitorFalsePositive(t *testing.T) {
 	assert.NoError(t, err)
 
 	landingPipeline := falcore.NewPipeline()
-	landingPipeline.Upstream.PushBack(pullcord.NewLandingFilter())
+	landingPipeline.Upstream.PushBack(&pullcord.LandingFilter{})
 	landingServer := falcore.NewServer(0, landingPipeline)
 	go serveLandingPage(landingServer)
 
 	<- landingServer.AcceptReady
 
-	service, err := NewMonitorredService(
+	service, err := NewMinMonitorredService(
 		testHost,
 		landingServer.Port(),
 		testProtocol,
 		gracePeriod,
+		nil,
+		nil,
+		nil,
 	)
 	assert.NoError(t, err)
-	mon := NewMinMonitor()
+	mon := MinMonitor{}
 	err = mon.Add(
 		testServiceName,
 		service,
@@ -295,14 +316,17 @@ func TestMinMonitorTrueNegative(t *testing.T) {
 	testPort, err := strconv.Atoi(rawPort)
 	assert.NoError(t, err)
 
-	service, err := NewMonitorredService(
+	service, err := NewMinMonitorredService(
 		testHost,
 		testPort,
 		testProtocol,
 		gracePeriod,
+		nil,
+		nil,
+		nil,
 	)
 	assert.NoError(t, err)
-	mon := NewMinMonitor()
+	mon := MinMonitor{}
 	err = mon.Add(
 		testServiceName,
 		service,
@@ -347,7 +371,7 @@ func TestMinMonitorTrueNegative(t *testing.T) {
 func TestMinMonitorNonExistantStatus(t *testing.T) {
 	testServiceName := "test"
 
-	mon := NewMinMonitor()
+	mon := MinMonitor{}
 
 	up, err := mon.Status(testServiceName)
 	assert.Error(t, err)
@@ -360,7 +384,7 @@ func TestMinMonitorNonExistantStatus(t *testing.T) {
 func TestMinMonitorNonExistantSetStatusUp(t *testing.T) {
 	testServiceName := "test"
 
-	mon := NewMinMonitor()
+	mon := MinMonitor{}
 
 	err := mon.SetStatusUp(testServiceName)
 	assert.Error(t, err)
@@ -372,7 +396,7 @@ func TestMinMonitorNonExistantSetStatusUp(t *testing.T) {
 func TestMinMonitorNonExistantReprobe(t *testing.T) {
 	testServiceName := "test"
 
-	mon := NewMinMonitor()
+	mon := MinMonitor{}
 
 	up, err := mon.Reprobe(testServiceName)
 	assert.Error(t, err)
@@ -389,32 +413,38 @@ func TestMinMonitorAddExistant(t *testing.T) {
 	gracePeriod := time.Duration(0)
 
 	landingPipeline := falcore.NewPipeline()
-	landingPipeline.Upstream.PushBack(pullcord.NewLandingFilter())
+	landingPipeline.Upstream.PushBack(&pullcord.LandingFilter{})
 	landingServer := falcore.NewServer(0, landingPipeline)
 	go serveLandingPage(landingServer)
 	defer landingServer.StopAccepting()
 
 	<- landingServer.AcceptReady
 
-	svc, err := NewMonitorredService(
+	svc, err := NewMinMonitorredService(
 		testHost,
 		landingServer.Port(),
 		testProtocol,
 		gracePeriod,
+		nil,
+		nil,
+		nil,
 	)
 	assert.NoError(t, err)
-	mon := NewMinMonitor()
+	mon := MinMonitor{}
 	err = mon.Add(
 		testServiceName,
 		svc,
 	)
 	assert.NoError(t, err)
 
-	svc2, err := NewMonitorredService(
+	svc2, err := NewMinMonitorredService(
 		testHost,
 		landingServer.Port() + 1,
 		testProtocol,
 		gracePeriod,
+		nil,
+		nil,
+		nil,
 	)
 	assert.NoError(t, err)
 	err = mon.Add(
@@ -435,28 +465,31 @@ func TestMonitorFilterUp(t *testing.T) {
 	gracePeriod := time.Duration(0)
 
 	landingPipeline := falcore.NewPipeline()
-	landingPipeline.Upstream.PushBack(pullcord.NewLandingFilter())
+	landingPipeline.Upstream.PushBack(&pullcord.LandingFilter{})
 	landingServer := falcore.NewServer(0, landingPipeline)
 	go serveLandingPage(landingServer)
 	defer landingServer.StopAccepting()
 
 	<- landingServer.AcceptReady
 
-	service, err := NewMonitorredService(
+	service, err := NewMinMonitorredService(
 		testHost,
 		landingServer.Port(),
 		testProtocol,
 		gracePeriod,
+		nil,
+		nil,
+		nil,
 	)
 	assert.NoError(t, err)
-	mon := NewMinMonitor()
+	mon := MinMonitor{}
 	err = mon.Add(
 		testServiceName,
 		service,
 	)
 	assert.NoError(t, err)
 
-	filter, err := mon.NewMonitorFilter(testServiceName, nil, nil, nil)
+	filter, err := mon.NewMinMonitorFilter(testServiceName)
 	assert.NoError(t, err)
 
 	_, response := falcore.TestWithRequest(
@@ -493,21 +526,24 @@ func TestMonitorFilterDown(t *testing.T) {
 	err = server.Close()
 	assert.NoError(t, err)
 
-	svc, err := NewMonitorredService(
+	svc, err := NewMinMonitorredService(
 		testHost,
 		testPort,
 		testProtocol,
 		gracePeriod,
+		nil,
+		nil,
+		nil,
 	)
 	assert.NoError(t, err)
-	mon := NewMinMonitor()
+	mon := MinMonitor{}
 	err = mon.Add(
 		testServiceName,
 		svc,
 	)
 	assert.NoError(t, err)
 
-	filter, err := mon.NewMonitorFilter(testServiceName, nil, nil, nil)
+	filter, err := mon.NewMinMonitorFilter(testServiceName)
 	assert.NoError(t, err)
 
 	_, response := falcore.TestWithRequest(
@@ -527,22 +563,21 @@ func TestMonitorFilterDown(t *testing.T) {
 }
 
 func TestMonitorFilterBadServiceName(t *testing.T) {
-	mon := NewMinMonitor()
-	_, err := mon.NewMonitorFilter("error", nil, nil, nil)
+	mon := MinMonitor{}
+	_, err := mon.NewMinMonitorFilter("unknown_service")
 	assert.Error(t, err)
 }
 
 type counterTriggerHandler struct {
-	name string
-	count uint
+	count int
 }
 
-func (th *counterTriggerHandler) TriggerString(name string) error {
-	if name == th.name {
+func (th *counterTriggerHandler) Trigger() error {
+	if th.count < 0 {
+		return errors.New("this trigger always errors")
+	} else {
 		th.count += 1
 		return nil
-	} else {
-		return errors.New("bad trigger string")
 	}
 }
 
@@ -556,36 +591,36 @@ func TestMonitorFilterUpTriggers(t *testing.T) {
 	gracePeriod := time.Duration(0)
 
 	landingPipeline := falcore.NewPipeline()
-	landingPipeline.Upstream.PushBack(pullcord.NewLandingFilter())
+	landingPipeline.Upstream.PushBack(&pullcord.LandingFilter{})
 	landingServer := falcore.NewServer(0, landingPipeline)
 	go serveLandingPage(landingServer)
 	defer landingServer.StopAccepting()
 
 	<- landingServer.AcceptReady
 
-	service, err := NewMonitorredService(
+	onDown := &counterTriggerHandler{}
+	onUp := &counterTriggerHandler{}
+	always := &counterTriggerHandler{}
+
+	service, err := NewMinMonitorredService(
 		testHost,
 		landingServer.Port(),
 		testProtocol,
 		gracePeriod,
+		onDown,
+		onUp,
+		always,
 	)
 	assert.NoError(t, err)
-	mon := NewMinMonitor()
+	mon := MinMonitor{}
 	err = mon.Add(
 		testServiceName,
 		service,
 	)
 	assert.NoError(t, err)
 
-	onDown := &counterTriggerHandler{testServiceName, 0}
-	onUp := &counterTriggerHandler{testServiceName, 0}
-	always := &counterTriggerHandler{testServiceName, 0}
-
-	filter, err := mon.NewMonitorFilter(
+	filter, err := mon.NewMinMonitorFilter(
 		testServiceName,
-		onDown,
-		onUp,
-		always,
 	)
 	assert.NoError(t, err)
 
@@ -603,9 +638,9 @@ func TestMonitorFilterUpTriggers(t *testing.T) {
 		strings.Contains(string(contents), "Pullcord Landing Page"),
 		"content is: " + string(contents),
 	)
-	assert.Equal(t, uint(0), onDown.count)
-	assert.Equal(t, uint(1), onUp.count)
-	assert.Equal(t, uint(1), always.count)
+	assert.Equal(t, 0, onDown.count)
+	assert.Equal(t, 1, onUp.count)
+	assert.Equal(t, 1, always.count)
 }
 
 func TestMonitorFilterDownTriggers(t *testing.T) {
@@ -626,29 +661,29 @@ func TestMonitorFilterDownTriggers(t *testing.T) {
 	err = server.Close()
 	assert.NoError(t, err)
 
-	svc, err := NewMonitorredService(
+	onDown := &counterTriggerHandler{}
+	onUp := &counterTriggerHandler{}
+	always := &counterTriggerHandler{}
+
+	svc, err := NewMinMonitorredService(
 		testHost,
 		testPort,
 		testProtocol,
 		gracePeriod,
+		onDown,
+		onUp,
+		always,
 	)
 	assert.NoError(t, err)
-	mon := NewMinMonitor()
+	mon := MinMonitor{}
 	err = mon.Add(
 		testServiceName,
 		svc,
 	)
 	assert.NoError(t, err)
 
-	onDown := &counterTriggerHandler{testServiceName, 0}
-	onUp := &counterTriggerHandler{testServiceName, 0}
-	always := &counterTriggerHandler{testServiceName, 0}
-
-	filter, err := mon.NewMonitorFilter(
+	filter, err := mon.NewMinMonitorFilter(
 		testServiceName,
-		onDown,
-		onUp,
-		always,
 	)
 	assert.NoError(t, err)
 
@@ -666,9 +701,9 @@ func TestMonitorFilterDownTriggers(t *testing.T) {
 		strings.Contains(string(contents), "Service Not Ready"),
 		"content is: " + string(contents),
 	)
-	assert.Equal(t, uint(1), onDown.count)
-	assert.Equal(t, uint(0), onUp.count)
-	assert.Equal(t, uint(1), always.count)
+	assert.Equal(t, 1, onDown.count)
+	assert.Equal(t, 0, onUp.count)
+	assert.Equal(t, 1, always.count)
 }
 
 func TestMonitorFilterUpOnUpTriggerError(t *testing.T) {
@@ -681,36 +716,36 @@ func TestMonitorFilterUpOnUpTriggerError(t *testing.T) {
 	gracePeriod := time.Duration(0)
 
 	landingPipeline := falcore.NewPipeline()
-	landingPipeline.Upstream.PushBack(pullcord.NewLandingFilter())
+	landingPipeline.Upstream.PushBack(&pullcord.LandingFilter{})
 	landingServer := falcore.NewServer(0, landingPipeline)
 	go serveLandingPage(landingServer)
 	defer landingServer.StopAccepting()
 
 	<- landingServer.AcceptReady
 
-	service, err := NewMonitorredService(
+	onDown := &counterTriggerHandler{}
+	onUp := &counterTriggerHandler{-1}
+	always := &counterTriggerHandler{}
+
+	service, err := NewMinMonitorredService(
 		testHost,
 		landingServer.Port(),
 		testProtocol,
 		gracePeriod,
+		onDown,
+		onUp,
+		always,
 	)
 	assert.NoError(t, err)
-	mon := NewMinMonitor()
+	mon := MinMonitor{}
 	err = mon.Add(
 		testServiceName,
 		service,
 	)
 	assert.NoError(t, err)
 
-	onDown := &counterTriggerHandler{testServiceName, 0}
-	onUp := &counterTriggerHandler{"error", 0}
-	always := &counterTriggerHandler{testServiceName, 0}
-
-	filter, err := mon.NewMonitorFilter(
+	filter, err := mon.NewMinMonitorFilter(
 		testServiceName,
-		onDown,
-		onUp,
-		always,
 	)
 	assert.NoError(t, err)
 
@@ -728,7 +763,7 @@ func TestMonitorFilterUpOnUpTriggerError(t *testing.T) {
 		strings.Contains(string(contents), "Internal Server Error"),
 		"content is: " + string(contents),
 	)
-	assert.Equal(t, uint(0), onUp.count)
+	assert.Equal(t, -1, onUp.count)
 }
 
 func TestMonitorFilterDownOnDownTriggerError(t *testing.T) {
@@ -749,29 +784,29 @@ func TestMonitorFilterDownOnDownTriggerError(t *testing.T) {
 	err = server.Close()
 	assert.NoError(t, err)
 
-	svc, err := NewMonitorredService(
+	onDown := &counterTriggerHandler{-1}
+	onUp := &counterTriggerHandler{}
+	always := &counterTriggerHandler{}
+
+	svc, err := NewMinMonitorredService(
 		testHost,
 		testPort,
 		testProtocol,
 		gracePeriod,
+		onDown,
+		onUp,
+		always,
 	)
 	assert.NoError(t, err)
-	mon := NewMinMonitor()
+	mon := MinMonitor{}
 	err = mon.Add(
 		testServiceName,
 		svc,
 	)
 	assert.NoError(t, err)
 
-	onDown := &counterTriggerHandler{"error", 0}
-	onUp := &counterTriggerHandler{testServiceName, 0}
-	always := &counterTriggerHandler{testServiceName, 0}
-
-	filter, err := mon.NewMonitorFilter(
+	filter, err := mon.NewMinMonitorFilter(
 		testServiceName,
-		onDown,
-		onUp,
-		always,
 	)
 	assert.NoError(t, err)
 
@@ -789,7 +824,7 @@ func TestMonitorFilterDownOnDownTriggerError(t *testing.T) {
 		strings.Contains(string(contents), "Internal Server Error"),
 		"content is: " + string(contents),
 	)
-	assert.Equal(t, uint(0), onDown.count)
+	assert.Equal(t, -1, onDown.count)
 }
 
 func TestMonitorFilterDownAlwaysTriggerError(t *testing.T) {
@@ -810,29 +845,29 @@ func TestMonitorFilterDownAlwaysTriggerError(t *testing.T) {
 	err = server.Close()
 	assert.NoError(t, err)
 
-	svc, err := NewMonitorredService(
+	onDown := &counterTriggerHandler{}
+	onUp := &counterTriggerHandler{}
+	always := &counterTriggerHandler{-1}
+
+	svc, err := NewMinMonitorredService(
 		testHost,
 		testPort,
 		testProtocol,
 		gracePeriod,
+		onDown,
+		onUp,
+		always,
 	)
 	assert.NoError(t, err)
-	mon := NewMinMonitor()
+	mon := MinMonitor{}
 	err = mon.Add(
 		testServiceName,
 		svc,
 	)
 	assert.NoError(t, err)
 
-	onDown := &counterTriggerHandler{testServiceName, 0}
-	onUp := &counterTriggerHandler{testServiceName, 0}
-	always := &counterTriggerHandler{"error", 0}
-
-	filter, err := mon.NewMonitorFilter(
+	filter, err := mon.NewMinMonitorFilter(
 		testServiceName,
-		onDown,
-		onUp,
-		always,
 	)
 	assert.NoError(t, err)
 
@@ -850,5 +885,5 @@ func TestMonitorFilterDownAlwaysTriggerError(t *testing.T) {
 		strings.Contains(string(contents), "Internal Server Error"),
 		"content is: " + string(contents),
 	)
-	assert.Equal(t, uint(0), always.count)
+	assert.Equal(t, -1, always.count)
 }
