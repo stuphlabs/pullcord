@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/fitstar/falcore"
 	// "github.com/stuphlabs/pullcord"
-	"github.com/stuphlabs/pullcord/registry"
+	"github.com/stuphlabs/pullcord/config"
 	"github.com/stuphlabs/pullcord/util"
 	"net/http"
 	"strings"
@@ -41,46 +41,47 @@ type CookiemaskFilter struct {
 	Masked falcore.RequestFilter
 }
 
+func init() {
+	config.RegisterResourceType(
+		"cookiemaskfilter",
+		func() json.Unmarshaler {
+			return new(CookiemaskFilter)
+		},
+	)
+}
+
 func (f *CookiemaskFilter) UnmarshalJSON(input []byte) (error) {
 	var t struct {
-		Handler string
-		Masked string
+		Handler config.Resource
+		Masked config.Resource
 	}
 
 	dec := json.NewDecoder(bytes.NewReader(input))
 	if e := dec.Decode(&t); e != nil {
 		return e
-	} else if h, e:= registry.Get(t.Handler); e != nil {
-		return e
-	} else if m, e := registry.Get(t.Masked); e != nil {
-		return e
 	} else {
+		h := t.Handler.Unmarshaled
 		switch h := h.(type) {
 		case SessionHandler:
 			f.Handler = h
 		default:
 			log().Err(
-				fmt.Sprintf(
-					"Registry value is not a" +
-					" SessionHandler: %s",
-					t.Handler,
-				),
+				"Resource described by \"Handler\" is not a" +
+				" SessionHandler",
 			)
-			return registry.UnexpectedType
+			return config.UnexpectedResourceType
 		}
 
+		m := t.Masked.Unmarshaled
 		switch m := m.(type) {
 		case falcore.RequestFilter:
 			f.Masked = m
 		default:
 			log().Err(
-				fmt.Sprintf(
-					"Registry value is not a" +
-					" SessionHandler: %s",
-					t.Masked,
-				),
+				"Resource described by \"Masked\" is not a" +
+				" RequestFilter",
 			)
-			return registry.UnexpectedType
+			return config.UnexpectedResourceType
 		}
 
 		return nil

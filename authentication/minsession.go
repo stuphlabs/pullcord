@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"crypto/rand"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"github.com/proidiot/gone/errors"
 	// "github.com/stuphlabs/pullcord"
+	"github.com/stuphlabs/pullcord/config"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -28,6 +30,34 @@ type MinSessionHandler struct {
 	Path   string
 	Domain string
 	table  map[string]*MinSession
+}
+
+func init() {
+	config.RegisterResourceType(
+		"minsessionhandler",
+		func() json.Unmarshaler {
+			return new(MinSessionHandler)
+		},
+	)
+}
+
+func (h *MinSessionHandler) UnmarshalJSON(data []byte) error {
+	log().Debug("Unmarshaling a MinSessionHandler")
+	var t struct {
+		Name string
+		Path string
+		Domain string
+	}
+
+	if e := json.Unmarshal(data, &t); e != nil {
+		return e
+	}
+
+	h.Name = t.Name
+	h.Path = t.Path
+	h.Domain = t.Domain
+
+	return nil
 }
 
 func NewMinSessionHandler(name, path, domain string) (*MinSessionHandler) {

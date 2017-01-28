@@ -1,4 +1,4 @@
-package pullcord
+package util
 
 import (
 	"github.com/fitstar/falcore"

@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"github.com/fitstar/falcore"
 	// "github.com/stuphlabs/pullcord"
-	"github.com/stuphlabs/pullcord/registry"
+	"github.com/stuphlabs/pullcord/config"
 	"github.com/stuphlabs/pullcord/util"
 	"net/http"
 )
@@ -30,37 +30,31 @@ type LoginHandler struct {
 	Downstream falcore.RequestFilter
 }
 
+func init() {
+	config.RegisterResourceType(
+		"loginhandler",
+		func() json.Unmarshaler {
+			return new(LoginHandler)
+		},
+	)
+}
+
 func (h *LoginHandler) UnmarshalJSON(input []byte) (error) {
 	var t struct {
 		Identifier string
-		PasswordChecker string
-		Downstream string
+		PasswordChecker config.Resource
+		Downstream config.Resource
 	}
 
 	dec := json.NewDecoder(bytes.NewReader(input))
 	if e := dec.Decode(&t); e != nil {
 		log().Err("Unable to decode LoginHandler")
 		return e
-	} else if pc, e := registry.Get(t.PasswordChecker); e != nil {
-		log().Err(
-			fmt.Sprintf(
-				"Registry does not have resource: %s",
-				t.PasswordChecker,
-			),
-		)
-		return e
-	} else if d, e := registry.Get(t.Downstream); e != nil {
-		log().Err(
-			fmt.Sprintf(
-				"Registry does not have resource: %s",
-				t.Downstream,
-			),
-		)
-		return e
 	} else {
-		switch pc := pc.(type) {
+		p := t.PasswordChecker.Unmarshaled
+		switch p := p.(type) {
 		case PasswordChecker:
-			h.PasswordChecker = pc
+			h.PasswordChecker = p
 		default:
 			log().Err(
 				fmt.Sprintf(
@@ -69,8 +63,10 @@ func (h *LoginHandler) UnmarshalJSON(input []byte) (error) {
 					t.PasswordChecker,
 				),
 			)
-			return registry.UnexpectedType
+			return config.UnexpectedResourceType
 		}
+
+		d := t.Downstream.Unmarshaled
 		switch d := d.(type) {
 		case falcore.RequestFilter:
 			h.Downstream = d
@@ -82,8 +78,9 @@ func (h *LoginHandler) UnmarshalJSON(input []byte) (error) {
 					t.Downstream,
 				),
 			)
-			return registry.UnexpectedType
+			return config.UnexpectedResourceType
 		}
+
 		h.Identifier = t.Identifier
 
 		return nil

@@ -1,10 +1,13 @@
 package monitor
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"github.com/fitstar/falcore"
 	"github.com/proidiot/gone/errors"
 	// "github.com/stuphlabs/pullcord"
+	"github.com/stuphlabs/pullcord/config"
 	"github.com/stuphlabs/pullcord/proxy"
 	"github.com/stuphlabs/pullcord/trigger"
 	"net"
@@ -37,6 +40,81 @@ type MinMonitorredService struct {
 	lastChecked time.Time
 	up bool
 	passthru falcore.RequestFilter
+}
+
+func init() {
+	config.RegisterResourceType(
+		"minmonitorredservice",
+		func() json.Unmarshaler {
+			return new(MinMonitorredService)
+		},
+	)
+}
+
+func (s *MinMonitorredService) UnmarshalJSON(data []byte) error {
+	var t struct {
+		Address string
+		Port int
+		Protocol string
+		GracePeriod string
+		OnDown *config.Resource
+		OnUp *config.Resource
+		Always *config.Resource
+	}
+
+	dec := json.NewDecoder(bytes.NewReader(data))
+	if e := dec.Decode(&t); e != nil {
+		return e
+	}
+
+	if g, e := time.ParseDuration(t.GracePeriod); e != nil {
+		return e
+	} else {
+		s.GracePeriod = g
+	}
+
+	if t.OnDown != nil {
+		d := t.OnDown.Unmarshaled
+		switch d := d.(type) {
+		case trigger.TriggerHandler:
+			s.OnDown = d
+		default:
+			return config.UnexpectedResourceType
+		}
+	} else {
+		// TODO test null values for these as well
+		s.OnDown = nil
+	}
+
+	if t.OnUp != nil {
+		u := t.OnUp.Unmarshaled
+		switch u := u.(type) {
+		case trigger.TriggerHandler:
+			s.OnUp = u
+		default:
+			return config.UnexpectedResourceType
+		}
+	} else {
+		s.OnUp = nil
+	}
+
+	if t.Always != nil {
+		a := t.Always.Unmarshaled
+		switch a := a.(type) {
+		case trigger.TriggerHandler:
+			s.OnDown = a
+		default:
+			return config.UnexpectedResourceType
+		}
+	} else {
+		s.Always = nil
+	}
+
+	s.Address = t.Address
+	s.Port = t.Port
+	s.Protocol = t.Protocol
+
+	return nil
 }
 
 func NewMinMonitorredService(

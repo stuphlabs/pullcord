@@ -1,11 +1,26 @@
-package pullcord
+package util
 
 import (
+	"encoding/json"
 	"github.com/fitstar/falcore"
+	"github.com/stuphlabs/pullcord/config"
 	"net/http"
 )
 
 type LandingFilter struct {
+}
+
+func init() {
+	config.RegisterResourceType(
+		"landingfilter",
+		func() json.Unmarshaler {
+			return new(LandingFilter)
+		},
+	)
+}
+
+func (l *LandingFilter) UnmarshalJSON(data []byte) error {
+	return nil
 }
 
 // NewLandingFilter generates a Falcore RequestFilter that produces a simple

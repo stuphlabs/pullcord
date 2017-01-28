@@ -5,16 +5,25 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/fitstar/falcore"
-	"github.com/stuphlabs/pullcord/registry"
+	"github.com/stuphlabs/pullcord/config"
 )
 
 type ExactPathRouter struct {
 	Routes map[string]*falcore.RequestFilter
 }
 
+func init() {
+	config.RegisterResourceType(
+		"exactpathrouter",
+		func() json.Unmarshaler {
+			return new(ExactPathRouter)
+		},
+	)
+}
+
 func (r *ExactPathRouter) UnmarshalJSON(input []byte) (error) {
 	var t struct {
-		Routes map[string]string
+		Routes map[string]config.Resource
 	}
 
 	dec := json.NewDecoder(bytes.NewReader(input))
@@ -22,23 +31,19 @@ func (r *ExactPathRouter) UnmarshalJSON(input []byte) (error) {
 		return e
 	}
 
-	for path, filterName := range t.Routes {
-		if f, e := registry.Get(filterName); e != nil {
-			return e
-		} else {
-			switch f := f.(type) {
-			case *falcore.RequestFilter:
-				r.Routes[path] = f
-			default:
-				log().Err(
-					fmt.Sprintf(
-						"Registry value is not a" +
-						" RequestFilter: %s",
-						filterName,
-					),
-				)
-				return registry.UnexpectedType
-			}
+	for path, rsc := range t.Routes {
+		switch f := rsc.Unmarshaled.(type) {
+		case falcore.RequestFilter:
+			r.Routes[path] = &f
+		default:
+			log().Err(
+				fmt.Sprintf(
+					"Registry value is not a" +
+					" RequestFilter: %s",
+					f,
+				),
+			)
+			return config.UnexpectedResourceType
 		}
 	}
 

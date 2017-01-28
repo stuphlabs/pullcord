@@ -1,12 +1,32 @@
 package util
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/fitstar/falcore"
+	"github.com/stuphlabs/pullcord/config"
 	"net/http"
 )
 
 type StandardResponse int
+
+func init() {
+	config.RegisterResourceType(
+		"standardresponse",
+		func() json.Unmarshaler {
+			return new(StandardResponse)
+		},
+	)
+}
+
+func (s *StandardResponse) UnmarshalJSON(data []byte) error {
+	var t int
+	if e := json.Unmarshal(data, &t); e != nil {
+		return e
+	}
+	*s = StandardResponse(t)
+	return nil
+}
 
 const (
 	NotFound = StandardResponse(404)
