@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/fitstar/falcore"
 	"github.com/stretchr/testify/assert"
-	"github.com/stuphlabs/pullcord"
+	"github.com/stuphlabs/pullcord/util"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -35,7 +35,7 @@ func TestMinMonitorUpService(t *testing.T) {
 	gracePeriod := time.Duration(0)
 
 	landingPipeline := falcore.NewPipeline()
-	landingPipeline.Upstream.PushBack(&pullcord.LandingFilter{})
+	landingPipeline.Upstream.PushBack(&util.LandingFilter{})
 	landingServer := falcore.NewServer(0, landingPipeline)
 	go serveLandingPage(landingServer)
 	defer landingServer.StopAccepting()
@@ -143,7 +143,7 @@ func TestMinMonitorUpReprobe(t *testing.T) {
 	gracePeriod := time.Duration(0)
 
 	landingPipeline := falcore.NewPipeline()
-	landingPipeline.Upstream.PushBack(&pullcord.LandingFilter{})
+	landingPipeline.Upstream.PushBack(&util.LandingFilter{})
 	landingServer := falcore.NewServer(0, landingPipeline)
 	go serveLandingPage(landingServer)
 	defer landingServer.StopAccepting()
@@ -267,7 +267,7 @@ func TestMinMonitorFalsePositive(t *testing.T) {
 	assert.NoError(t, err)
 
 	landingPipeline := falcore.NewPipeline()
-	landingPipeline.Upstream.PushBack(&pullcord.LandingFilter{})
+	landingPipeline.Upstream.PushBack(&util.LandingFilter{})
 	landingServer := falcore.NewServer(0, landingPipeline)
 	go serveLandingPage(landingServer)
 
@@ -413,7 +413,7 @@ func TestMinMonitorAddExistant(t *testing.T) {
 	gracePeriod := time.Duration(0)
 
 	landingPipeline := falcore.NewPipeline()
-	landingPipeline.Upstream.PushBack(&pullcord.LandingFilter{})
+	landingPipeline.Upstream.PushBack(&util.LandingFilter{})
 	landingServer := falcore.NewServer(0, landingPipeline)
 	go serveLandingPage(landingServer)
 	defer landingServer.StopAccepting()
@@ -465,7 +465,7 @@ func TestMonitorFilterUp(t *testing.T) {
 	gracePeriod := time.Duration(0)
 
 	landingPipeline := falcore.NewPipeline()
-	landingPipeline.Upstream.PushBack(&pullcord.LandingFilter{})
+	landingPipeline.Upstream.PushBack(&util.LandingFilter{})
 	landingServer := falcore.NewServer(0, landingPipeline)
 	go serveLandingPage(landingServer)
 	defer landingServer.StopAccepting()
@@ -591,7 +591,7 @@ func TestMonitorFilterUpTriggers(t *testing.T) {
 	gracePeriod := time.Duration(0)
 
 	landingPipeline := falcore.NewPipeline()
-	landingPipeline.Upstream.PushBack(&pullcord.LandingFilter{})
+	landingPipeline.Upstream.PushBack(&util.LandingFilter{})
 	landingServer := falcore.NewServer(0, landingPipeline)
 	go serveLandingPage(landingServer)
 	defer landingServer.StopAccepting()
@@ -716,7 +716,7 @@ func TestMonitorFilterUpOnUpTriggerError(t *testing.T) {
 	gracePeriod := time.Duration(0)
 
 	landingPipeline := falcore.NewPipeline()
-	landingPipeline.Upstream.PushBack(&pullcord.LandingFilter{})
+	landingPipeline.Upstream.PushBack(&util.LandingFilter{})
 	landingServer := falcore.NewServer(0, landingPipeline)
 	go serveLandingPage(landingServer)
 	defer landingServer.StopAccepting()
