@@ -62,6 +62,12 @@ func (rsc *Resource) UnmarshalJSON(input []byte) error {
 		return e
 	}
 
+	if newRscDef.Type == "" && newRscDef.Data == nil {
+		rsc.Unmarshaled = nil
+		rsc.complete = true
+		return nil
+	}
+
 	if newRscDef.Type == ReferenceResourceTypeName {
 		var name string
 		if e := json.Unmarshal(newRscDef.Data, &name); e != nil {
@@ -96,22 +102,6 @@ func (rsc *Resource) UnmarshalJSON(input []byte) error {
 			}
 		}
 
-		//TODO remove
-		log().Debug(
-			fmt.Sprintf(
-				"Requested resource: %s: %v",
-				name,
-				d,
-			),
-		)
-		//TODO remove
-		log().Debug(
-			fmt.Sprintf(
-				"Registry has: %v",
-				registry,
-			),
-		)
-
 		return rsc.UnmarshalByName(name)
 	}
 
@@ -127,14 +117,6 @@ func (rsc *Resource) UnmarshalJSON(input []byte) error {
 	}
 
 	u := newFunc()
-	//TODO remove
-	log().Debug(
-		fmt.Sprintf(
-			"New resource object of type: %s: %v",
-			newRscDef.Type,
-			rsc.Unmarshaled,
-		),
-	)
 	if e := json.Unmarshal(newRscDef.Data, u); e != nil {
 		return e
 	}
