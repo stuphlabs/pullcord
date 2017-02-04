@@ -2,8 +2,11 @@ package config
 
 import (
 	"encoding/json"
+	"github.com/fitstar/falcore"
 	"github.com/proidiot/gone/errors"
 	"github.com/stretchr/testify/assert"
+	"io"
+	"strings"
 	"testing"
 )
 
@@ -365,3 +368,130 @@ func TestResourceUnmarshalJSON(t *testing.T) {
 	}
 }
 
+func TestServerFromReader(t *testing.T) {
+	type testStruct struct {
+		validate func(*falcore.Server, error)
+		r io.Reader
+	}
+
+	testData := []testStruct {
+		testStruct {
+			func(s *falcore.Server, e error) {
+				assert.Error(
+					t,
+					e,
+					"ServerFromReader should fail when" +
+					" given bad JSON.",
+				)
+				assert.Nil(
+					t,
+					s,
+					"ServerFromReader should not create" +
+					" a server if the config is clearly" +
+					" invalid.",
+				)
+			},
+			strings.NewReader("not json"),
+		},
+		testStruct {
+			func(s *falcore.Server, e error) {
+				assert.Error(
+					t,
+					e,
+					"ServerFromReader should fail when" +
+					" given a null config.",
+				)
+				assert.Nil(
+					t,
+					s,
+					"ServerFromReader should not create" +
+					" a server if the config is null.",
+				)
+			},
+			strings.NewReader("null"),
+		},
+		testStruct {
+			func(s *falcore.Server, e error) {
+				assert.Error(
+					t,
+					e,
+					"ServerFromReader should fail when" +
+					" an empty JSON object (which could" +
+					" reasonably be interpereted as a" +
+					" null value) is given for the" +
+					" config.",
+				)
+				assert.Nil(
+					t,
+					s,
+					"ServerFromReader should not create" +
+					" a server when an empty JSON object" +
+					" (which could reasonably be" +
+					" interpereted as a null value) is" +
+					" given for the config.",
+
+				)
+			},
+			strings.NewReader("{}"),
+		},
+		testStruct {
+			func(s *falcore.Server, e error) {
+				assert.Error(
+					t,
+					e,
+					"ServerFromReader should fail when" +
+					" an empty JSON object (which could" +
+					" reasonably be interpereted as a" +
+					" null value) is given for the" +
+					" config.",
+				)
+				assert.Nil(
+					t,
+					s,
+					"ServerFromReader should not create" +
+					" a server when an empty JSON object" +
+					" (which could reasonably be" +
+					" interpereted as a null value) is" +
+					" given for the config.",
+
+				)
+			},
+			strings.NewReader("{}"),
+		},
+		testStruct {
+			func(s *falcore.Server, e error) {
+				assert.Error(
+					t,
+					e,
+					"ServerFromReader should fail when" +
+					" no Resource is specified for a" +
+					" Pipeline.",
+				)
+				assert.Nil(
+					t,
+					s,
+					"ServerFromReader should not create" +
+					" a server when no Resource is" +
+					" specified for a Pipeline.",
+				)
+			},
+			strings.NewReader(`{
+				"resources": {
+					"testResource": {
+						"type": "dummyType",
+						"data": null
+					}
+				},
+				"pipeline": [],
+				"port": 80
+			}`),
+		},
+	}
+
+	RegisterResourceType("dummyType", newDummy)
+
+	for _, v := range testData {
+		s, e := ServerFromReader(v.r)
+		v.validate(s, e)
+	}
+}

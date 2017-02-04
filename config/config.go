@@ -157,6 +157,20 @@ func ServerFromReader(r io.Reader) (*falcore.Server, error) {
 				e,
 			),
 		)
+		registrationMutex.Unlock()
+		return nil, e
+	}
+
+	if config.Pipeline == nil || len(config.Pipeline) == 0 {
+		e := errors.New(
+			fmt.Sprintf(
+				"A config must specify at least one named" +
+				" resource to use as a filter in the" +
+				" pipeline.",
+			),
+		)
+		log().Crit(e.Error())
+		registrationMutex.Unlock()
 		return nil, e
 	}
 
@@ -166,6 +180,7 @@ func ServerFromReader(r io.Reader) (*falcore.Server, error) {
 			r := new(Resource)
 			registry[name] = r
 			if e := r.UnmarshalByName(name); e != nil {
+				registrationMutex.Unlock()
 				return nil, e
 			} else {
 				r.complete = true
@@ -186,20 +201,16 @@ func ServerFromReader(r io.Reader) (*falcore.Server, error) {
 	for _, upstream := range config.Pipeline {
 		r, present := registry[upstream]
 		if !present {
-			log().Crit(
-				fmt.Sprintf(
-					"Requested pipeline resource not" +
-					" found: %s",
-					upstream,
-				),
-			)
-			return nil, errors.New(
+			e := errors.New(
 				fmt.Sprintf(
 					"The requested resource has not been" +
 					" registerred: %s",
 					upstream,
 				),
 			)
+			log().Crit(e.Error())
+			registrationMutex.Unlock()
+			return nil, e
 		}
 		u := r.Unmarshaled
 		switch u := u.(type) {
@@ -207,16 +218,16 @@ func ServerFromReader(r io.Reader) (*falcore.Server, error) {
 		case falcore.RequestFilter:
 			pipeline.Upstream.PushBack(u)
 		default:
-			log().Crit(
+			e := errors.New(
 				fmt.Sprintf(
 					"The requested pipeline resource is" +
 					" not a RequestFilter: %s",
 					upstream,
 				),
 			)
-			return nil, errors.New(
-				"Incorrect type",
-			)
+			log().Crit(e.Error())
+			registrationMutex.Unlock()
+			return nil, e
 		}
 		log().Debug(
 			fmt.Sprintf(
