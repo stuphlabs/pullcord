@@ -6,6 +6,7 @@ import (
 	"github.com/proidiot/gone/errors"
 	"github.com/stretchr/testify/assert"
 	"io"
+	"net/http"
 	"strings"
 	"testing"
 )
@@ -19,8 +20,22 @@ func (s *dummyType) UnmarshalJSON(i []byte) error {
 		return nil
 	}
 }
+func (s *dummyType) FilterRequest(*falcore.Request) *http.Response {
+	return nil
+}
 func newDummy() json.Unmarshaler {
 	return new(dummyType)
+}
+
+type dummyRouter struct {}
+func (r *dummyRouter) UnmarshalJSON([]byte) error {
+	return nil
+}
+func (r *dummyRouter) SelectPipeline(*falcore.Request) falcore.RequestFilter {
+	return new(dummyType)
+}
+func newDummyRouter() json.Unmarshaler {
+	return new(dummyRouter)
 }
 
 func TestRegisterResourceType(t *testing.T) {
@@ -486,9 +501,209 @@ func TestServerFromReader(t *testing.T) {
 				"port": 80
 			}`),
 		},
+		testStruct {
+			func(s *falcore.Server, e error) {
+				assert.Error(
+					t,
+					e,
+					"ServerFromReader should fail when" +
+					" the Pipeline tries to include an" +
+					" undefined Resource.",
+				)
+				assert.Nil(
+					t,
+					s,
+					"ServerFromReader should not create" +
+					" a server when the Pipeline tries" +
+					" to include an undefined Resource.",
+				)
+			},
+			strings.NewReader(`{
+				"resources": {
+					"testResource2": {
+						"type": "dummyType",
+						"data": null
+					}
+				},
+				"pipeline": ["testResource"],
+				"port": 80
+			}`),
+		},
+		testStruct {
+			func(s *falcore.Server, e error) {
+				assert.Error(
+					t,
+					e,
+					"ServerFromReader should fail when" +
+					" Resource creation produces an" +
+					" error.",
+				)
+				assert.Nil(
+					t,
+					s,
+					"ServerFromReader should not create" +
+					" a server when Resource creation" +
+					" produces an error.",
+				)
+			},
+			strings.NewReader(`{
+				"resources": {
+					"testResource": {
+						"type": "dummyType",
+						"data": "error"
+					}
+				},
+				"pipeline": ["testResource"],
+				"port": 80
+			}`),
+		},
+		testStruct {
+			func(s *falcore.Server, e error) {
+				assert.Error(
+					t,
+					e,
+					"ServerFromReader should fail when" +
+					" the Pipeline tries to use a" +
+					" Resource of the wrong type.",
+				)
+				assert.Nil(
+					t,
+					s,
+					"ServerFromReader should not create" +
+					" a server when the Pipeline tries" +
+					" to use a Resource of the wrong" +
+					" type.",
+				)
+			},
+			strings.NewReader(`{
+				"resources": {
+					"testResource": null
+				},
+				"pipeline": ["testResource"],
+				"port": 80
+			}`),
+		},
+		testStruct {
+			func(s *falcore.Server, e error) {
+				assert.Error(
+					t,
+					e,
+					"ServerFromReader should fail when" +
+					" a self-referrential Resource is" +
+					" present in the config.",
+				)
+				assert.Nil(
+					t,
+					s,
+					"ServerFromReader should not create" +
+					" a server when a self-referrential" +
+					" Resource is present in the config.",
+				)
+			},
+			strings.NewReader(`{
+				"resources": {
+					"testResource": {
+						"type": "ref",
+						"data": "testResource"
+					}
+				},
+				"pipeline": ["testResource"],
+				"port": 80
+			}`),
+		},
+		testStruct {
+			func(s *falcore.Server, e error) {
+				assert.NoError(
+					t,
+					e,
+					"ServerFromReader should not fail" +
+					" when given a valid config.",
+				)
+				assert.NotNil(
+					t,
+					s,
+					"ServerFromReader should" +
+					" successfully create a server when" +
+					" given a valid config.",
+				)
+			},
+			strings.NewReader(`{
+				"resources": {
+					"testResource": {
+						"type": "dummyType",
+						"data": "foo"
+					}
+				},
+				"pipeline": ["testResource"],
+				"port": 80
+			}`),
+		},
+		testStruct {
+			func(s *falcore.Server, e error) {
+				assert.NoError(
+					t,
+					e,
+					"ServerFromReader should not fail" +
+					" when given a valid config with a" +
+					" reference Resource.",
+				)
+				assert.NotNil(
+					t,
+					s,
+					"ServerFromReader should" +
+					" successfully create a server when" +
+					" given a valid config with a" +
+					" reference Resource.",
+				)
+			},
+			strings.NewReader(`{
+				"resources": {
+					"testResource2": {
+						"type": "dummyType",
+						"data": "foo"
+					},
+					"testResource": {
+						"type": "ref",
+						"data": "testResource2"
+					}
+				},
+				"pipeline": ["testResource"],
+				"port": 80
+			}`),
+		},
+		testStruct {
+			func(s *falcore.Server, e error) {
+				assert.NoError(
+					t,
+					e,
+					"ServerFromReader should not fail" +
+					" when given a valid config with a" +
+					" Router Resource.",
+				)
+				assert.NotNil(
+					t,
+					s,
+					"ServerFromReader should" +
+					" successfully create a server when" +
+					" given a valid config with a" +
+					" Router Resource.",
+				)
+			},
+			strings.NewReader(`{
+				"resources": {
+					"testResource": {
+						"type": "dummyRouter",
+						"data": null
+					}
+				},
+				"pipeline": ["testResource"],
+				"port": 80
+			}`),
+		},
 	}
 
 	RegisterResourceType("dummyType", newDummy)
+	RegisterResourceType("dummyRouter", newDummyRouter)
 
 	for _, v := range testData {
 		s, e := ServerFromReader(v.r)
