@@ -678,6 +678,43 @@ func TestServerFromReader(t *testing.T) {
 					e,
 					"ServerFromReader should not fail" +
 					" when given a valid config with a" +
+					" double reference Resource.",
+				)
+				assert.NotNil(
+					t,
+					s,
+					"ServerFromReader should" +
+					" successfully create a server when" +
+					" given a valid config with a" +
+					" double reference Resource.",
+				)
+			},
+			strings.NewReader(`{
+				"resources": {
+					"testResource3": {
+						"type": "dummyType",
+						"data": "foo"
+					},
+					"testResource2": {
+						"type": "ref",
+						"data": "testResource3"
+					},
+					"testResource": {
+						"type": "ref",
+						"data": "testResource2"
+					}
+				},
+				"pipeline": ["testResource"],
+				"port": 80
+			}`),
+		},
+		testStruct {
+			func(s *falcore.Server, e error) {
+				assert.NoError(
+					t,
+					e,
+					"ServerFromReader should not fail" +
+					" when given a valid config with a" +
 					" Router Resource.",
 				)
 				assert.NotNil(
