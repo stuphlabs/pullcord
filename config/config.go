@@ -102,7 +102,7 @@ func (rsc *Resource) UnmarshalJSON(input []byte) error {
 			}
 		}
 
-		return rsc.UnmarshalByName(name)
+		return rsc.unmarshalByName(name)
 	}
 
 	newFunc, present := typeRegistry[newRscDef.Type]
@@ -125,7 +125,7 @@ func (rsc *Resource) UnmarshalJSON(input []byte) error {
 	return nil
 }
 
-func (r *Resource) UnmarshalByName(name string) error {
+func (r *Resource) unmarshalByName(name string) error {
 	if d, present := unregisterredResources[name]; !present {
 		return errors.New(
 			fmt.Sprintf(
@@ -179,7 +179,7 @@ func ServerFromReader(r io.Reader) (*falcore.Server, error) {
 		if _, present := registry[name]; !present {
 			r := new(Resource)
 			registry[name] = r
-			if e := r.UnmarshalByName(name); e != nil {
+			if e := r.unmarshalByName(name); e != nil {
 				registrationMutex.Unlock()
 				return nil, e
 			} else {
