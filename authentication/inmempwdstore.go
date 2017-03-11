@@ -185,6 +185,7 @@ func (store *InMemPwdStore) CheckPassword(id, pass string) (error) {
 }
 
 func (store *InMemPwdStore) UnmarshalJSON(input []byte) (error) {
+	store.table = make(map[string]*Pbkdf2Hash)
 	return json.Unmarshal(input, &store.table)
 }
 
