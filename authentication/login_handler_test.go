@@ -2,10 +2,13 @@ package authentication
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/fitstar/falcore"
 	"github.com/stretchr/testify/assert"
-	// "github.com/stuphlabs/pullcord"
+	"github.com/stuphlabs/pullcord/config"
+	configutil "github.com/stuphlabs/pullcord/config/util"
 	"golang.org/x/net/html"
 	"io/ioutil"
 	"net/http"
@@ -898,3 +901,516 @@ func TestPassthruLoginPage(t *testing.T) {
 	)
 }
 
+func TestLoginHandlerFromConfig(t *testing.T) {
+	type testStruct struct {
+		validator func(json.Unmarshaler) error
+		data string
+		serverValidate func(*falcore.Server, error)
+	}
+
+	testData := []testStruct {
+		testStruct {
+			func(i json.Unmarshaler) error {
+				return errors.New(
+					fmt.Sprintf(
+						"Not expecting validator to" +
+						" actually run, but it was" +
+						" run with: %v",
+						i,
+					),
+				)
+			},
+			``,
+			func(s *falcore.Server, e error) {
+				assert.Error(
+					t,
+					e,
+					"Attempting to create a server from" +
+					" a config containing an incomplete" +
+					" validator resource should produce" +
+					" an error.",
+				)
+				if e != nil {
+				assert.False(
+					t,
+					strings.HasPrefix(
+						e.Error(),
+						"Not expecting validator to" +
+						" actually run",
+					),
+					"Attempting to create a server from" +
+					" a config containing an incomplete" +
+					" validator resource should produce" +
+					" an error apart from any created by" +
+					" the validator.",
+				)
+				}
+				assert.Nil(
+					t,
+					s,
+					"A server created from a config" +
+					" containing an incomplete validator" +
+					" resource should be nil.",
+				)
+			},
+		},
+		testStruct {
+			func(i json.Unmarshaler) error {
+				return errors.New(
+					fmt.Sprintf(
+						"Not expecting validator to" +
+						" actually run, but it was" +
+						" run with: %v",
+						i,
+					),
+				)
+			},
+			`{
+				"type": "loginhandler",
+				"data": {}
+			}`,
+			func(s *falcore.Server, e error) {
+				assert.Error(
+					t,
+					e,
+					"Attempting to create a server from" +
+					" a config containing an incomplete" +
+					" loginhandler resource should" +
+					" produce an error.",
+				)
+				if e != nil {
+				assert.False(
+					t,
+					strings.HasPrefix(
+						e.Error(),
+						"Not expecting validator to" +
+						" actually run",
+					),
+					"Attempting to create a server from" +
+					" a config containing an incomplete" +
+					" validator resource should produce" +
+					" an error apart from any created by" +
+					" the validator.",
+				)
+				}
+				assert.Nil(
+					t,
+					s,
+					"A server created from a config" +
+					" containing an incomplete" +
+					" loginhandler resource should" +
+					" be nil.",
+				)
+			},
+		},
+		testStruct {
+			func(i json.Unmarshaler) error {
+				return errors.New(
+					fmt.Sprintf(
+						"Not expecting validator to" +
+						" actually run, but it was" +
+						" run with: %v",
+						i,
+					),
+				)
+			},
+			`{
+				"type": "loginhandler",
+				"data": {
+					"passwordchecker": "notgonnadoit",
+					"masked: "wouldntbeprudent"
+				}
+			}`,
+			func(s *falcore.Server, e error) {
+				assert.Error(
+					t,
+					e,
+					"Attempting to create a server from" +
+					" a config containing an invalid" +
+					" nested resource should produce an" +
+					" error.",
+				)
+				if e != nil {
+				assert.False(
+					t,
+					strings.HasPrefix(
+						e.Error(),
+						"Not expecting validator to" +
+						" actually run",
+					),
+					"Attempting to create a server from" +
+					" a config containing an invalid" +
+					" nested resource should produce an" +
+					" error apart from any created by" +
+					" the validator.",
+				)
+				}
+				assert.Nil(
+					t,
+					s,
+					"A server created from a config" +
+					" containing an invalid nested" +
+					" resource should be nil.",
+				)
+			},
+		},
+		testStruct {
+			func(i json.Unmarshaler) error {
+				var c *LoginHandler
+
+				switch i := i.(type) {
+				case *LoginHandler:
+					c = i
+				default:
+					return errors.New(
+						fmt.Sprintf(
+							"Expecting" +
+							" unmarsheled" +
+							" resource to be a" +
+							" loginhandler," +
+							" but instead got: %v",
+							i,
+						),
+					)
+				}
+
+				switch h := c.PasswordChecker.(type) {
+				case PasswordChecker:
+					// do nothing
+				default:
+					return errors.New(
+						fmt.Sprintf(
+							"Expecting" +
+							" handler to be a" +
+							" inmempwdstore," +
+							" but instead got: %v",
+							h,
+						),
+					)
+				}
+
+				switch m := c.Downstream.(type) {
+				case falcore.RequestFilter:
+					// do nothing
+				default:
+					return errors.New(
+						fmt.Sprintf(
+							"Expecting" +
+							" masked to be a" +
+							" landingfilter," +
+							" but instead got: %v",
+							m,
+						),
+					)
+				}
+
+				return nil
+			},
+			`{
+				"type": "loginhandler",
+				"data": {
+					"passwordchecker": {
+						"type": "inmempwdstore",
+						"data": {
+							"test_user": {
+								"salt": "RMM0WEV4s0vxZWb9Yvw0ooBU1Bs9louzqNsa+/E/SVzZg+ez72TLoXL8pFOOzk2aOFO5XLtbSECYKUK7XtF+ZQ==",
+								"iterations": 4096,
+								"hash": "3Ezu0RAlDXNhkvnVq0H4z/0dUrItfd2CyYR06u/arA6f9XAeAA0UWWB/9y/0fQOVmZi7XxyiePtR/hC33tNWXg=="
+							}
+						}
+					},
+					"downstream": {
+						"type": "landingfilter",
+						"data": {}
+					}
+				}
+			}`,
+			func(s *falcore.Server, e error) {
+				assert.NoError(
+					t,
+					e,
+					"Attempting to create a server from" +
+					" a config containing only a passing" +
+					" validator resource should not" +
+					" produce an error. The most likely" +
+					" explanation is that the validator" +
+					" resource is not passing.",
+				)
+				assert.NotNil(
+					t,
+					s,
+					"A server created from a config" +
+					" containing only a" +
+					" passing validator resource should" +
+					" not be nil. The most likely" +
+					" explanation is that the validator" +
+					" resource is not passing.",
+				)
+			},
+		},
+		testStruct {
+			func(i json.Unmarshaler) error {
+				var c *LoginHandler
+
+				switch i := i.(type) {
+				case *LoginHandler:
+					c = i
+				default:
+					return errors.New(
+						fmt.Sprintf(
+							"Expecting" +
+							" unmarsheled" +
+							" resource to be a" +
+							" loginhandler," +
+							" but instead got: %v",
+							i,
+						),
+					)
+				}
+
+				switch h := c.PasswordChecker.(type) {
+				case PasswordChecker:
+					// do nothing
+				default:
+					return errors.New(
+						fmt.Sprintf(
+							"Expecting" +
+							" handler to be a" +
+							" inmempwdstore," +
+							" but instead got: %v",
+							h,
+						),
+					)
+				}
+
+				switch m := c.Downstream.(type) {
+				case falcore.RequestFilter:
+					// do nothing
+				default:
+					return errors.New(
+						fmt.Sprintf(
+							"Expecting" +
+							" masked to be a" +
+							" landingfilter," +
+							" but instead got: %v",
+							m,
+						),
+					)
+				}
+
+				return nil
+			},
+			`{
+				"type": "loginhandler",
+				"data": {
+					"passwordchecker": {
+						"type": "inmempwdstore",
+						"data": {
+							"test_user": {
+								"salt": "RMM0WEV4s0vxZWb9Yvw0ooBU1Bs9louzqNsa+/E/SVzZg+ez72TLoXL8pFOOzk2aOFO5XLtbSECYKUK7XtF+ZQ==",
+								"iterations": 4096,
+								"hash": "3Ezu0RAlDXNhkvnVq0H4z/0dUrItfd2CyYR06u/arA6f9XAeAA0UWWB/9y/0fQOVmZi7XxyiePtR/hC33tNWXg=="
+		                                        }
+						}
+					},
+					"downstream": {
+						"type": "inmempwdstore",
+						"data": {
+							"test_user": {
+								"salt": "RMM0WEV4s0vxZWb9Yvw0ooBU1Bs9louzqNsa+/E/SVzZg+ez72TLoXL8pFOOzk2aOFO5XLtbSECYKUK7XtF+ZQ==",
+								"iterations": 4096,
+								"hash": "3Ezu0RAlDXNhkvnVq0H4z/0dUrItfd2CyYR06u/arA6f9XAeAA0UWWB/9y/0fQOVmZi7XxyiePtR/hC33tNWXg=="
+		                                        }
+						}
+					}
+				}
+			}`,
+			func(s *falcore.Server, e error) {
+				assert.Error(
+					t,
+					e,
+					"Attempting to create a server from" +
+					" a config containing a nested" +
+					" resource with the wrong type" +
+					" should produce an error.",
+				)
+				assert.Nil(
+					t,
+					s,
+					"A server created from a config" +
+					" containing a nested resource with" +
+					" the wrong type should be nil.",
+				)
+			},
+		},
+		testStruct {
+			func(i json.Unmarshaler) error {
+				var c *LoginHandler
+
+				switch i := i.(type) {
+				case *LoginHandler:
+					c = i
+				default:
+					return errors.New(
+						fmt.Sprintf(
+							"Expecting" +
+							" unmarsheled" +
+							" resource to be a" +
+							" loginhandler," +
+							" but instead got: %v",
+							i,
+						),
+					)
+				}
+
+				switch h := c.PasswordChecker.(type) {
+				case PasswordChecker:
+					// do nothing
+				default:
+					return errors.New(
+						fmt.Sprintf(
+							"Expecting" +
+							" handler to be a" +
+							" inmempwdstore," +
+							" but instead got: %v",
+							h,
+						),
+					)
+				}
+
+				switch m := c.Downstream.(type) {
+				case falcore.RequestFilter:
+					// do nothing
+				default:
+					return errors.New(
+						fmt.Sprintf(
+							"Expecting" +
+							" masked to be a" +
+							" landingfilter," +
+							" but instead got: %v",
+							m,
+						),
+					)
+				}
+
+				return nil
+			},
+			`{
+				"type": "loginhandler",
+				"data": {
+					"passwordchecker": {
+						"type": "landingfilter",
+						"data": {}
+					},
+					"downstream": {
+						"type": "landingfilter",
+						"data": {}
+					}
+				}
+			}`,
+			func(s *falcore.Server, e error) {
+				assert.Error(
+					t,
+					e,
+					"Attempting to create a server from" +
+					" a config containing a nested" +
+					" resource with the wrong type" +
+					" should produce an error.",
+				)
+				assert.Nil(
+					t,
+					s,
+					"A server created from a config" +
+					" containing a nested resource with" +
+					" the wrong type should be nil.",
+				)
+			},
+		},
+		testStruct {
+			func(i json.Unmarshaler) error {
+				return errors.New(
+					fmt.Sprintf(
+						"Not expecting validator to" +
+						" actually run, but it was" +
+						" run with: %v",
+						i,
+					),
+				)
+			},
+			`{
+				"type": "loginhandler",
+				"data": 42
+			}`,
+			func(s *falcore.Server, e error) {
+				assert.Error(
+					t,
+					e,
+					"Attempting to create a server from" +
+					" a config containing an invalid" +
+					" loginhandler resource should" +
+					" produce an error.",
+				)
+				if e != nil {
+				assert.False(
+					t,
+					strings.HasPrefix(
+						e.Error(),
+						"Not expecting validator to" +
+						" actually run",
+					),
+					"Attempting to create a server from" +
+					" a config containing an invalid" +
+					" validator resource should produce" +
+					" an error apart from any created by" +
+					" the validator.",
+				)
+				}
+				assert.Nil(
+					t,
+					s,
+					"A server created from a config" +
+					" containing an invalid" +
+					" loginhandler resource should" +
+					" be nil.",
+				)
+			},
+		},
+	}
+
+	for _, v := range testData {
+		n, e := configutil.GenerateValidator(v.validator)
+		assert.NoError(
+			t,
+			e,
+			"Generating a validator resource type should not" +
+			" produce an error.",
+		)
+		assert.NotEqual(
+			t,
+			n,
+			"",
+			"A generated validator resource type should not have" +
+			" an empty resource type name.",
+		)
+
+		s, e := config.ServerFromReader(
+			strings.NewReader(
+				fmt.Sprintf(
+					`{
+						"resources": {
+							"validator": {
+								"type": "%s",
+								"data": %s
+							}
+						},
+						"pipeline": ["validator"],
+						"port": 80
+					}`,
+					n,
+					v.data,
+				),
+			),
+		)
+		v.serverValidate(s, e)
+	}
+}
