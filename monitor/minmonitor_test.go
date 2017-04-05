@@ -2,10 +2,11 @@ package monitor
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"github.com/fitstar/falcore"
+	"github.com/proidiot/gone/errors"
 	"github.com/stretchr/testify/assert"
+	configutil "github.com/stuphlabs/pullcord/config/util"
 	"github.com/stuphlabs/pullcord/util"
 	"io/ioutil"
 	"net"
@@ -886,4 +887,40 @@ func TestMonitorFilterDownAlwaysTriggerError(t *testing.T) {
 		"content is: " + string(contents),
 	)
 	assert.Equal(t, -1, always.count)
+}
+
+func TestMinMonitorFromConfig(t *testing.T) {
+	test := configutil.ConfigTest{
+		ResourceType: "minmonitorredservice",
+		SyntacticallyBad: []configutil.ConfigTestData{
+			configutil.ConfigTestData{
+				Data: "",
+				Explanation: "empty config",
+			},
+			configutil.ConfigTestData{
+				Data: "{}",
+				Explanation: "empty object",
+			},
+			configutil.ConfigTestData{
+				Data: "null",
+				Explanation: "null config",
+			},
+			configutil.ConfigTestData{
+				Data: "42",
+				Explanation: "numeric config",
+			},
+		},
+		Good: []configutil.ConfigTestData{
+			configutil.ConfigTestData{
+				Data: `{
+					"address": "127.0.0.1",
+					"port": 80,
+					"protocol": "http",
+					"graceperiod": "1s"
+				}`,
+				Explanation: "basic valid monitor config",
+			},
+		},
+	}
+	test.Run(t)
 }
