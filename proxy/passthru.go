@@ -5,7 +5,8 @@ import (
 	"encoding/json"
 	"github.com/fitstar/falcore"
 	"github.com/fitstar/falcore/filter"
-	// "github.com/stuphlabs/pullcord"
+	"github.com/stuphlabs/pullcord/config"
+	"github.com/stuphlabs/pullcord/util"
 	"net/http"
 )
 
@@ -13,6 +14,15 @@ type PassthruFilter struct {
 	Host string
 	Port int
 	upstreamFilter *filter.Upstream
+}
+
+func init() {
+	config.RegisterResourceType(
+		"passthrufilter",
+		func() json.Unmarshaler {
+			return new(PassthruFilter)
+		},
+	)
 }
 
 func NewPassthruFilter(host string, port int) (*PassthruFilter) {
@@ -62,6 +72,10 @@ func (f *PassthruFilter) UnmarshalJSON(input []byte) (error) {
 func (f *PassthruFilter) FilterRequest(
 	req *falcore.Request,
 ) (*http.Response) {
-	return f.upstreamFilter.FilterRequest(req)
+	if f.upstreamFilter == nil {
+		return util.InternalServerError.FilterRequest(req)
+	} else {
+		return f.upstreamFilter.FilterRequest(req)
+	}
 }
 

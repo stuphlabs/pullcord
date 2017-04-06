@@ -1,8 +1,12 @@
 package proxy
 
 import (
+	"encoding/json"
+	"fmt"
 	"github.com/fitstar/falcore"
+	"github.com/proidiot/gone/errors"
 	"github.com/stretchr/testify/assert"
+	configutil "github.com/stuphlabs/pullcord/config/util"
 	"github.com/stuphlabs/pullcord/util"
 	"io/ioutil"
 	"net/http"
@@ -48,4 +52,107 @@ func TestPassthru(t *testing.T) {
 	contents, err := ioutil.ReadAll(response.Body)
 	assert.NoError(t, err)
 	assert.True(t, regex.Match(contents))
+}
+
+func TestPassthruFilterFromConfig(t *testing.T) {
+	test := configutil.ConfigTest{
+		ResourceType: "passthrufilter",
+		IsValid: func(i json.Unmarshaler) error {
+			var p *PassthruFilter
+
+			switch i := i.(type) {
+			case *PassthruFilter:
+				p = i
+			default:
+				return errors.New(
+					fmt.Sprintf(
+						"PassthruFilter IsValid" +
+						" received an object that" +
+						" doesn't have the type" +
+						" PassthruFilter: %v",
+						i,
+					),
+				)
+			}
+
+			if p.Host == "" {
+				return errors.New(
+					"PassthruFilter IsValid received a" +
+					" PassthruFilter with an empty host.",
+				)
+			}
+
+			if p.Port <= 0 {
+				return errors.New(
+					fmt.Sprintf(
+						"PassthruFilter IsValid" +
+						" received a PassthruFilter" +
+						" with a bad port: %d",
+						p.Port,
+					),
+				)
+			}
+
+			if p.upstreamFilter == nil {
+				return errors.New(
+					"PassthruFilter IsValid received a" +
+					" PassthruFilter with an" +
+					" uninitialized upstream filter.",
+				)
+			}
+
+			return nil
+		},
+		SyntacticallyBad: []configutil.ConfigTestData{
+			configutil.ConfigTestData{
+				Data: "",
+				Explanation: "empty config",
+			},
+			configutil.ConfigTestData{
+				Data: `{
+					"host": 7,
+					"port": 11
+				}`,
+				Explanation: "numeric host",
+			},
+			configutil.ConfigTestData{
+				Data: `{
+					"host": "127.0.0.1",
+					"port": "8080"
+				}`,
+				Explanation: "string port",
+			},
+			configutil.ConfigTestData{
+				Data: "42",
+				Explanation: "numeric config",
+			},
+		},
+		SemanticallyBad: []configutil.ConfigTestData{
+			configutil.ConfigTestData{
+				Data: "{}",
+				Explanation: "empty object",
+			},
+			configutil.ConfigTestData{
+				Data: "null",
+				Explanation: "null config",
+			},
+			configutil.ConfigTestData{
+				Data: `{
+					"host": "127.0.0.1",
+					"port": -80
+				}`,
+				Explanation: "negative port",
+			},
+		},
+		Good: []configutil.ConfigTestData{
+			configutil.ConfigTestData{
+				Data: `{
+					"host": "127.0.0.1",
+					"port": 80
+				}`,
+				Explanation: "basic valid proxy config",
+			},
+		},
+	}
+	test.Run(t)
 }
