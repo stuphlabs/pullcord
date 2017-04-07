@@ -1,8 +1,10 @@
 package trigger
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
-	//"github.com/stuphlabs/pullcord"
+	"github.com/stuphlabs/pullcord/config"
 	"time"
 )
 
@@ -14,6 +16,49 @@ type DelayTrigger struct {
 	DelayedTrigger TriggerHandler
 	Delay time.Duration
 	c chan<- interface{}
+}
+
+func init() {
+	config.RegisterResourceType(
+		"delaytrigger",
+		func() json.Unmarshaler {
+			return new(DelayTrigger)
+		},
+	)
+}
+
+func (d *DelayTrigger) UnmarshalJSON(input []byte) (error) {
+	var t struct {
+		DelayedTrigger config.Resource
+		Delay string
+	}
+
+	dec := json.NewDecoder(bytes.NewReader(input))
+	if e := dec.Decode(&t); e != nil {
+		return e
+	}
+
+	dt := t.DelayedTrigger.Unmarshaled
+	switch dt := dt.(type) {
+	case TriggerHandler:
+		d.DelayedTrigger = dt
+	default:
+		log().Err(
+			fmt.Sprintf(
+				"Registry value is not a Trigger: %s",
+				dt,
+			),
+		)
+		return config.UnexpectedResourceType
+	}
+
+	if dp, e := time.ParseDuration(t.Delay); e != nil {
+		return e
+	} else {
+		d.Delay = dp
+	}
+
+	return nil
 }
 
 func NewDelayTrigger(
