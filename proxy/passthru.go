@@ -6,7 +6,6 @@ import (
 	"github.com/fitstar/falcore"
 	"github.com/fitstar/falcore/filter"
 	"github.com/stuphlabs/pullcord/config"
-	"github.com/stuphlabs/pullcord/util"
 	"net/http"
 )
 
@@ -73,9 +72,16 @@ func (f *PassthruFilter) FilterRequest(
 	req *falcore.Request,
 ) (*http.Response) {
 	if f.upstreamFilter == nil {
-		return util.InternalServerError.FilterRequest(req)
-	} else {
-		return f.upstreamFilter.FilterRequest(req)
+		f.upstreamFilter = filter.NewUpstream(
+			filter.NewUpstreamTransport(
+				f.Host,
+				f.Port,
+				0,
+				nil,
+			),
+		)
 	}
+
+	return f.upstreamFilter.FilterRequest(req)
 }
 
