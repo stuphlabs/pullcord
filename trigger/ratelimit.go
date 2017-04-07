@@ -1,8 +1,11 @@
 package trigger
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
-	//"github.com/stuphlabs/pullcord"
+	"fmt"
+	"github.com/stuphlabs/pullcord/config"
 	"time"
 )
 
@@ -19,6 +22,52 @@ type RateLimitTrigger struct {
 	MaxAllowed uint
 	Period time.Duration
 	previousTriggers []time.Time
+}
+
+func init() {
+	config.RegisterResourceType(
+		"ratelimittrigger",
+		func() json.Unmarshaler {
+			return new(RateLimitTrigger)
+		},
+	)
+}
+
+func (r *RateLimitTrigger) UnmarshalJSON(input []byte) (error) {
+	var t struct {
+		GuardedTrigger config.Resource
+		MaxAllowed uint
+		Period string
+	}
+
+	dec := json.NewDecoder(bytes.NewReader(input))
+	if e := dec.Decode(&t); e != nil {
+		return e
+	}
+
+	gt := t.GuardedTrigger.Unmarshaled
+	switch gt := gt.(type) {
+	case TriggerHandler:
+		r.GuardedTrigger = gt
+	default:
+		log().Err(
+			fmt.Sprintf(
+				"Registry value is not a Trigger: %s",
+				gt,
+			),
+		)
+		return config.UnexpectedResourceType
+	}
+
+	if p, e := time.ParseDuration(t.Period); e != nil {
+		return e
+	} else {
+		r.Period = p
+	}
+
+	r.MaxAllowed = t.MaxAllowed
+
+	return nil
 }
 
 func NewRateLimitTrigger(
