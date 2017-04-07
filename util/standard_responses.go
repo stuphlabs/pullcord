@@ -2,6 +2,7 @@ package util
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/fitstar/falcore"
 	"github.com/stuphlabs/pullcord/config"
@@ -9,6 +10,8 @@ import (
 )
 
 type StandardResponse int
+
+const MinimumStandardResponse = 100
 
 func init() {
 	config.RegisterResourceType(
@@ -24,6 +27,19 @@ func (s *StandardResponse) UnmarshalJSON(data []byte) error {
 	if e := json.Unmarshal(data, &t); e != nil {
 		return e
 	}
+
+	if t < MinimumStandardResponse {
+		return errors.New(
+			fmt.Sprintf(
+				"StandardResponse must be a valid HTTP" +
+				" status code (an integer greater than %d)," +
+				" but was given: %d",
+				MinimumStandardResponse,
+				t,
+			),
+		)
+	}
+
 	*s = StandardResponse(t)
 	return nil
 }
@@ -76,20 +92,34 @@ var responseContactString = "Please contact your system administrator."
 func (s StandardResponse) FilterRequest(
 	request *falcore.Request,
 ) (*http.Response) {
-	contactString := ""
-	if responseContact[s] {
-		contactString = responseContactString
+	var title, text, contact string
+
+	rs := s
+	if rs < MinimumStandardResponse {
+		rs = 500
+	}
+
+	if v, present := responseContact[rs]; present && v {
+		contact = responseContactString
+	}
+
+	if v, present := responseTitle[rs]; present {
+		title = v
+	}
+
+	if v, present := responseText[rs]; present {
+		text = v
 	}
 
 	return falcore.StringResponse(
 		request.HttpRequest,
-		int(s),
+		int(rs),
 		nil,
 		fmt.Sprintf(
 			responseStringFormat,
-			responseTitle[s],
-			responseText[s],
-			contactString,
+			title,
+			text,
+			contact,
 		),
 	)
 }
