@@ -23,7 +23,7 @@ func TestStandardResponseFilterRequest(t *testing.T) {
 			s: InternalServerError,
 		},
 		testCase {
-			s: NotImplementedError,
+			s: NotImplemented,
 		},
 		testCase {
 			s: 200,

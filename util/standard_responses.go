@@ -47,26 +47,25 @@ func (s *StandardResponse) UnmarshalJSON(data []byte) error {
 const (
 	NotFound = StandardResponse(404)
 	InternalServerError = StandardResponse(500)
-	NotImplementedError = StandardResponse(501)
+	NotImplemented = StandardResponse(501)
 )
 
 var responseTitle = map[StandardResponse]string{
 	NotFound: "Not Found",
 	InternalServerError: "Internal Server Error",
-	NotImplementedError: "Not Implemented",
+	NotImplemented: "Not Implemented",
 }
 
 var responseText = map[StandardResponse]string{
 	NotFound: "The requested page was not found.",
 	InternalServerError: "An internal server error occured.",
-	NotImplementedError: "The requested behavior has not yet been" +
-				" implemented.",
+	NotImplemented: "The requested behavior has not yet been implemented.",
 }
 
 var responseContact = map[StandardResponse]bool{
 	NotFound: false,
 	InternalServerError: true,
-	NotImplementedError: true,
+	NotImplemented: true,
 }
 
 var responseStringFormat = `<!DOCTYPE html>
