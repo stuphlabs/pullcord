@@ -25,12 +25,14 @@ func (r *ExactPathRouter) UnmarshalJSON(input []byte) (error) {
 	var t struct {
 		Routes map[string]config.Resource
 	}
+	t.Routes = make(map[string]config.Resource)
 
 	dec := json.NewDecoder(bytes.NewReader(input))
 	if e := dec.Decode(&t); e != nil {
 		return e
 	}
 
+	r.Routes = make(map[string]*falcore.RequestFilter)
 	for path, rsc := range t.Routes {
 		switch f := rsc.Unmarshaled.(type) {
 		case falcore.RequestFilter:
