@@ -5,7 +5,7 @@ import (
 	"errors"
 	"github.com/fitstar/falcore"
 	"github.com/stretchr/testify/assert"
-	// "github.com/stuphlabs/pullcord"
+	configutil "github.com/stuphlabs/pullcord/config/util"
 	"golang.org/x/net/html"
 	"io/ioutil"
 	"net/http"
@@ -102,11 +102,6 @@ func TestInitialLoginPage(t *testing.T) {
 	filter := &CookiemaskFilter{
 		sessionHandler,
 		handler,
-		falcore.NewRequestFilter(
-			func (request *falcore.Request) *http.Response {
-				return internalServerError(request)
-			},
-		),
 	}
 	_, response := falcore.TestWithRequest(request, filter, nil)
 
@@ -181,11 +176,6 @@ func TestNoXsrfLoginPage(t *testing.T) {
 	filter := &CookiemaskFilter{
 		sessionHandler,
 		handler,
-		falcore.NewRequestFilter(
-			func (request *falcore.Request) *http.Response {
-				return internalServerError(request)
-			},
-		),
 	}
 
 	_, response1 := falcore.TestWithRequest(request1, filter, nil)
@@ -262,11 +252,6 @@ func TestBadXsrfLoginPage(t *testing.T) {
 	filter := &CookiemaskFilter{
 		sessionHandler,
 		handler,
-		falcore.NewRequestFilter(
-			func (request *falcore.Request) *http.Response {
-				return internalServerError(request)
-			},
-		),
 	}
 
 
@@ -331,11 +316,6 @@ func TestNoUsernameLoginPage(t *testing.T) {
 	filter := &CookiemaskFilter{
 		sessionHandler,
 		handler,
-		falcore.NewRequestFilter(
-			func (request *falcore.Request) *http.Response {
-				return internalServerError(request)
-			},
-		),
 	}
 
 	_, response1 := falcore.TestWithRequest(request1, filter, nil)
@@ -419,11 +399,6 @@ func TestNoPasswordLoginPage(t *testing.T) {
 	filter := &CookiemaskFilter{
 		sessionHandler,
 		handler,
-		falcore.NewRequestFilter(
-			func (request *falcore.Request) *http.Response {
-				return internalServerError(request)
-			},
-		),
 	}
 
 	_, response1 := falcore.TestWithRequest(request1, filter, nil)
@@ -508,11 +483,6 @@ func TestUsernameArrayLoginPage(t *testing.T) {
 	filter := &CookiemaskFilter{
 		sessionHandler,
 		handler,
-		falcore.NewRequestFilter(
-			func (request *falcore.Request) *http.Response {
-				return internalServerError(request)
-			},
-		),
 	}
 
 	_, response1 := falcore.TestWithRequest(request1, filter, nil)
@@ -601,11 +571,6 @@ func TestBadUsernameLoginPage(t *testing.T) {
 	filter := &CookiemaskFilter{
 		sessionHandler,
 		handler,
-		falcore.NewRequestFilter(
-			func (request *falcore.Request) *http.Response {
-				return internalServerError(request)
-			},
-		),
 	}
 
 	_, response1 := falcore.TestWithRequest(request1, filter, nil)
@@ -693,11 +658,6 @@ func TestBadPasswordLoginPage(t *testing.T) {
 	filter := &CookiemaskFilter{
 		sessionHandler,
 		handler,
-		falcore.NewRequestFilter(
-			func (request *falcore.Request) *http.Response {
-				return internalServerError(request)
-			},
-		),
 	}
 
 	_, response1 := falcore.TestWithRequest(request1, filter, nil)
@@ -785,11 +745,6 @@ func TestGoodLoginPage(t *testing.T) {
 	filter := &CookiemaskFilter{
 		sessionHandler,
 		handler,
-		falcore.NewRequestFilter(
-			func (request *falcore.Request) *http.Response {
-				return internalServerError(request)
-			},
-		),
 	}
 
 	_, response1 := falcore.TestWithRequest(request1, filter, nil)
@@ -877,11 +832,6 @@ func TestPassthruLoginPage(t *testing.T) {
 	filter := &CookiemaskFilter{
 		sessionHandler,
 		handler,
-		falcore.NewRequestFilter(
-			func (request *falcore.Request) *http.Response {
-				return internalServerError(request)
-			},
-		),
 	}
 
 	_, response1 := falcore.TestWithRequest(request1, filter, nil)
@@ -948,3 +898,94 @@ func TestPassthruLoginPage(t *testing.T) {
 	)
 }
 
+func TestLoginHandlerFromConfig(t *testing.T) {
+	test := configutil.ConfigTest{
+		ResourceType: "loginhandler",
+		SyntacticallyBad: []configutil.ConfigTestData{
+			configutil.ConfigTestData{
+				Data: "",
+				Explanation: "empty config",
+			},
+			configutil.ConfigTestData{
+				Data: "{}",
+				Explanation: "empty object",
+			},
+			configutil.ConfigTestData{
+				Data: "null",
+				Explanation: "null config",
+			},
+			configutil.ConfigTestData{
+				Data: "42",
+				Explanation: "numeric config",
+			},
+			configutil.ConfigTestData{
+				Data: `{
+					"passwordchecker": "notgonnadoit",
+					"masked: "wouldntbeprudent"
+				}`,
+				Explanation: "invalid subtypes",
+			},
+			configutil.ConfigTestData{
+				Data: `{
+					"passwordchecker": {
+						"type": "inmempwdstore",
+						"data": {
+							"test_user": {
+								"salt": "RMM0WEV4s0vxZWb9Yvw0ooBU1Bs9louzqNsa+/E/SVzZg+ez72TLoXL8pFOOzk2aOFO5XLtbSECYKUK7XtF+ZQ==",
+								"iterations": 4096,
+								"hash": "3Ezu0RAlDXNhkvnVq0H4z/0dUrItfd2CyYR06u/arA6f9XAeAA0UWWB/9y/0fQOVmZi7XxyiePtR/hC33tNWXg=="
+		                                        }
+						}
+					},
+					"downstream": {
+						"type": "inmempwdstore",
+						"data": {
+							"test_user": {
+								"salt": "RMM0WEV4s0vxZWb9Yvw0ooBU1Bs9louzqNsa+/E/SVzZg+ez72TLoXL8pFOOzk2aOFO5XLtbSECYKUK7XtF+ZQ==",
+								"iterations": 4096,
+								"hash": "3Ezu0RAlDXNhkvnVq0H4z/0dUrItfd2CyYR06u/arA6f9XAeAA0UWWB/9y/0fQOVmZi7XxyiePtR/hC33tNWXg=="
+		                                        }
+						}
+					}
+				}`,
+				Explanation: "bad downstream",
+			},
+			configutil.ConfigTestData{
+				Data: `{
+					"passwordchecker": {
+						"type": "landingfilter",
+						"data": {}
+					},
+					"downstream": {
+						"type": "landingfilter",
+						"data": {}
+					}
+				}`,
+				Explanation: "bad passwordchecker",
+			},
+		},
+		Good: []configutil.ConfigTestData{
+			configutil.ConfigTestData{
+				Data: `{
+					"passwordchecker": {
+						"type": "inmempwdstore",
+						"data": {
+							"test_user": {
+								"salt": "RMM0WEV4s0vxZWb9Yvw0ooBU1Bs9louzqNsa+/E/SVzZg+ez72TLoXL8pFOOzk2aOFO5XLtbSECYKUK7XtF+ZQ==",
+								"iterations": 4096,
+								"hash": "3Ezu0RAlDXNhkvnVq0H4z/0dUrItfd2CyYR06u/arA6f9XAeAA0UWWB/9y/0fQOVmZi7XxyiePtR/hC33tNWXg=="
+		                                        }
+						}
+					},
+					"downstream": {
+						"type": "landingfilter",
+						"data": {}
+					}
+				}`,
+				Explanation: "good config",
+			},
+		},
+	}
+
+	test.Run(t)
+}

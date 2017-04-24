@@ -2,7 +2,8 @@ package trigger
 
 import (
 	"github.com/stretchr/testify/assert"
-	//"github.com/stuphlabs/pullcord"
+	configutil "github.com/stuphlabs/pullcord/config/util"
+	"github.com/stuphlabs/pullcord/util"
 	"testing"
 	"time"
 )
@@ -127,3 +128,84 @@ func TestDelayTriggerIntroduceError(t *testing.T) {
 	assert.Equal(t, -1, cth.count)
 }
 
+func TestDelayTriggerFromConfig(t *testing.T) {
+	util.LoadPlugin()
+	test := configutil.ConfigTest{
+		ResourceType: "delaytrigger",
+		SyntacticallyBad: []configutil.ConfigTestData{
+			configutil.ConfigTestData{
+				Data: "",
+				Explanation: "empty config",
+			},
+			configutil.ConfigTestData{
+				Data: "{}",
+				Explanation: "empty object",
+			},
+			configutil.ConfigTestData{
+				Data: "null",
+				Explanation: "null config",
+			},
+			configutil.ConfigTestData{
+				Data: `{
+					"delayedtrigger": 7,
+					"delay": "42s"
+				}`,
+				Explanation: "numeric trigger",
+			},
+			configutil.ConfigTestData{
+				Data: `{
+					"delayedtrigger": {
+						"type": "landingfilter",
+						"data": {}
+					},
+					"delay": "42s"
+				}`,
+				Explanation: "non-trigger as trigger",
+			},
+			configutil.ConfigTestData{
+				Data: `{
+					"delayedtrigger": {
+						"type": "compoundtrigger",
+						"data": {}
+					},
+					"delay": 42
+				}`,
+				Explanation: "numeric delay",
+			},
+			configutil.ConfigTestData{
+				Data: `{
+					"delayedtrigger": {
+						"type": "compoundtrigger",
+						"data": {}
+					},
+					"delay": "42q"
+				}`,
+				Explanation: "nonsensical delay",
+			},
+			configutil.ConfigTestData{
+				Data: `{
+					"delayedtrigger": {},
+					"delay": "42s"
+				}`,
+				Explanation: "empty trigger",
+			},
+			configutil.ConfigTestData{
+				Data: "42",
+				Explanation: "numeric config",
+			},
+		},
+		Good: []configutil.ConfigTestData{
+			configutil.ConfigTestData{
+				Data: `{
+					"delayedtrigger": {
+						"type": "compoundtrigger",
+						"data": {}
+					},
+					"delay": "42s"
+				}`,
+				Explanation: "valid delay trigger",
+			},
+		},
+	}
+	test.Run(t)
+}

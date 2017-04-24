@@ -2,9 +2,12 @@ package authentication
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"github.com/fitstar/falcore"
 	// "github.com/stuphlabs/pullcord"
+	"github.com/stuphlabs/pullcord/config"
+	"github.com/stuphlabs/pullcord/util"
 	"net/http"
 	"strings"
 )
@@ -36,7 +39,53 @@ import (
 type CookiemaskFilter struct {
 	Handler SessionHandler
 	Masked falcore.RequestFilter
-	OnError falcore.RequestFilter
+}
+
+func init() {
+	config.RegisterResourceType(
+		"cookiemaskfilter",
+		func() json.Unmarshaler {
+			return new(CookiemaskFilter)
+		},
+	)
+}
+
+func (f *CookiemaskFilter) UnmarshalJSON(input []byte) (error) {
+	var t struct {
+		Handler config.Resource
+		Masked config.Resource
+	}
+
+	dec := json.NewDecoder(bytes.NewReader(input))
+	if e := dec.Decode(&t); e != nil {
+		return e
+	} else {
+		h := t.Handler.Unmarshaled
+		switch h := h.(type) {
+		case SessionHandler:
+			f.Handler = h
+		default:
+			log().Err(
+				"Resource described by \"Handler\" is not a" +
+				" SessionHandler",
+			)
+			return config.UnexpectedResourceType
+		}
+
+		m := t.Masked.Unmarshaled
+		switch m := m.(type) {
+		case falcore.RequestFilter:
+			f.Masked = m
+		default:
+			log().Err(
+				"Resource described by \"Masked\" is not a" +
+				" RequestFilter",
+			)
+			return config.UnexpectedResourceType
+		}
+
+		return nil
+	}
 }
 
 // FilterRequest implements the required function to allow CookiemaskFilter to
@@ -45,6 +94,9 @@ func (filter *CookiemaskFilter) FilterRequest(
 	req *falcore.Request,
 ) (*http.Response) {
 	log().Debug("running cookiemask filter")
+
+	//TODO remove
+	log().Debug(fmt.Sprintf("handler is: %v",filter))
 
 	sesh, err := filter.Handler.GetSession()
 	if err != nil {
@@ -57,8 +109,11 @@ func (filter *CookiemaskFilter) FilterRequest(
 			),
 		)
 
-		return filter.OnError.FilterRequest(req)
+		return util.InternalServerError.FilterRequest(req)
 	}
+
+	// TODO remove
+	log().Debug(fmt.Sprintf("sesh is: %v",sesh))
 
 	req.Context["session"] = sesh
 
@@ -77,7 +132,7 @@ func (filter *CookiemaskFilter) FilterRequest(
 			),
 		)
 
-		resp = filter.OnError.FilterRequest(req)
+		resp = util.InternalServerError.FilterRequest(req)
 	} else {
 		cke_keys_buffer := new(bytes.Buffer)
 		ckes_str := make([]string, len(passthru_ckes))

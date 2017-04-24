@@ -2,7 +2,7 @@ package trigger
 
 import (
 	"github.com/stretchr/testify/assert"
-	// "github.com/stuphlabs/pullcord"
+	configutil "github.com/stuphlabs/pullcord/config/util"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -48,3 +48,83 @@ func TestShellTriggerFail(t *testing.T) {
 	assert.Error(t, err)
 }
 
+func TestShellTriggerFromConfig(t *testing.T) {
+	test := configutil.ConfigTest{
+		ResourceType: "shelltrigger",
+		SyntacticallyBad: []configutil.ConfigTestData{
+			configutil.ConfigTestData{
+				Data: "",
+				Explanation: "empty config",
+			},
+			configutil.ConfigTestData{
+				Data: `{
+					"command": 7,
+					"args": []
+				}`,
+				Explanation: "numeric command",
+			},
+			configutil.ConfigTestData{
+				Data: `{
+					"command": {},
+					"args": []
+				}`,
+				Explanation: "object command",
+			},
+			configutil.ConfigTestData{
+				Data: `{
+					"command": "echo",
+					"args": 42
+				}`,
+				Explanation: "numeric args",
+			},
+			configutil.ConfigTestData{
+				Data: `{
+					"command": "echo",
+					"args": "hello"
+				}`,
+				Explanation: "non-array string args",
+			},
+			configutil.ConfigTestData{
+				Data: `{
+					"command": "echo",
+					"args": [
+						7,
+						42
+					]
+				}`,
+				Explanation: "numeric array args",
+			},
+			configutil.ConfigTestData{
+				Data: "42",
+				Explanation: "numeric config",
+			},
+		},
+		Good: []configutil.ConfigTestData{
+			configutil.ConfigTestData{
+				Data: "{}",
+				Explanation: "empty object",
+			},
+			configutil.ConfigTestData{
+				Data: "null",
+				Explanation: "null config",
+			},
+			configutil.ConfigTestData{
+				Data: `{
+					"command": "echo"
+				}`,
+				Explanation: "missing args",
+			},
+			configutil.ConfigTestData{
+				Data: `{
+					"command": "echo",
+					"args": [
+						"hello",
+						"world"
+					]
+				}`,
+				Explanation: "basic valid compound trigger",
+			},
+		},
+	}
+	test.Run(t)
+}

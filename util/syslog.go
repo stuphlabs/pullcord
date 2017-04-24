@@ -1,4 +1,4 @@
-package configuration
+package util
 
 import (
 	// "github.com/stuphlabs/pullcord"

@@ -9,8 +9,18 @@ import (
 	"encoding/json"
 	"github.com/proidiot/gone/errors"
 	// "github.com/stuphlabs/pullcord"
+	"github.com/stuphlabs/pullcord/config"
 	"golang.org/x/crypto/pbkdf2"
 )
+
+func init() {
+	config.RegisterResourceType(
+		"inmempwdstore",
+		func() json.Unmarshaler {
+			return new(InMemPwdStore)
+		},
+	)
+}
 
 // Pbkdf2KeyLength is the length (in bytes) of the generated PBKDF2 hashes.
 const Pbkdf2KeyLength = 64
@@ -175,6 +185,7 @@ func (store *InMemPwdStore) CheckPassword(id, pass string) (error) {
 }
 
 func (store *InMemPwdStore) UnmarshalJSON(input []byte) (error) {
+	store.table = make(map[string]*Pbkdf2Hash)
 	return json.Unmarshal(input, &store.table)
 }
 

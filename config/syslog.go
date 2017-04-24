@@ -1,4 +1,4 @@
-package proxy
+package config
 
 import (
 	// "github.com/stuphlabs/pullcord"

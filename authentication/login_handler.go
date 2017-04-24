@@ -1,12 +1,16 @@
 package authentication
 
 import (
+	"bytes"
 	"crypto/rand"
 	"crypto/subtle"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"github.com/fitstar/falcore"
 	// "github.com/stuphlabs/pullcord"
+	"github.com/stuphlabs/pullcord/config"
+	"github.com/stuphlabs/pullcord/util"
 	"net/http"
 )
 
@@ -26,41 +30,61 @@ type LoginHandler struct {
 	Downstream falcore.RequestFilter
 }
 
-func internalServerError(request *falcore.Request) *http.Response {
-	return falcore.StringResponse(
-		request.HttpRequest,
-		500,
-		nil,
-		"<html><body><h1>Internal Server Error</h1>" +
-		"<p>An internal server error occured." +
-		"Please contact your system administrator.</p></body></html>",
+func init() {
+	config.RegisterResourceType(
+		"loginhandler",
+		func() json.Unmarshaler {
+			return new(LoginHandler)
+		},
 	)
 }
 
-func notImplementedError(request *falcore.Request) *http.Response {
-	return falcore.StringResponse(
-		request.HttpRequest,
-		501,
-		nil,
-		"<html><body><h1>Not Implemented</h1>" +
-		"<p>The requested behavior has not yet been implemented." +
-		"Please contact your system administrator.</p></body></html>",
-	)
-}
+func (h *LoginHandler) UnmarshalJSON(input []byte) (error) {
+	var t struct {
+		Identifier string
+		PasswordChecker config.Resource
+		Downstream config.Resource
+	}
 
-func loginPage(
-	request *falcore.Request,
-	sesh Session,
-	badCreds bool,
-) *http.Response {
-	return falcore.StringResponse(
-		request.HttpRequest,
-		501,
-		nil,
-		"<html><body><h1>Not Implemented</h1>" +
-		"<p>The requested behavior has not yet been implemented." +
-		"Please contact your system administrator.</p></body></html>",
-	)
+	dec := json.NewDecoder(bytes.NewReader(input))
+	if e := dec.Decode(&t); e != nil {
+		log().Err("Unable to decode LoginHandler")
+		return e
+	} else {
+		p := t.PasswordChecker.Unmarshaled
+		switch p := p.(type) {
+		case PasswordChecker:
+			h.PasswordChecker = p
+		default:
+			log().Err(
+				fmt.Sprintf(
+					"Registry value is not a" +
+					" PasswordChecker: %s",
+					t.PasswordChecker,
+				),
+			)
+			return config.UnexpectedResourceType
+		}
+
+		d := t.Downstream.Unmarshaled
+		switch d := d.(type) {
+		case falcore.RequestFilter:
+			h.Downstream = d
+		default:
+			log().Err(
+				fmt.Sprintf(
+					"Registry value is not a" +
+					" RequestFilter: %s",
+					t.Downstream,
+				),
+			)
+			return config.UnexpectedResourceType
+		}
+
+		h.Identifier = t.Identifier
+
+		return nil
+	}
 }
 
 func (handler *LoginHandler) FilterRequest(
@@ -73,7 +97,7 @@ func (handler *LoginHandler) FilterRequest(
 			"login handler was unable to retrieve session from" +
 			" context",
 		)
-		return internalServerError(request)
+		return util.InternalServerError.FilterRequest(request)
 	}
 	sesh := rawsesh.(Session)
 
@@ -94,7 +118,7 @@ func (handler *LoginHandler) FilterRequest(
 				err,
 			),
 		)
-		return internalServerError(request)
+		return util.InternalServerError.FilterRequest(request)
 	}
 
 	xsrfStored, err := sesh.GetValue(xsrfKey)
@@ -106,7 +130,7 @@ func (handler *LoginHandler) FilterRequest(
 				err,
 			),
 		)
-		return internalServerError(request)
+		return util.InternalServerError.FilterRequest(request)
 	} else if err == NoSuchSessionValueError {
 		log().Info("login handler received new request")
 	} else if err = request.HttpRequest.ParseForm(); err != nil {
@@ -157,7 +181,7 @@ func (handler *LoginHandler) FilterRequest(
 				err,
 			),
 		)
-		return internalServerError(request)
+		return util.InternalServerError.FilterRequest(request)
 	} else if err = sesh.SetValue(authSeshKey, true); err != nil {
 		log().Err(
 			fmt.Sprintf(
@@ -165,7 +189,7 @@ func (handler *LoginHandler) FilterRequest(
 				err,
 			),
 		)
-		return internalServerError(request)
+		return util.InternalServerError.FilterRequest(request)
 	} else {
 		log().Notice(
 			fmt.Sprintf(
@@ -189,7 +213,7 @@ func (handler *LoginHandler) FilterRequest(
 				err,
 			),
 		)
-		return internalServerError(request)
+		return util.InternalServerError.FilterRequest(request)
 	}
 	nextXsrfToken := hex.EncodeToString(rawXsrfToken)
 
@@ -200,7 +224,7 @@ func (handler *LoginHandler) FilterRequest(
 				err,
 			),
 		)
-		return internalServerError(request)
+		return util.InternalServerError.FilterRequest(request)
 	}
 
 	errMarkup := ""

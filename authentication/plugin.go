@@ -1,0 +1,4 @@
+package authentication
+
+func LoadPlugin() {}
+

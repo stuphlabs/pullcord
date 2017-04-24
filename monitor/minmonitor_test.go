@@ -2,11 +2,12 @@ package monitor
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"github.com/fitstar/falcore"
+	"github.com/proidiot/gone/errors"
 	"github.com/stretchr/testify/assert"
-	"github.com/stuphlabs/pullcord"
+	configutil "github.com/stuphlabs/pullcord/config/util"
+	"github.com/stuphlabs/pullcord/util"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -35,7 +36,7 @@ func TestMinMonitorUpService(t *testing.T) {
 	gracePeriod := time.Duration(0)
 
 	landingPipeline := falcore.NewPipeline()
-	landingPipeline.Upstream.PushBack(pullcord.NewLandingFilter())
+	landingPipeline.Upstream.PushBack(&util.LandingFilter{})
 	landingServer := falcore.NewServer(0, landingPipeline)
 	go serveLandingPage(landingServer)
 	defer landingServer.StopAccepting()
@@ -143,7 +144,7 @@ func TestMinMonitorUpReprobe(t *testing.T) {
 	gracePeriod := time.Duration(0)
 
 	landingPipeline := falcore.NewPipeline()
-	landingPipeline.Upstream.PushBack(pullcord.NewLandingFilter())
+	landingPipeline.Upstream.PushBack(&util.LandingFilter{})
 	landingServer := falcore.NewServer(0, landingPipeline)
 	go serveLandingPage(landingServer)
 	defer landingServer.StopAccepting()
@@ -267,7 +268,7 @@ func TestMinMonitorFalsePositive(t *testing.T) {
 	assert.NoError(t, err)
 
 	landingPipeline := falcore.NewPipeline()
-	landingPipeline.Upstream.PushBack(pullcord.NewLandingFilter())
+	landingPipeline.Upstream.PushBack(&util.LandingFilter{})
 	landingServer := falcore.NewServer(0, landingPipeline)
 	go serveLandingPage(landingServer)
 
@@ -413,7 +414,7 @@ func TestMinMonitorAddExistant(t *testing.T) {
 	gracePeriod := time.Duration(0)
 
 	landingPipeline := falcore.NewPipeline()
-	landingPipeline.Upstream.PushBack(pullcord.NewLandingFilter())
+	landingPipeline.Upstream.PushBack(&util.LandingFilter{})
 	landingServer := falcore.NewServer(0, landingPipeline)
 	go serveLandingPage(landingServer)
 	defer landingServer.StopAccepting()
@@ -465,7 +466,7 @@ func TestMonitorFilterUp(t *testing.T) {
 	gracePeriod := time.Duration(0)
 
 	landingPipeline := falcore.NewPipeline()
-	landingPipeline.Upstream.PushBack(pullcord.NewLandingFilter())
+	landingPipeline.Upstream.PushBack(&util.LandingFilter{})
 	landingServer := falcore.NewServer(0, landingPipeline)
 	go serveLandingPage(landingServer)
 	defer landingServer.StopAccepting()
@@ -591,7 +592,7 @@ func TestMonitorFilterUpTriggers(t *testing.T) {
 	gracePeriod := time.Duration(0)
 
 	landingPipeline := falcore.NewPipeline()
-	landingPipeline.Upstream.PushBack(pullcord.NewLandingFilter())
+	landingPipeline.Upstream.PushBack(&util.LandingFilter{})
 	landingServer := falcore.NewServer(0, landingPipeline)
 	go serveLandingPage(landingServer)
 	defer landingServer.StopAccepting()
@@ -716,7 +717,7 @@ func TestMonitorFilterUpOnUpTriggerError(t *testing.T) {
 	gracePeriod := time.Duration(0)
 
 	landingPipeline := falcore.NewPipeline()
-	landingPipeline.Upstream.PushBack(pullcord.NewLandingFilter())
+	landingPipeline.Upstream.PushBack(&util.LandingFilter{})
 	landingServer := falcore.NewServer(0, landingPipeline)
 	go serveLandingPage(landingServer)
 	defer landingServer.StopAccepting()
@@ -886,4 +887,40 @@ func TestMonitorFilterDownAlwaysTriggerError(t *testing.T) {
 		"content is: " + string(contents),
 	)
 	assert.Equal(t, -1, always.count)
+}
+
+func TestMinMonitorFromConfig(t *testing.T) {
+	test := configutil.ConfigTest{
+		ResourceType: "minmonitorredservice",
+		SyntacticallyBad: []configutil.ConfigTestData{
+			configutil.ConfigTestData{
+				Data: "",
+				Explanation: "empty config",
+			},
+			configutil.ConfigTestData{
+				Data: "{}",
+				Explanation: "empty object",
+			},
+			configutil.ConfigTestData{
+				Data: "null",
+				Explanation: "null config",
+			},
+			configutil.ConfigTestData{
+				Data: "42",
+				Explanation: "numeric config",
+			},
+		},
+		Good: []configutil.ConfigTestData{
+			configutil.ConfigTestData{
+				Data: `{
+					"address": "127.0.0.1",
+					"port": 80,
+					"protocol": "http",
+					"graceperiod": "1s"
+				}`,
+				Explanation: "basic valid monitor config",
+			},
+		},
+	}
+	test.Run(t)
 }

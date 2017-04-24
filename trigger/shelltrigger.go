@@ -2,8 +2,9 @@ package trigger
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
-	// "github.com/stuphlabs/pullcord"
+	"github.com/stuphlabs/pullcord/config"
 	"os/exec"
 )
 
@@ -12,8 +13,39 @@ import (
 //
 // The message given to TriggerString will be passed to the command via stdin.
 type ShellTriggerHandler struct {
-	command string
-	args []string
+	Command string
+	Args []string
+}
+
+func init() {
+	config.RegisterResourceType(
+		"shelltrigger",
+		func() json.Unmarshaler {
+			return new(ShellTriggerHandler)
+		},
+	)
+}
+
+func (s *ShellTriggerHandler) UnmarshalJSON(input []byte) (error) {
+	// It shouldn't habe been necessary to do this, but by giving a
+	// defnition of how to unmarshal a pointer-to ShellTriggerHandler
+	// (which we apparently need to do), it seems that unmarshalling a
+	// non-pointer ShellTriggerHandler also uses this function to
+	// unmarshal, resulting in an infinite stack.
+	var t struct {
+		Command string
+		Args []string
+	}
+
+	dec := json.NewDecoder(bytes.NewReader(input))
+	if e := dec.Decode(&t); e != nil {
+		return e
+	}
+
+	s.Command = t.Command
+	s.Args = t.Args
+
+	return nil
 }
 
 // TriggerString for the ShellTriggerHandler is an implementation of the
@@ -22,7 +54,7 @@ type ShellTriggerHandler struct {
 // In this case, the message will be passed to the command via stdin.
 func (handler *ShellTriggerHandler) Trigger() (err error) {
 	log().Debug("shelltrigger running trigger")
-	cmd := exec.Command(handler.command, handler.args...)
+	cmd := exec.Command(handler.Command, handler.Args...)
 	var stdout bytes.Buffer
 	cmd.Stdout = &stdout
 	err = cmd.Run()
@@ -66,8 +98,8 @@ func NewShellTriggerHandler(
 	)
 
 	var handler ShellTriggerHandler
-	handler.command = command
-	handler.args = args
+	handler.Command = command
+	handler.Args = args
 
 	return &handler
 }
