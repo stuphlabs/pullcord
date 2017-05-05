@@ -140,6 +140,7 @@ func (r *Resource) unmarshalByName(name string) error {
 
 func ServerFromReader(r io.Reader) (*falcore.Server, error) {
 	registrationMutex.Lock()
+	defer registrationMutex.Unlock()
 
 	var config struct {
 		Resources map[string]json.RawMessage
@@ -157,7 +158,6 @@ func ServerFromReader(r io.Reader) (*falcore.Server, error) {
 				e,
 			),
 		)
-		registrationMutex.Unlock()
 		return nil, e
 	}
 
@@ -170,7 +170,6 @@ func ServerFromReader(r io.Reader) (*falcore.Server, error) {
 			),
 		)
 		log().Crit(e.Error())
-		registrationMutex.Unlock()
 		return nil, e
 	}
 
@@ -180,7 +179,6 @@ func ServerFromReader(r io.Reader) (*falcore.Server, error) {
 			r := new(Resource)
 			registry[name] = r
 			if e := r.unmarshalByName(name); e != nil {
-				registrationMutex.Unlock()
 				return nil, e
 			} else {
 				r.complete = true
@@ -209,7 +207,6 @@ func ServerFromReader(r io.Reader) (*falcore.Server, error) {
 				),
 			)
 			log().Crit(e.Error())
-			registrationMutex.Unlock()
 			return nil, e
 		}
 		u := r.Unmarshaled
@@ -226,7 +223,6 @@ func ServerFromReader(r io.Reader) (*falcore.Server, error) {
 				),
 			)
 			log().Crit(e.Error())
-			registrationMutex.Unlock()
 			return nil, e
 		}
 		log().Debug(
@@ -240,8 +236,6 @@ func ServerFromReader(r io.Reader) (*falcore.Server, error) {
 	server := falcore.NewServer(config.Port, pipeline)
 
 	registry = nil
-
-	registrationMutex.Unlock()
 
 	return server, nil
 }
