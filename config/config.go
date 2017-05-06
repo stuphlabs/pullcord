@@ -144,7 +144,7 @@ func ServerFromReader(r io.Reader) (*falcore.Server, error) {
 
 	var config struct {
 		Resources map[string]json.RawMessage
-		Pipeline []string
+		Pipeline string
 		Port int
 	}
 
@@ -161,12 +161,11 @@ func ServerFromReader(r io.Reader) (*falcore.Server, error) {
 		return nil, e
 	}
 
-	if config.Pipeline == nil || len(config.Pipeline) == 0 {
+	if _, present := config.Resources[config.Pipeline]; !present {
 		e := errors.New(
 			fmt.Sprintf(
-				"A config must specify at least one named" +
-				" resource to use as a filter in the" +
-				" pipeline.",
+				"A config must specify the name of a" +
+				" pipeline resource.",
 			),
 		)
 		log().Crit(e.Error())
@@ -194,49 +193,21 @@ func ServerFromReader(r io.Reader) (*falcore.Server, error) {
 		}
 	}
 
-	pipeline := falcore.NewPipeline()
-
-	for _, upstream := range config.Pipeline {
-		r, present := registry[upstream]
-		if !present {
-			e := errors.New(
-				fmt.Sprintf(
-					"The requested resource has not been" +
-					" registerred: %s",
-					upstream,
-				),
-			)
-			log().Crit(e.Error())
-			return nil, e
-		}
-		u := r.Unmarshaled
-		switch u := u.(type) {
-		case falcore.Router:
-		case falcore.RequestFilter:
-			pipeline.Upstream.PushBack(u)
-		default:
-			e := errors.New(
-				fmt.Sprintf(
-					"The requested pipeline resource is" +
-					" not a RequestFilter: %s",
-					upstream,
-				),
-			)
-			log().Crit(e.Error())
-			return nil, e
-		}
-		log().Debug(
+	p := registry[config.Pipeline].Unmarshaled
+	switch p := p.(type) {
+	case *ConfigPipeline:
+		server := falcore.NewServer(config.Port, (*falcore.Pipeline)(p))
+		registry = nil
+		return server, nil
+	default:
+		e := errors.New(
 			fmt.Sprintf(
-				"Added upstream resource: %s",
-				upstream,
+				"The specified resource is not a Pipeline: %s",
+				config.Pipeline,
 			),
 		)
+		log().Crit(e.Error())
+		return nil, e
 	}
-
-	server := falcore.NewServer(config.Port, pipeline)
-
-	registry = nil
-
-	return server, nil
 }
 
