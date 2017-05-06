@@ -3,12 +3,9 @@ package authentication
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/fitstar/falcore"
 	"github.com/proidiot/gone/errors"
 	"github.com/stretchr/testify/assert"
-	"github.com/stuphlabs/pullcord/config"
 	configutil "github.com/stuphlabs/pullcord/config/util"
-	"strings"
 	"testing"
 )
 
@@ -167,496 +164,96 @@ func TestBadBase64Error(t *testing.T) {
 }
 
 func TestInMemPwdStoreFromConfig(t *testing.T) {
-	type testStruct struct {
-		validator func(json.Unmarshaler) error
-		data string
-		serverValidate func(*falcore.Server, error)
-	}
+	test := configutil.ConfigTest{
+		ResourceType: "inmempwdstore",
+		IsValid: func(i json.Unmarshaler) error {
+			switch i := i.(type) {
+			case *InMemPwdStore:
+				// do nothing
+			default:
+				return errors.New(
+					fmt.Sprintf(
+						"Expecting" +
+						" unmarsheled" +
+						" resource to be a" +
+						" inmempwdstore," +
+						" but instead got: %v",
+						i,
+					),
+				)
+			}
 
-	testData := []testStruct {
-		testStruct {
-			func(i json.Unmarshaler) error {
-				return errors.New(
-					fmt.Sprintf(
-						"Not expecting validator to" +
-						" actually run, but it was" +
-						" run with: %v",
-						i,
-					),
-				)
-			},
-			``,
-			func(s *falcore.Server, e error) {
-				assert.Error(
-					t,
-					e,
-					"Attempting to create a server from" +
-					" a config containing an incomplete" +
-					" validator resource should produce" +
-					" an error.",
-				)
-				if e != nil {
-				assert.False(
-					t,
-					strings.HasPrefix(
-						e.Error(),
-						"Not expecting validator to" +
-						" actually run",
-					),
-					"Attempting to create a server from" +
-					" a config containing an incomplete" +
-					" validator resource should produce" +
-					" an error apart from any created by" +
-					" the validator.",
-				)
-				}
-				assert.Nil(
-					t,
-					s,
-					"A server created from a config" +
-					" containing an incomplete validator" +
-					" resource should be nil.",
-				)
-			},
+			return nil
 		},
-		testStruct {
-			func(i json.Unmarshaler) error {
-				return errors.New(
-					fmt.Sprintf(
-						"Not expecting validator to" +
-						" actually run, but it was" +
-						" run with: %v",
-						i,
-					),
-				)
+		SyntacticallyBad: []configutil.ConfigTestData{
+			configutil.ConfigTestData{
+				Data:``,
+				Explanation: "empty config",
 			},
-			`{
-				"type": "inmempwdstore",
-				"data": ["test_user"]
-			}`,
-			func(s *falcore.Server, e error) {
-				assert.Error(
-					t,
-					e,
-					"Attempting to create a server from" +
-					" a config containing an incomplete" +
-					" inmempwdstore resource should" +
-					" produce an error.",
-				)
-				if e != nil {
-				assert.False(
-					t,
-					strings.HasPrefix(
-						e.Error(),
-						"Not expecting validator to" +
-						" actually run",
-					),
-					"Attempting to create a server from" +
-					" a config containing an incomplete" +
-					" validator resource should produce" +
-					" an error apart from any created by" +
-					" the validator.",
-				)
-				}
-				assert.Nil(
-					t,
-					s,
-					"A server created from a config" +
-					" containing an incomplete" +
-					" inmempwdstore resource should" +
-					" be nil.",
-				)
+			configutil.ConfigTestData{
+				Data:`42`,
+				Explanation: "numeric config",
 			},
-		},
-		testStruct {
-			func(i json.Unmarshaler) error {
-				return errors.New(
-					fmt.Sprintf(
-						"Not expecting validator to" +
-						" actually run, but it was" +
-						" run with: %v",
-						i,
-					),
-				)
+			configutil.ConfigTestData{
+				Data:`[
+					"test_user"
+				]`,
+				Explanation: "incomplete store",
 			},
-			`{
-				"type": "inmempwdstore",
-				"data": {
+			configutil.ConfigTestData{
+				Data:`{
 					"test_user": {}
-				}
-			}`,
-			func(s *falcore.Server, e error) {
-				assert.Error(
-					t,
-					e,
-					"Attempting to create a server from" +
-					" a config containing an invalid" +
-					" nested resource should produce an" +
-					" error.",
-				)
-				if e != nil {
-				assert.False(
-					t,
-					strings.HasPrefix(
-						e.Error(),
-						"Not expecting validator to" +
-						" actually run",
-					),
-					"Attempting to create a server from" +
-					" a config containing an invalid" +
-					" nested resource should produce an" +
-					" error apart from any created by" +
-					" the validator.",
-				)
-				}
-				assert.Nil(
-					t,
-					s,
-					"A server created from a config" +
-					" containing an invalid nested" +
-					" resource should be nil.",
-				)
+				}`,
+				Explanation: "invalid nested resource",
 			},
-		},
-		testStruct {
-			func(i json.Unmarshaler) error {
-				switch i := i.(type) {
-				case *InMemPwdStore:
-					// do nothing
-				default:
-					return errors.New(
-						fmt.Sprintf(
-							"Expecting" +
-							" unmarsheled" +
-							" resource to be a" +
-							" inmempwdstore," +
-							" but instead got: %v",
-							i,
-						),
-					)
-				}
-
-				return nil
-			},
-			`{
-				"type": "inmempwdstore",
-				"data": {
-					"test_user": {
-						"salt": "RMM0WEV4s0vxZWb9Yvw0ooBU1Bs9louzqNsa+/E/SVzZg+ez72TLoXL8pFOOzk2aOFO5XLtbSECYKUK7XtF+ZQ==",
-						"iterations": 4096,
-						"hash": "3Ezu0RAlDXNhkvnVq0H4z/0dUrItfd2CyYR06u/arA6f9XAeAA0UWWB/9y/0fQOVmZi7XxyiePtR/hC33tNWXg=="
-					}
-				}
-			}`,
-			func(s *falcore.Server, e error) {
-				assert.NoError(
-					t,
-					e,
-					"Attempting to create a server from" +
-					" a config containing only a passing" +
-					" validator resource should not" +
-					" produce an error. The most likely" +
-					" explanation is that the validator" +
-					" resource is not passing.",
-				)
-				assert.NotNil(
-					t,
-					s,
-					"A server created from a config" +
-					" containing only a" +
-					" passing validator resource should" +
-					" not be nil. The most likely" +
-					" explanation is that the validator" +
-					" resource is not passing.",
-				)
-			},
-		},
-		testStruct {
-			func(i json.Unmarshaler) error {
-				switch i := i.(type) {
-				case *InMemPwdStore:
-					// do nothing
-				default:
-					return errors.New(
-						fmt.Sprintf(
-							"Expecting" +
-							" unmarsheled" +
-							" resource to be a" +
-							" inmempwdstore," +
-							" but instead got: %v",
-							i,
-						),
-					)
-				}
-
-				return nil
-			},
-			`{
-				"type": "inmempwdstore",
-				"data": {
+			configutil.ConfigTestData{
+				Data:`{
 					"test_user": {
 						"salt": 7,
 						"iterations": 4096,
 						"hash": -5
 					}
-				}
-			}`,
-			func(s *falcore.Server, e error) {
-				assert.Error(
-					t,
-					e,
-					"Attempting to create a server from" +
-					" a config containing a nested" +
-					" resource with the wrong type" +
-					" should produce an error.",
-				)
-				assert.Nil(
-					t,
-					s,
-					"A server created from a config" +
-					" containing a nested resource with" +
-					" the wrong type should be nil.",
-				)
+				}`,
+				Explanation: "salt and hash have wrong types",
 			},
-		},
-		testStruct {
-			func(i json.Unmarshaler) error {
-				switch i := i.(type) {
-				case *InMemPwdStore:
-					// do nothing
-				default:
-					return errors.New(
-						fmt.Sprintf(
-							"Expecting" +
-							" unmarsheled" +
-							" resource to be a" +
-							" inmempwdstore," +
-							" but instead got: %v",
-							i,
-						),
-					)
-				}
-
-				return nil
-			},
-			`{
-				"type": "inmempwdstore",
-				"data": {
+			configutil.ConfigTestData{
+				Data:`{
 					"test_user": {
 						"salt": "RMM0WEV4s0vxZWb9Yvw0ooBU1Bs9louzqNsa+/E/SVzZg+ez72TLoXL8pFOOzk2aOFO5XLtbSECYKUK7XtF+ZQ==",
 						"iterations": "Four thousand ninety six",,
 						"hash": "3Ezu0RAlDXNhkvnVq0H4z/0dUrItfd2CyYR06u/arA6f9XAeAA0UWWB/9y/0fQOVmZi7XxyiePtR/hC33tNWXg=="
 					}
-				}
-			}`,
-			func(s *falcore.Server, e error) {
-				assert.Error(
-					t,
-					e,
-					"Attempting to create a server from" +
-					" a config containing a nested" +
-					" resource with the wrong type" +
-					" should produce an error.",
-				)
-				assert.Nil(
-					t,
-					s,
-					"A server created from a config" +
-					" containing a nested resource with" +
-					" the wrong type should be nil.",
-				)
+				}`,
+				Explanation: "iterations has wrong type",
 			},
-		},
-		testStruct {
-			func(i json.Unmarshaler) error {
-				return errors.New(
-					fmt.Sprintf(
-						"Not expecting validator to" +
-						" actually run, but it was" +
-						" run with: %v",
-						i,
-					),
-				)
-			},
-			`{
-				"type": "inmempwdstore",
-				"data": 42
-			}`,
-			func(s *falcore.Server, e error) {
-				assert.Error(
-					t,
-					e,
-					"Attempting to create a server from" +
-					" a config containing an invalid" +
-					" inmempwdstore resource should" +
-					" produce an error.",
-				)
-				if e != nil {
-				assert.False(
-					t,
-					strings.HasPrefix(
-						e.Error(),
-						"Not expecting validator to" +
-						" actually run",
-					),
-					"Attempting to create a server from" +
-					" a config containing an invalid" +
-					" validator resource should produce" +
-					" an error apart from any created by" +
-					" the validator.",
-				)
-				}
-				assert.Nil(
-					t,
-					s,
-					"A server created from a config" +
-					" containing an invalid" +
-					" inmempwdstore resource should" +
-					" be nil.",
-				)
-			},
-		},
-		testStruct {
-			func(i json.Unmarshaler) error {
-				switch i := i.(type) {
-				case *InMemPwdStore:
-					// do nothing
-				default:
-					return errors.New(
-						fmt.Sprintf(
-							"Expecting" +
-							" unmarsheled" +
-							" resource to be a" +
-							" inmempwdstore," +
-							" but instead got: %v",
-							i,
-						),
-					)
-				}
-
-				return nil
-			},
-			`{
-				"type": "inmempwdstore",
-				"data": {}
-			}`,
-			func(s *falcore.Server, e error) {
-				assert.NoError(
-					t,
-					e,
-					"Attempting to create a server from" +
-					" a config containing only a passing" +
-					" validator resource (even if that" +
-					" resource is an empty" +
-					" inmempwdstore) should not  produce" +
-					" an error. The most likely" +
-					" explanation is that the validator" +
-					" resource is not passing.",
-				)
-				assert.NotNil(
-					t,
-					s,
-					"A server created from a config" +
-					" containing only a passing" +
-					" validator resource (even if that" +
-					" resource is an empty" +
-					" inmempwdstore) should  not be nil." +
-					" The most likely  explanation is" +
-					" that the validator resource is not" +
-					" passing.",
-				)
-			},
-		},
-		testStruct {
-			func(i json.Unmarshaler) error {
-				return errors.New(
-					fmt.Sprintf(
-						"Not expecting validator to" +
-						" actually run, but it was" +
-						" run with: %v",
-						i,
-					),
-				)
-			},
-			`{
-				"type": "inmempwdstore",
-				"data": {
+			configutil.ConfigTestData{
+				Data:`{
 					"test_user": {
 						"hash": "hey does this look base64 to you?",
 						"iterations": 4096,
 						"salt": "maybe it's base65?"
 					}
-				}
-			}`,
-			func(s *falcore.Server, e error) {
-				assert.Error(
-					t,
-					e,
-					"Attempting to create a server from" +
-					" a config containing an invalid" +
-					" nested resource should produce an" +
-					" error.",
-				)
-				if e != nil {
-				assert.False(
-					t,
-					strings.HasPrefix(
-						e.Error(),
-						"Not expecting validator to" +
-						" actually run",
-					),
-					"Attempting to create a server from" +
-					" a config containing an invalid" +
-					" nested resource should produce an" +
-					" error apart from any created by" +
-					" the validator.",
-				)
-				}
-				assert.Nil(
-					t,
-					s,
-					"A server created from a config" +
-					" containing an invalid nested" +
-					" resource should be nil.",
-				)
+				}`,
+				Explanation: "invalid hash and salt",
+			},
+		},
+		Good: []configutil.ConfigTestData{
+			configutil.ConfigTestData{
+				Data:`{
+					"test_user": {
+						"salt": "RMM0WEV4s0vxZWb9Yvw0ooBU1Bs9louzqNsa+/E/SVzZg+ez72TLoXL8pFOOzk2aOFO5XLtbSECYKUK7XtF+ZQ==",
+						"iterations": 4096,
+						"hash": "3Ezu0RAlDXNhkvnVq0H4z/0dUrItfd2CyYR06u/arA6f9XAeAA0UWWB/9y/0fQOVmZi7XxyiePtR/hC33tNWXg=="
+					}
+				}`,
+				Explanation: "valid",
+			},
+			configutil.ConfigTestData{
+				Data:`{
+				}`,
+				Explanation: "empty object",
 			},
 		},
 	}
-
-	for _, v := range testData {
-		n, e := configutil.GenerateValidator(v.validator)
-		assert.NoError(
-			t,
-			e,
-			"Generating a validator resource type should not" +
-			" produce an error.",
-		)
-		assert.NotEqual(
-			t,
-			n,
-			"",
-			"A generated validator resource type should not have" +
-			" an empty resource type name.",
-		)
-
-		s, e := config.ServerFromReader(
-			strings.NewReader(
-				fmt.Sprintf(
-					`{
-						"resources": {
-							"validator": {
-								"type": "%s",
-								"data": %s
-							}
-						},
-						"pipeline": ["validator"],
-						"port": 80
-					}`,
-					n,
-					v.data,
-				),
-			),
-		)
-		v.serverValidate(s, e)
-	}
+	test.Run(t)
 }
