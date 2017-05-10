@@ -8,7 +8,6 @@ import (
 	"github.com/fitstar/falcore"
 	"github.com/proidiot/gone/errors"
 	"github.com/stretchr/testify/assert"
-	"github.com/stuphlabs/pullcord/config"
 	configutil "github.com/stuphlabs/pullcord/config/util"
 	"github.com/stuphlabs/pullcord/util"
 	"io/ioutil"
@@ -1036,510 +1035,145 @@ func TestDoubleCookiemaskTopErrorBottomNoMasking(t *testing.T) {
 }
 
 func TestCookiemaskFromConfig(t *testing.T) {
-	type testStruct struct {
-		validator func(json.Unmarshaler) error
-		data string
-		serverValidate func(*falcore.Server, error)
-	}
-
-	testData := []testStruct {
-		testStruct {
-			func(i json.Unmarshaler) error {
-				return errors.New(
-					fmt.Sprintf(
-						"Not expecting validator to" +
-						" actually run, but it was" +
-						" run with: %v",
-						i,
-					),
-				)
-			},
-			``,
-			func(s *falcore.Server, e error) {
-				assert.Error(
-					t,
-					e,
-					"Attempting to create a server from" +
-					" a config containing an incomplete" +
-					" validator resource should produce" +
-					" an error.",
-				)
-				if e != nil {
-				assert.False(
-					t,
-					strings.HasPrefix(
-						e.Error(),
-						"Not expecting validator to" +
-						" actually run",
-					),
-					"Attempting to create a server from" +
-					" a config containing an incomplete" +
-					" validator resource should produce" +
-					" an error apart from any created by" +
-					" the validator.",
-				)
-				}
-				assert.Nil(
-					t,
-					s,
-					"A server created from a config" +
-					" containing an incomplete validator" +
-					" resource should be nil.",
-				)
-			},
-		},
-		testStruct {
-			func(i json.Unmarshaler) error {
-				return errors.New(
-					fmt.Sprintf(
-						"Not expecting validator to" +
-						" actually run, but it was" +
-						" run with: %v",
-						i,
-					),
-				)
-			},
-			`{
-				"type": "cookiemaskfilter",
-				"data": {}
-			}`,
-			func(s *falcore.Server, e error) {
-				assert.Error(
-					t,
-					e,
-					"Attempting to create a server from" +
-					" a config containing an incomplete" +
-					" cookiemaskfilter resource should" +
-					" produce an error.",
-				)
-				if e != nil {
-				assert.False(
-					t,
-					strings.HasPrefix(
-						e.Error(),
-						"Not expecting validator to" +
-						" actually run",
-					),
-					"Attempting to create a server from" +
-					" a config containing an incomplete" +
-					" validator resource should produce" +
-					" an error apart from any created by" +
-					" the validator.",
-				)
-				}
-				assert.Nil(
-					t,
-					s,
-					"A server created from a config" +
-					" containing an incomplete" +
-					" cookiemaskfilter resource should" +
-					" be nil.",
-				)
-			},
-		},
-		testStruct {
-			func(i json.Unmarshaler) error {
-				return errors.New(
-					fmt.Sprintf(
-						"Not expecting validator to" +
-						" actually run, but it was" +
-						" run with: %v",
-						i,
-					),
-				)
-			},
-			`{
-				"type": "cookiemaskfilter",
-				"data": {
-					"handler": "notgonnadoit",
-					"masked: "wouldntbeprudent"
-				}
-			}`,
-			func(s *falcore.Server, e error) {
-				assert.Error(
-					t,
-					e,
-					"Attempting to create a server from" +
-					" a config containing an invalid" +
-					" nested resource should produce an" +
-					" error.",
-				)
-				if e != nil {
-				assert.False(
-					t,
-					strings.HasPrefix(
-						e.Error(),
-						"Not expecting validator to" +
-						" actually run",
-					),
-					"Attempting to create a server from" +
-					" a config containing an invalid" +
-					" nested resource should produce an" +
-					" error apart from any created by" +
-					" the validator.",
-				)
-				}
-				assert.Nil(
-					t,
-					s,
-					"A server created from a config" +
-					" containing an invalid nested" +
-					" resource should be nil.",
-				)
-			},
-		},
-		testStruct {
-			func(i json.Unmarshaler) error {
-				var c *CookiemaskFilter
-
-				switch i := i.(type) {
-				case *CookiemaskFilter:
-					c = i
-				default:
-					return errors.New(
-						fmt.Sprintf(
-							"Expecting" +
-							" unmarsheled" +
-							" resource to be a" +
-							" cookiemaskfilter," +
-							" but instead got: %v",
-							i,
-						),
-					)
-				}
-
-				switch h := c.Handler.(type) {
-				case *MinSessionHandler:
-					// do nothing
-				default:
-					return errors.New(
-						fmt.Sprintf(
-							"Expecting" +
-							" handler to be a" +
-							" minsessionhandler," +
-							" but instead got: %v",
-							h,
-						),
-					)
-				}
-
-				switch m := c.Masked.(type) {
-				case *util.LandingFilter:
-					// do nothing
-				default:
-					return errors.New(
-						fmt.Sprintf(
-							"Expecting" +
-							" masked to be a" +
-							" landingfilter," +
-							" but instead got: %v",
-							m,
-						),
-					)
-				}
-
-				return nil
-			},
-			`{
-				"type": "cookiemaskfilter",
-				"data": {
-					"handler": {
-						"type": "minsessionhandler",
-						"data": {
-							"name": "cmtest",
-							"path": "/",
-							"domain": "example.com"
-						}
-					},
-					"masked": {
-						"type": "landingfilter",
-						"data": {}
-					}
-				}
-			}`,
-			func(s *falcore.Server, e error) {
-				assert.NoError(
-					t,
-					e,
-					"Attempting to create a server from" +
-					" a config containing only a passing" +
-					" validator resource should not" +
-					" produce an error. The most likely" +
-					" explanation is that the validator" +
-					" resource is not passing.",
-				)
-				assert.NotNil(
-					t,
-					s,
-					"A server created from a config" +
-					" containing only a" +
-					" passing validator resource should" +
-					" not be nil. The most likely" +
-					" explanation is that the validator" +
-					" resource is not passing.",
-				)
-			},
-		},
-		testStruct {
-			func(i json.Unmarshaler) error {
-				var c *CookiemaskFilter
-
-				switch i := i.(type) {
-				case *CookiemaskFilter:
-					c = i
-				default:
-					return errors.New(
-						fmt.Sprintf(
-							"Expecting" +
-							" unmarsheled" +
-							" resource to be a" +
-							" cookiemaskfilter," +
-							" but instead got: %v",
-							i,
-						),
-					)
-				}
-
-				switch h := c.Handler.(type) {
-				case *MinSessionHandler:
-					// do nothing
-				default:
-					return errors.New(
-						fmt.Sprintf(
-							"Expecting" +
-							" handler to be a" +
-							" minsessionhandler," +
-							" but instead got: %v",
-							h,
-						),
-					)
-				}
-
-				switch m := c.Masked.(type) {
-				case *util.LandingFilter:
-					// do nothing
-				default:
-					return errors.New(
-						fmt.Sprintf(
-							"Expecting" +
-							" masked to be a" +
-							" landingfilter," +
-							" but instead got: %v",
-							m,
-						),
-					)
-				}
-
-				return nil
-			},
-			`{
-				"type": "cookiemaskfilter",
-				"data": {
-					"handler": {
-						"type": "minsessionhandler",
-						"data": {
-							"name": "cmtest",
-							"path": "/",
-							"domain": "example.com"
-						}
-					},
-					"masked": {
-						"type": "minsessionhandler",
-						"data": {
-							"name": "cmtest",
-							"path": "/",
-							"domain": "example.com"
-						}
-					}
-				}
-			}`,
-			func(s *falcore.Server, e error) {
-				assert.Error(
-					t,
-					e,
-					"Attempting to create a server from" +
-					" a config containing a nested" +
-					" resource with the wrong type" +
-					" should produce an error.",
-				)
-				assert.Nil(
-					t,
-					s,
-					"A server created from a config" +
-					" containing a nested resource with" +
-					" the wrong type should be nil.",
-				)
-			},
-		},
-		testStruct {
-			func(i json.Unmarshaler) error {
-				var c *CookiemaskFilter
-
-				switch i := i.(type) {
-				case *CookiemaskFilter:
-					c = i
-				default:
-					return errors.New(
-						fmt.Sprintf(
-							"Expecting" +
-							" unmarsheled" +
-							" resource to be a" +
-							" cookiemaskfilter," +
-							" but instead got: %v",
-							i,
-						),
-					)
-				}
-
-				switch h := c.Handler.(type) {
-				case *MinSessionHandler:
-					// do nothing
-				default:
-					return errors.New(
-						fmt.Sprintf(
-							"Expecting" +
-							" handler to be a" +
-							" minsessionhandler," +
-							" but instead got: %v",
-							h,
-						),
-					)
-				}
-
-				switch m := c.Masked.(type) {
-				case *util.LandingFilter:
-					// do nothing
-				default:
-					return errors.New(
-						fmt.Sprintf(
-							"Expecting" +
-							" masked to be a" +
-							" landingfilter," +
-							" but instead got: %v",
-							m,
-						),
-					)
-				}
-
-				return nil
-			},
-			`{
-				"type": "cookiemaskfilter",
-				"data": {
-					"handler": {
-						"type": "landingfilter",
-						"data": {}
-					},
-					"masked": {
-						"type": "landingfilter",
-						"data": {}
-					}
-				}
-			}`,
-			func(s *falcore.Server, e error) {
-				assert.Error(
-					t,
-					e,
-					"Attempting to create a server from" +
-					" a config containing a nested" +
-					" resource with the wrong type" +
-					" should produce an error.",
-				)
-				assert.Nil(
-					t,
-					s,
-					"A server created from a config" +
-					" containing a nested resource with" +
-					" the wrong type should be nil.",
-				)
-			},
-		},
-		testStruct {
-			func(i json.Unmarshaler) error {
-				return errors.New(
-					fmt.Sprintf(
-						"Not expecting validator to" +
-						" actually run, but it was" +
-						" run with: %v",
-						i,
-					),
-				)
-			},
-			`{
-				"type": "cookiemaskfilter",
-				"data": 42
-			}`,
-			func(s *falcore.Server, e error) {
-				assert.Error(
-					t,
-					e,
-					"Attempting to create a server from" +
-					" a config containing an invalid" +
-					" cookiemaskfilter resource should" +
-					" produce an error.",
-				)
-				if e != nil {
-				assert.False(
-					t,
-					strings.HasPrefix(
-						e.Error(),
-						"Not expecting validator to" +
-						" actually run",
-					),
-					"Attempting to create a server from" +
-					" a config containing an invalid" +
-					" validator resource should produce" +
-					" an error apart from any created by" +
-					" the validator.",
-				)
-				}
-				assert.Nil(
-					t,
-					s,
-					"A server created from a config" +
-					" containing an invalid" +
-					" cookiemaskfilter resource should" +
-					" be nil.",
-				)
-			},
-		},
-	}
-
 	util.LoadPlugin()
-	for _, v := range testData {
-		n, e := configutil.GenerateValidator(v.validator)
-		assert.NoError(
-			t,
-			e,
-			"Generating a validator resource type should not" +
-			" produce an error.",
-		)
-		assert.NotEqual(
-			t,
-			n,
-			"",
-			"A generated validator resource type should not have" +
-			" an empty resource type name.",
-		)
+	test := configutil.ConfigTest{
+		ResourceType: "cookiemaskfilter",
+		IsValid: func(i json.Unmarshaler) error {
+			var c *CookiemaskFilter
 
-		s, e := config.ServerFromReader(
-			strings.NewReader(
-				fmt.Sprintf(
-					`{
-						"resources": {
-							"validator": {
-								"type": "%s",
-								"data": %s
-							}
-						},
-						"pipeline": ["validator"],
-						"port": 80
-					}`,
-					n,
-					v.data,
-				),
-			),
-		)
-		v.serverValidate(s, e)
+			switch i := i.(type) {
+			case *CookiemaskFilter:
+				c = i
+			default:
+				return errors.New(
+					fmt.Sprintf(
+						"Expecting" +
+						" unmarsheled" +
+						" resource to be a" +
+						" cookiemaskfilter," +
+						" but instead got: %v",
+						i,
+					),
+				)
+			}
+
+			switch h := c.Handler.(type) {
+			case *MinSessionHandler:
+				// do nothing
+			default:
+				return errors.New(
+					fmt.Sprintf(
+						"Expecting" +
+						" handler to be a" +
+						" minsessionhandler," +
+						" but instead got: %v",
+						h,
+					),
+				)
+			}
+
+			switch m := c.Masked.(type) {
+			case *util.LandingFilter:
+				// do nothing
+			default:
+				return errors.New(
+					fmt.Sprintf(
+						"Expecting" +
+						" masked to be a" +
+						" landingfilter," +
+						" but instead got: %v",
+						m,
+					),
+				)
+			}
+
+			return nil
+		},
+		SyntacticallyBad: []configutil.ConfigTestData{
+			configutil.ConfigTestData{
+				Data: ``,
+				Explanation: "empty config",
+			},
+			configutil.ConfigTestData{
+				Data: `99`,
+				Explanation: "numeric config",
+			},
+			configutil.ConfigTestData{
+				Data: `{
+				}`,
+				Explanation: "empty object",
+			},
+			configutil.ConfigTestData{
+				Data: `{
+					"handler": "notgonnadoit",
+					"masked": "wouldntbeprudent"
+				}`,
+				Explanation: "invalid nested resources",
+			},
+			configutil.ConfigTestData{
+				Data: `{
+					"handler": {
+						"type": "minsessionhandler",
+						"data": {
+							"name": "cmtest",
+							"path": "/",
+							"domain": "example.com"
+						}
+					},
+					"masked": {
+						"type": "minsessionhandler",
+						"data": {
+							"name": "cmtest",
+							"path": "/",
+							"domain": "example.com"
+						}
+					}
+				}`,
+				Explanation: "masked has wrong type",
+			},
+			configutil.ConfigTestData{
+				Data: `{
+					"handler": {
+						"type": "landingfilter",
+						"data": {}
+					},
+					"masked": {
+						"type": "landingfilter",
+						"data": {}
+					}
+				}`,
+				Explanation: "handler has wrong type",
+			},
+			configutil.ConfigTestData{
+				Data: `{
+				}`,
+				Explanation: "empty object",
+			},
+			configutil.ConfigTestData{
+				Data: `{
+				}`,
+				Explanation: "empty object",
+			},
+		},
+		Good: []configutil.ConfigTestData{
+			configutil.ConfigTestData{
+				Data: `{
+					"handler": {
+						"type": "minsessionhandler",
+						"data": {
+							"name": "cmtest",
+							"path": "/",
+							"domain": "example.com"
+						}
+					},
+					"masked": {
+						"type": "landingfilter",
+						"data": {}
+					}
+				}`,
+				Explanation: "valid",
+			},
+		},
 	}
+	test.Run(t)
 }

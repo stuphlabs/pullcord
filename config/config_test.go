@@ -27,6 +27,15 @@ func newDummy() json.Unmarshaler {
 	return new(dummyType)
 }
 
+type randomType int
+func (s *randomType) UnmarshalJSON([]byte) error {
+	return nil
+}
+func newRandom() json.Unmarshaler {
+	var r randomType = 4
+	return &r
+}
+
 type dummyRouter struct {}
 func (r *dummyRouter) UnmarshalJSON([]byte) error {
 	return nil
@@ -59,6 +68,20 @@ func TestRegisterResourceType(t *testing.T) {
 			},
 			"dummyType",
 			newDummy,
+		},
+		testStruct {
+			func(e error) {
+				assert.NoError(
+					t,
+					e,
+					"RegisterResourceType should not" +
+					" return an error when a new valid" +
+					" type is registerred for the first" +
+					" time.",
+				)
+			},
+			"randomType",
+			newRandom,
 		},
 		testStruct {
 			func(e error) {
@@ -455,39 +478,16 @@ func TestServerFromReader(t *testing.T) {
 					t,
 					e,
 					"ServerFromReader should fail when" +
-					" an empty JSON object (which could" +
-					" reasonably be interpereted as a" +
-					" null value) is given for the" +
-					" config.",
-				)
-				assert.Nil(
-					t,
-					s,
-					"ServerFromReader should not create" +
-					" a server when an empty JSON object" +
-					" (which could reasonably be" +
-					" interpereted as a null value) is" +
-					" given for the config.",
-
-				)
-			},
-			strings.NewReader("{}"),
-		},
-		testStruct {
-			func(s *falcore.Server, e error) {
-				assert.Error(
-					t,
-					e,
-					"ServerFromReader should fail when" +
-					" no Resource is specified for a" +
-					" Pipeline.",
-				)
-				assert.Nil(
-					t,
-					s,
-					"ServerFromReader should not create" +
-					" a server when no Resource is" +
+					" a non-Pipeline Resource is" +
 					" specified for a Pipeline.",
+				)
+				assert.Nil(
+					t,
+					s,
+					"ServerFromReader should not create" +
+					" a server when a non-Pipeline" +
+					" Resource is specified for a" +
+					" Pipeline.",
 				)
 			},
 			strings.NewReader(`{
@@ -497,7 +497,85 @@ func TestServerFromReader(t *testing.T) {
 						"data": null
 					}
 				},
-				"pipeline": [],
+				"pipeline": "testResource",
+				"port": 80
+			}`),
+		},
+		testStruct {
+			func(s *falcore.Server, e error) {
+				assert.Error(
+					t,
+					e,
+					"ServerFromReader should fail when" +
+					" a non-filter Resource is" +
+					" specified as an upstream for a" +
+					" Pipeline.",
+				)
+				assert.Nil(
+					t,
+					s,
+					"ServerFromReader should not create" +
+					" a server when a non-filter" +
+					" Resource is specified as an" +
+					" upstream for a Pipeline.",
+				)
+			},
+			strings.NewReader(`{
+				"resources": {
+					"testResource": {
+						"type": "randomType",
+						"data": null
+					},
+					"pipeline": {
+						"type": "pipeline",
+						"data": {
+							"upstream": [{
+								"type": "ref",
+								"data": "testResource"
+							}]
+						}
+					}
+				},
+				"pipeline": "pipeline",
+				"port": 80
+			}`),
+		},
+		testStruct {
+			func(s *falcore.Server, e error) {
+				assert.Error(
+					t,
+					e,
+					"ServerFromReader should fail when" +
+					" a non-filter Resource is" +
+					" specified as a downstream for a" +
+					" Pipeline.",
+				)
+				assert.Nil(
+					t,
+					s,
+					"ServerFromReader should not create" +
+					" a server when a non-filter" +
+					" Resource is specified as a" +
+					" downstream for a Pipeline.",
+				)
+			},
+			strings.NewReader(`{
+				"resources": {
+					"testResource": {
+						"type": "randomType",
+						"data": null
+					},
+					"pipeline": {
+						"type": "pipeline",
+						"data": {
+							"downstream": [{
+								"type": "ref",
+								"data": "testResource"
+							}]
+						}
+					}
+				},
+				"pipeline": "pipeline",
 				"port": 80
 			}`),
 		},
@@ -523,9 +601,18 @@ func TestServerFromReader(t *testing.T) {
 					"testResource2": {
 						"type": "dummyType",
 						"data": null
+					},
+					"pipeline": {
+						"type": "pipeline",
+						"data": {
+							"upstream": [{
+								"type": "ref",
+								"data": "testResource"
+							}]
+						}
 					}
 				},
-				"pipeline": ["testResource"],
+				"pipeline": "pipeline",
 				"port": 80
 			}`),
 		},
@@ -551,9 +638,18 @@ func TestServerFromReader(t *testing.T) {
 					"testResource": {
 						"type": "dummyType",
 						"data": "error"
+					},
+					"pipeline": {
+						"type": "pipeline",
+						"data": {
+							"upstream": [{
+								"type": "ref",
+								"data": "testResource"
+							}]
+						}
 					}
 				},
-				"pipeline": ["testResource"],
+				"pipeline": "pipeline",
 				"port": 80
 			}`),
 		},
@@ -578,8 +674,16 @@ func TestServerFromReader(t *testing.T) {
 			strings.NewReader(`{
 				"resources": {
 					"testResource": null
+					"pipeline": {
+						"type": "pipeline",
+						"data": {
+							"upstream": [{
+								"type": "ref",
+								"data": "testResource"
+							}]
+						}
 				},
-				"pipeline": ["testResource"],
+				"pipeline": "pipeline",
 				"port": 80
 			}`),
 		},
@@ -605,9 +709,18 @@ func TestServerFromReader(t *testing.T) {
 					"testResource": {
 						"type": "ref",
 						"data": "testResource"
+					},
+					"pipeline": {
+						"type": "pipeline",
+						"data": {
+							"upstream": [{
+								"type": "ref",
+								"data": "testResource"
+							}]
+						}
 					}
 				},
-				"pipeline": ["testResource"],
+				"pipeline": "pipeline",
 				"port": 80
 			}`),
 		},
@@ -629,12 +742,21 @@ func TestServerFromReader(t *testing.T) {
 			},
 			strings.NewReader(`{
 				"resources": {
+					"pipeline": {
+						"type": "pipeline",
+						"data": {
+							"upstream": [{
+								"type": "ref",
+								"data": "testResource"
+							}]
+						}
+					},
 					"testResource": {
 						"type": "dummyType",
 						"data": "foo"
 					}
 				},
-				"pipeline": ["testResource"],
+				"pipeline": "pipeline",
 				"port": 80
 			}`),
 		},
@@ -665,9 +787,18 @@ func TestServerFromReader(t *testing.T) {
 					"testResource": {
 						"type": "ref",
 						"data": "testResource2"
+					},
+					"pipeline": {
+						"type": "pipeline",
+						"data": {
+							"upstream": [{
+								"type": "ref",
+								"data": "testResource"
+							}]
+						}
 					}
 				},
-				"pipeline": ["testResource"],
+				"pipeline": "pipeline",
 				"port": 80
 			}`),
 		},
@@ -702,9 +833,18 @@ func TestServerFromReader(t *testing.T) {
 					"testResource": {
 						"type": "ref",
 						"data": "testResource2"
+					},
+					"pipeline": {
+						"type": "pipeline",
+						"data": {
+							"upstream": [{
+								"type": "ref",
+								"data": "testResource"
+							}]
+						}
 					}
 				},
-				"pipeline": ["testResource"],
+				"pipeline": "pipeline",
 				"port": 80
 			}`),
 		},
@@ -731,9 +871,18 @@ func TestServerFromReader(t *testing.T) {
 					"testResource": {
 						"type": "dummyRouter",
 						"data": null
+					},
+					"pipeline": {
+						"type": "pipeline",
+						"data": {
+							"upstream": [{
+								"type": "ref",
+								"data": "testResource"
+							}]
+						}
 					}
 				},
-				"pipeline": ["testResource"],
+				"pipeline": "pipeline",
 				"port": 80
 			}`),
 		},

@@ -89,15 +89,20 @@ func constructConfigReader(validatorName, resourceType, data string) io.Reader {
 		fmt.Sprintf(
 			`{
 				"resources": {
-					"validator": {
-						"type": "%s",
+					"pipeline": {
+						"type": "pipeline",
 						"data": {
-							"type": "%s",
-							"data": %s
+							"upstream": [{
+								"type": "%s",
+								"data": {
+									"type": "%s",
+									"data": %s
+								}
+							}]
 						}
 					}
 				},
-				"pipeline": ["validator"],
+				"pipeline": "pipeline",
 				"port": 80
 			}`,
 			validatorName,
