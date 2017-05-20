@@ -21,8 +21,7 @@ multiple web apps onto a single server (in fact, Pullcord will likely work
 better if each web app is on its own server, as it will still be possible to
 spin up multiple servers if there are dependencies between the web apps).
 
-For more information, email [Charlie](mailto://charlie@stuphlabs.com) or
-[Michael](mailto://michael@stuphlabs.com).
+For more information, email [Charlie](mailto://charlie@stuphlabs.com).
 
 ## Testing
 ```
