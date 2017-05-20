@@ -1,5 +1,7 @@
-Pullcord [![Build Status](https://travis-ci.org/stuphlabs/pullcord.svg)] (https://travis-ci.org/stuphlabs/pullcord) [![Stories in Ready](https://badge.waffle.io/stuphlabs/pullcord.png?label=ready&title=Ready)](https://waffle.io/stuphlabs/pullcord) [![Godoc](https://godoc.org/github.com/stuphlabs/pullcord?status.svg)](http://godoc.org/github.com/stuphlabs/pullcord)
-==========
+Pullcord
+========
+
+[![Build Status](https://img.shields.io/travis/stuphlabs/pullcord/master.svg)] (https://travis-ci.org/stuphlabs/pullcord) [![Issues in Ready](https://img.shields.io/waffle/label/stuphlabs/pullcord/ready.svg)](https://waffle.io/stuphlabs/pullcord) [![Godoc](http://img.shields.io/badge/godoc-reference-5272B4.svg)](http://godoc.org/github.com/stuphlabs/pullcord)
 
 
 **Pullcord** will be a reverse proxy for cloud-based web apps that will allow
