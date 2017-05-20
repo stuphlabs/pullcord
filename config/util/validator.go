@@ -5,11 +5,13 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/fitstar/falcore"
 	"github.com/stretchr/testify/assert"
 	"github.com/stuphlabs/pullcord/config"
 	"io"
+	"net"
 	"net/http"
 	"strings"
 	"testing"
@@ -60,6 +62,33 @@ func (v *validation) FilterRequest(req *falcore.Request) *http.Response {
 	)
 }
 
+func (v *validation) Accept() (net.Conn, error) {
+	return nil, errors.New(
+		"Accept was called on a validator, presumably after an" +
+		" otherwise passing unit test.",
+	)
+}
+
+func (v *validation) Close() error {
+	return errors.New(
+		"Close was called on a validator, presumably after an" +
+		" otherwise passing unit test.",
+	)
+}
+
+func (v *validation) Addr() net.Addr {
+	return nil
+}
+
+func (v *validation) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	panic(
+		errors.New(
+			"ServeHTTP was called on a validator, presumably" +
+			" after an otherwise passing unit test.",
+		),
+	)
+}
+
 func GenerateValidator(
 	validate func(json.Unmarshaler) error,
 ) (string, error) {
@@ -84,32 +113,68 @@ type ConfigTestData struct {
 	Explanation string
 }
 
-func constructConfigReader(validatorName, resourceType, data string) io.Reader {
-	return strings.NewReader(
-		fmt.Sprintf(
-			`{
-				"resources": {
-					"pipeline": {
-						"type": "pipeline",
-						"data": {
-							"upstream": [{
+func constructConfigReader(
+	listenerTest bool,
+	validatorName,
+	resourceType,
+	data string,
+) io.Reader {
+	if listenerTest {
+		return strings.NewReader(
+			fmt.Sprintf(
+				`{
+					"resources": {
+						"handler": {
+							"type": "testhandler",
+							"data": null
+						},
+						"listener": {
+							"type": "%s",
+							"data": {
 								"type": "%s",
-								"data": {
-									"type": "%s",
-									"data": %s
-								}
-							}]
+								"data": %s
+							}
 						}
-					}
-				},
-				"pipeline": "pipeline",
-				"port": 80
-			}`,
-			validatorName,
-			resourceType,
-			data,
-		),
-	)
+					},
+					"handler": "handler",
+					"listener": "listener"
+				}`,
+				validatorName,
+				resourceType,
+				data,
+			),
+		)
+	} else {
+		return strings.NewReader(
+			fmt.Sprintf(
+				`{
+					"resources": {
+						"handler": {
+							"type": "pipeline",
+							"data": {
+								"upstream": [{
+									"type": "%s",
+									"data": {
+										"type": "%s",
+										"data": %s
+									}
+								}]
+							}
+						},
+						"listener": {
+							"type": "testlistener",
+							"data": null
+						}
+					},
+					"handler": "handler",
+					"listener": "listener"
+				}`,
+				validatorName,
+				resourceType,
+				data,
+			),
+		)
+	}
 }
 
 type ConfigTest struct {
@@ -118,6 +183,7 @@ type ConfigTest struct {
 	SyntacticallyBad []ConfigTestData
 	SemanticallyBad []ConfigTestData
 	Good []ConfigTestData
+	ListenerTest bool
 }
 
 func (c *ConfigTest) Run(t *testing.T) {
@@ -152,6 +218,7 @@ func (c *ConfigTest) Run(t *testing.T) {
 
 		s, e := config.ServerFromReader(
 			constructConfigReader(
+				c.ListenerTest,
 				validatorName,
 				c.ResourceType,
 				d.Data,
@@ -200,6 +267,7 @@ func (c *ConfigTest) Run(t *testing.T) {
 
 		s, e := config.ServerFromReader(
 			constructConfigReader(
+				c.ListenerTest,
 				validatorName,
 				c.ResourceType,
 				d.Data,
@@ -248,6 +316,7 @@ func (c *ConfigTest) Run(t *testing.T) {
 
 		s, e := config.ServerFromReader(
 			constructConfigReader(
+				c.ListenerTest,
 				validatorName,
 				c.ResourceType,
 				d.Data,
