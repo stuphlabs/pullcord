@@ -5,15 +5,23 @@ import (
 	"errors"
 	"fmt"
 	"github.com/fitstar/falcore"
+	"net/http"
 )
 
-type ConfigPipeline falcore.Pipeline
+type ConfigPipeline struct {
+	Server *falcore.Server
+}
 
 func init() {
 	e := RegisterResourceType(
 		"pipeline",
 		func() json.Unmarshaler {
-			return (*ConfigPipeline)(falcore.NewPipeline())
+			return &ConfigPipeline{
+				Server: falcore.NewServer(
+					0,
+					falcore.NewPipeline(),
+				),
+			}
 		},
 	)
 
@@ -39,7 +47,7 @@ func (p *ConfigPipeline) UnmarshalJSON(d []byte) error {
 		switch u := u.(type) {
 		case falcore.Router:
 		case falcore.RequestFilter:
-			p.Upstream.PushBack(u)
+			p.Server.Pipeline.Upstream.PushBack(u)
 		default:
 			return errors.New(
 				fmt.Sprintf(
@@ -56,7 +64,7 @@ func (p *ConfigPipeline) UnmarshalJSON(d []byte) error {
 		switch u := u.(type) {
 		case falcore.Router:
 		case falcore.RequestFilter:
-			p.Downstream.PushBack(u)
+			p.Server.Pipeline.Downstream.PushBack(u)
 		default:
 			return errors.New(
 				fmt.Sprintf(
@@ -69,4 +77,8 @@ func (p *ConfigPipeline) UnmarshalJSON(d []byte) error {
 	}
 
 	return nil
+}
+
+func (p *ConfigPipeline) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	p.Server.ServeHTTP(w, r)
 }
