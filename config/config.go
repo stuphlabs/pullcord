@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/fitstar/falcore"
 	"github.com/proidiot/gone/errors"
 	"io"
+	"net"
+	"net/http"
 	"sync"
 )
 
@@ -138,14 +139,23 @@ func (r *Resource) unmarshalByName(name string) error {
 	}
 }
 
-func ServerFromReader(r io.Reader) (*falcore.Server, error) {
+type Server struct {
+	Listener net.Listener
+	Handler http.Handler
+}
+
+func (s *Server) Serve() error {
+	return http.Serve(s.Listener, s.Handler)
+}
+
+func ServerFromReader(r io.Reader) (*Server, error) {
 	registrationMutex.Lock()
 	defer registrationMutex.Unlock()
 
 	var config struct {
 		Resources map[string]json.RawMessage
-		Pipeline string
-		Port int
+		Listener string
+		Handler string
 	}
 
 	dec := json.NewDecoder(r)
@@ -161,11 +171,22 @@ func ServerFromReader(r io.Reader) (*falcore.Server, error) {
 		return nil, e
 	}
 
-	if _, present := config.Resources[config.Pipeline]; !present {
+	if _, present := config.Resources[config.Listener]; !present {
 		e := errors.New(
 			fmt.Sprintf(
 				"A config must specify the name of a" +
-				" pipeline resource.",
+				" network listener resource.",
+			),
+		)
+		log().Crit(e.Error())
+		return nil, e
+	}
+
+	if _, present := config.Resources[config.Handler]; !present {
+		e := errors.New(
+			fmt.Sprintf(
+				"A config must specify the name of an" +
+				" HTTP handler resource.",
 			),
 		)
 		log().Crit(e.Error())
@@ -193,21 +214,56 @@ func ServerFromReader(r io.Reader) (*falcore.Server, error) {
 		}
 	}
 
-	p := registry[config.Pipeline].Unmarshaled
-	switch p := p.(type) {
-	case *ConfigPipeline:
-		server := falcore.NewServer(config.Port, (*falcore.Pipeline)(p))
-		registry = nil
-		return server, nil
+	server := new(Server)
+
+	l := registry[config.Listener].Unmarshaled
+	switch l := l.(type) {
+	case net.Listener:
+		server.Listener = l
 	default:
 		e := errors.New(
 			fmt.Sprintf(
-				"The specified resource is not a Pipeline: %s",
-				config.Pipeline,
+				"The specified resource is not a" +
+				" net.Listener: %s",
+				config.Listener,
 			),
 		)
 		log().Crit(e.Error())
+		log().Debug(
+			errors.New(
+				fmt.Sprintf(
+					"got: %v",
+					l,
+				),
+			).Error(),
+		)
 		return nil, e
 	}
+
+	h := registry[config.Handler].Unmarshaled
+	switch h := h.(type) {
+	case http.Handler:
+		server.Handler = h
+	default:
+		e := errors.New(
+			fmt.Sprintf(
+				"The specified resource is not an" +
+				" http.Handler: %s",
+				config.Handler,
+			),
+		)
+		log().Crit(e.Error())
+		// TODO remove
+		log().Debug(
+			fmt.Sprintf(
+				"handler %s has type %s",
+				config.Handler,
+				h,
+			),
+		)
+		return nil, e
+	}
+
+	return server, nil
 }
 
