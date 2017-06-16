@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/fitstar/falcore"
-	// "github.com/stuphlabs/pullcord"
+	"github.com/proidiot/gone/log"
 	"github.com/stuphlabs/pullcord/config"
 	"github.com/stuphlabs/pullcord/util"
 	"net/http"
@@ -65,7 +65,7 @@ func (f *CookiemaskFilter) UnmarshalJSON(input []byte) (error) {
 		case SessionHandler:
 			f.Handler = h
 		default:
-			log().Err(
+			log.Err(
 				"Resource described by \"Handler\" is not a" +
 				" SessionHandler",
 			)
@@ -77,7 +77,7 @@ func (f *CookiemaskFilter) UnmarshalJSON(input []byte) (error) {
 		case falcore.RequestFilter:
 			f.Masked = m
 		default:
-			log().Err(
+			log.Err(
 				"Resource described by \"Masked\" is not a" +
 				" RequestFilter",
 			)
@@ -93,14 +93,14 @@ func (f *CookiemaskFilter) UnmarshalJSON(input []byte) (error) {
 func (filter *CookiemaskFilter) FilterRequest(
 	req *falcore.Request,
 ) (*http.Response) {
-	log().Debug("running cookiemask filter")
+	log.Debug("running cookiemask filter")
 
 	//TODO remove
-	log().Debug(fmt.Sprintf("handler is: %v",filter))
+	log.Debug(fmt.Sprintf("handler is: %v",filter))
 
 	sesh, err := filter.Handler.GetSession()
 	if err != nil {
-		log().Err(
+		log.Err(
 			fmt.Sprintf(
 				"cookiemask filter was unable to get" +
 				" a new session from the session" +
@@ -113,7 +113,7 @@ func (filter *CookiemaskFilter) FilterRequest(
 	}
 
 	// TODO remove
-	log().Debug(fmt.Sprintf("sesh is: %v",sesh))
+	log.Debug(fmt.Sprintf("sesh is: %v",sesh))
 
 	req.Context["session"] = sesh
 
@@ -123,7 +123,7 @@ func (filter *CookiemaskFilter) FilterRequest(
 
 	var resp *http.Response
 	if err != nil {
-		log().Err(
+		log.Err(
 			fmt.Sprintf(
 				"cookiemask filter's call to the" +
 				" session handler's CookieMask" +
@@ -142,7 +142,7 @@ func (filter *CookiemaskFilter) FilterRequest(
 			)
 			ckes_str[n] = cke.String()
 		}
-		log().Debug(
+		log.Debug(
 			fmt.Sprintf(
 				"cookiemask forwarding  cookies with" +
 				" these keys: [%s]",
@@ -155,7 +155,7 @@ func (filter *CookiemaskFilter) FilterRequest(
 			strings.Join(ckes_str, "; "),
 		)
 
-		log().Info(
+		log.Info(
 			"request has run through cookiemask, now" +
 			" forwarding to next filter",
 		)
@@ -169,7 +169,7 @@ func (filter *CookiemaskFilter) FilterRequest(
 		)
 		resp.Header.Add("Set-Cookie", cke.String())
 	}
-	log().Debug(
+	log.Debug(
 		fmt.Sprintf(
 			"cookiemask sending back with the response" +
 			" new cookies with these keys: [%s]",

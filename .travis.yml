@@ -1,10 +1,10 @@
 language: go
 
-sudo: required
+before_install:
+        - go get github.com/mattn/goveralls
 
 install: .travis/install.sh
 
-#before_script: sudo ln -s /dev/stdout /dev/log
-
-script: .travis/tests.sh
+script:
+        - LOG_UPTO="LOG_ALERT" $HOME/gopath/bin/goveralls -service=travis-ci
 

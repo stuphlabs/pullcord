@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/proidiot/gone/log"
 	"github.com/stuphlabs/pullcord/config"
 	"time"
 )
@@ -43,7 +44,7 @@ func (d *DelayTrigger) UnmarshalJSON(input []byte) (error) {
 	case TriggerHandler:
 		d.DelayedTrigger = dt
 	default:
-		log().Err(
+		log.Err(
 			fmt.Sprintf(
 				"Registry value is not a Trigger: %s",
 				dt,
@@ -91,7 +92,7 @@ func delaytrigger(
 			}
 		case <-tmr.C:
 			if err := tr.Trigger(); err != nil {
-				log().Err(
+				log.Err(
 					fmt.Sprintf(
 						"delaytrigger received an",
 						" error: %v",

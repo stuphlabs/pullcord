@@ -3,6 +3,7 @@ package pullcord
 import (
 	"fmt"
 	"github.com/fitstar/falcore"
+	"github.com/proidiot/gone/log"
 	"net/http"
 )
 
@@ -21,17 +22,17 @@ func NewConditionalFilter(
 	onFalse falcore.RequestFilter,
 	onError falcore.RequestFilter,
 ) falcore.RequestFilter {
-	log().Debug("registering a new conditional filter")
+	log.Debug("registering a new conditional filter")
 
 	return falcore.NewRequestFilter(
 		func(req *falcore.Request) *http.Response {
-			log().Debug("running conditional filter")
+			log.Debug("running conditional filter")
 
 			test_true, err := test(req)
-			log().Debug("conditional filter test completed")
+			log.Debug("conditional filter test completed")
 
 			if err != nil {
-				log().Info(
+				log.Info(
 					fmt.Sprintf(
 						"conditional filter's test" +
 						" returned an error: %v",
@@ -41,14 +42,14 @@ func NewConditionalFilter(
 
 				return onError.FilterRequest(req)
 			} else if test_true {
-				log().Info(
+				log.Info(
 					"conditional filter's test returned" +
 					" true",
 				)
 
 				return onTrue.FilterRequest(req)
 			} else {
-				log().Info(
+				log.Info(
 					"conditional filter's test returned" +
 					" false",
 				)

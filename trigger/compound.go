@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/proidiot/gone/log"
 	"github.com/stuphlabs/pullcord/config"
 )
 
@@ -40,7 +41,7 @@ func (c *CompoundTrigger) UnmarshalJSON(input []byte) (error) {
 			case TriggerHandler:
 				c.Triggers = append(c.Triggers, th)
 			default:
-				log().Err(
+				log.Err(
 					fmt.Sprintf(
 						"Registry value is not a" +
 						" RequestFilter: %s",
