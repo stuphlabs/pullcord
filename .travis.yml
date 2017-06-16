@@ -1,10 +1,6 @@
 language: go
 
-sudo: required
-
 install: .travis/install.sh
-
-#before_script: sudo ln -s /dev/stdout /dev/log
 
 script: .travis/tests.sh
 
