@@ -1,6 +1,10 @@
 language: go
 
+before_install:
+        - go get github.com/mattn/goveralls
+
 install: .travis/install.sh
 
-script: .travis/tests.sh
+script:
+        - LOG_UPTO="LOG_ALERT" $HOME/gopath/bin/goveralls -service=travis-ci
 
