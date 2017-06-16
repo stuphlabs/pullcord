@@ -3,6 +3,7 @@ package util
 import (
 	"encoding/json"
 	"github.com/fitstar/falcore"
+	"github.com/proidiot/gone/log"
 	"github.com/stuphlabs/pullcord/config"
 	"net/http"
 )
@@ -28,7 +29,7 @@ func (l *LandingFilter) UnmarshalJSON(data []byte) error {
 func (filter *LandingFilter) FilterRequest(
 	req *falcore.Request,
 ) (*http.Response) {
-	log().Info("running landing filter")
+	log.Info("running landing filter")
 
 	return falcore.StringResponse(
 		req.HttpRequest,

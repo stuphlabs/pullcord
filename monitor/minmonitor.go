@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/fitstar/falcore"
 	"github.com/proidiot/gone/errors"
+	"github.com/proidiot/gone/log"
 	// "github.com/stuphlabs/pullcord"
 	"github.com/stuphlabs/pullcord/config"
 	"github.com/stuphlabs/pullcord/proxy"
@@ -174,7 +175,7 @@ func (monitor *MinMonitor) Add(
 ) (err error) {
 	osvc, previousEntryExists := monitor.table[name]
 	if previousEntryExists {
-		log().Err(
+		log.Err(
 			fmt.Sprintf(
 				"minmonitor cannot add service: name \"%s\"" +
 				" previously used for service at protocol" +
@@ -200,7 +201,7 @@ func (monitor *MinMonitor) Add(
 
 	monitor.table[name] = service
 
-	log().Info(
+	log.Info(
 		fmt.Sprintf(
 			"minmonitor has successfully added service: \"%s\"",
 			name,
@@ -215,7 +216,7 @@ func (monitor *MinMonitor) Add(
 func (monitor *MinMonitor) Reprobe(name string) (up bool, err error) {
 	svc, entryExists := monitor.table[name]
 	if ! entryExists {
-		log().Err(
+		log.Err(
 			fmt.Sprintf(
 				"minmonitor cannot probe unknown service:" +
 				" \"%s\"",
@@ -242,7 +243,7 @@ func (svc *MinMonitorredService) Reprobe() (up bool, err error) {
 		switch castErr := err.(type) {
 		case *net.OpError:
 			if castErr.Addr != nil {
-				log().Info(
+				log.Info(
 					fmt.Sprintf(
 						"minmonitor received a" +
 						" connection refused" +
@@ -255,7 +256,7 @@ func (svc *MinMonitorredService) Reprobe() (up bool, err error) {
 
 				return false, nil
 			} else {
-				log().Warning(
+				log.Warning(
 					fmt.Sprintf(
 						"minmonitor encountered an" +
 						" error while probing" +
@@ -269,7 +270,7 @@ func (svc *MinMonitorredService) Reprobe() (up bool, err error) {
 				return false, err
 			}
 		default:
-			log().Warning(
+			log.Warning(
 				fmt.Sprintf(
 					"minmonitor encountered an unknown" +
 					" error while probing \"%s:%d\": %v",
@@ -285,7 +286,7 @@ func (svc *MinMonitorredService) Reprobe() (up bool, err error) {
 		defer conn.Close()
 		svc.up = true
 
-		log().Info(
+		log.Info(
 			fmt.Sprintf(
 				"minmonitor successfully probed: \"%s:%d\"",
 				svc.Address,
@@ -311,7 +312,7 @@ func (svc *MinMonitorredService) Reprobe() (up bool, err error) {
 func (monitor *MinMonitor) Status(name string) (up bool, err error) {
 	svc, entryExists := monitor.table[name]
 	if ! entryExists {
-		log().Err(
+		log.Err(
 			fmt.Sprintf(
 				"minmonitor cannot probe unknown service:" +
 				" \"%s\"",
@@ -329,7 +330,7 @@ func (svc *MinMonitorredService) Status() (up bool, err error) {
 	if (! svc.up) || time.Now().After(
 		svc.lastChecked.Add(svc.GracePeriod),
 	) {
-		log().Info(
+		log.Info(
 			fmt.Sprintf(
 				"minmonitor must reprobe as either the grace" +
 				" period has lapsed or the previous probe" +
@@ -341,7 +342,7 @@ func (svc *MinMonitorredService) Status() (up bool, err error) {
 
 		return svc.Reprobe()
 	} else {
-		log().Info(
+		log.Info(
 			fmt.Sprintf(
 				"minmonitor is skipping the reprobe as the" +
 				" current time is still within the grace" +
@@ -361,7 +362,7 @@ func (svc *MinMonitorredService) Status() (up bool, err error) {
 func (monitor *MinMonitor) SetStatusUp(name string) (err error) {
 	svc, entryExists := monitor.table[name]
 	if ! entryExists {
-		log().Err(
+		log.Err(
 			fmt.Sprintf(
 				"minmonitor cannot set the status of unknown" +
 				" service: \"%s\"",
@@ -376,7 +377,7 @@ func (monitor *MinMonitor) SetStatusUp(name string) (err error) {
 }
 
 func (svc *MinMonitorredService) SetStatusUp() (error) {
-	log().Info(
+	log.Info(
 		fmt.Sprintf(
 			"minmonitor has been explicitly informed of the up" +
 			" status of: \"%s:%d\"",
@@ -400,7 +401,7 @@ func (monitor *MinMonitor) NewMinMonitorFilter(
 ) (falcore.RequestFilter, error) {
 	svc, serviceExists := monitor.table[name]
 	if ! serviceExists {
-		log().Err(
+		log.Err(
 			fmt.Sprintf(
 				"minmonitor cannot create a request filter" +
 				" for unknown service: \"%s\"",
@@ -417,11 +418,11 @@ func (monitor *MinMonitor) NewMinMonitorFilter(
 func (svc *MinMonitorredService) FilterRequest(
 	req *falcore.Request,
 ) (*http.Response) {
-	log().Debug("running minmonitor filter")
+	log.Debug("running minmonitor filter")
 
 	up, err := svc.Status()
 	if err != nil {
-		log().Warning(
+		log.Warning(
 			fmt.Sprintf(
 				"minmonitor filter received an error" +
 				" while requesting the status for \"%s:%d\":" +
@@ -448,7 +449,7 @@ func (svc *MinMonitorredService) FilterRequest(
 	if svc.Always != nil {
 		err = svc.Always.Trigger()
 		if err != nil {
-			log().Warning(
+			log.Warning(
 				fmt.Sprintf(
 					"minmonitor filter received" +
 					" an error while running the" +
@@ -480,7 +481,7 @@ func (svc *MinMonitorredService) FilterRequest(
 		if svc.OnUp != nil {
 			err = svc.OnUp.Trigger()
 			if err != nil {
-				log().Warning(
+				log.Warning(
 					fmt.Sprintf(
 						"minmonitor filter" +
 						" received an error" +
@@ -511,14 +512,14 @@ func (svc *MinMonitorredService) FilterRequest(
 			}
 		}
 
-		log().Debug("minmonitor filter passthru")
+		log.Debug("minmonitor filter passthru")
 		return svc.passthru.FilterRequest(req)
 	}
 
 	if svc.OnDown != nil {
 		err = svc.OnDown.Trigger()
 		if err != nil {
-			log().Warning(
+			log.Warning(
 				fmt.Sprintf(
 					"minmonitor filter received" +
 					" an error while running the" +
@@ -546,7 +547,7 @@ func (svc *MinMonitorredService) FilterRequest(
 		}
 	}
 
-	log().Info(
+	log.Info(
 		fmt.Sprintf(
 			"minmonitor filter has reached a down" +
 			" service (\"%s:%d\"), but any triggers have" +
@@ -572,7 +573,7 @@ func (svc *MinMonitorredService) FilterRequest(
 
 // NewMinMonitor constructs a new MinMonitor.
 func NewMinMonitor() *MinMonitor {
-	log().Info("initializing minimal service monitor")
+	log.Info("initializing minimal service monitor")
 
 	var result MinMonitor
 	result.table = make(map[string]*MinMonitorredService)

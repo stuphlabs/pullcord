@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/fitstar/falcore"
+	"github.com/proidiot/gone/log"
 	"github.com/stuphlabs/pullcord/config"
 )
 
@@ -38,7 +39,7 @@ func (r *ExactPathRouter) UnmarshalJSON(input []byte) (error) {
 		case falcore.RequestFilter:
 			r.Routes[path] = &f
 		default:
-			log().Err(
+			log.Err(
 				fmt.Sprintf(
 					"Registry value is not a" +
 					" RequestFilter: %s",

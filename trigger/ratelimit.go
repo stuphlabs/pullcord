@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/proidiot/gone/log"
 	"github.com/stuphlabs/pullcord/config"
 	"time"
 )
@@ -50,7 +51,7 @@ func (r *RateLimitTrigger) UnmarshalJSON(input []byte) (error) {
 	case TriggerHandler:
 		r.GuardedTrigger = gt
 	default:
-		log().Err(
+		log.Err(
 			fmt.Sprintf(
 				"Registry value is not a Trigger: %s",
 				gt,

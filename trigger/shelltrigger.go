@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/proidiot/gone/log"
 	"github.com/stuphlabs/pullcord/config"
 	"os/exec"
 )
@@ -53,19 +54,19 @@ func (s *ShellTriggerHandler) UnmarshalJSON(input []byte) (error) {
 //
 // In this case, the message will be passed to the command via stdin.
 func (handler *ShellTriggerHandler) Trigger() (err error) {
-	log().Debug("shelltrigger running trigger")
+	log.Debug("shelltrigger running trigger")
 	cmd := exec.Command(handler.Command, handler.Args...)
 	var stdout bytes.Buffer
 	cmd.Stdout = &stdout
 	err = cmd.Run()
-	log().Debug(
+	log.Debug(
 		fmt.Sprintf(
 			"shelltrigger command wrote to stdout: %s",
 			stdout.String(),
 		),
 	)
 	if err != nil {
-		log().Err(
+		log.Err(
 			fmt.Sprintf(
 				"shelltrigger failed during trigger: %v",
 				err,
@@ -73,7 +74,7 @@ func (handler *ShellTriggerHandler) Trigger() (err error) {
 		)
 		return err
 	} else {
-		log().Info("shelltrigger trigger sent")
+		log.Info("shelltrigger trigger sent")
 		return nil
 	}
 }
@@ -88,8 +89,8 @@ func NewShellTriggerHandler(
 	command string,
 	args []string,
 ) *ShellTriggerHandler {
-	log().Info("initializing shell trigger handler")
-	log().Debug(
+	log.Info("initializing shell trigger handler")
+	log.Debug(
 		fmt.Sprintf(
 			"shelltrigger will run command: %s %v",
 			command,

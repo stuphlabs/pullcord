@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/proidiot/gone/errors"
+	"github.com/proidiot/gone/log"
 	"io"
 	"net"
 	"net/http"
@@ -54,7 +55,7 @@ func (rsc *Resource) UnmarshalJSON(input []byte) error {
 
 	dec := json.NewDecoder(bytes.NewReader(input))
 	if e := dec.Decode(&newRscDef); e != nil {
-		log().Crit(
+		log.Crit(
 			fmt.Sprintf(
 				"Unable to decode resource definition: %s",
 				e.Error(),
@@ -72,7 +73,7 @@ func (rsc *Resource) UnmarshalJSON(input []byte) error {
 	if newRscDef.Type == ReferenceResourceTypeName {
 		var name string
 		if e := json.Unmarshal(newRscDef.Data, &name); e != nil {
-			log().Crit(
+			log.Crit(
 				fmt.Sprintf(
 					"Unable to decode the resource" +
 					" string: %s",
@@ -98,7 +99,7 @@ func (rsc *Resource) UnmarshalJSON(input []byte) error {
 						name,
 					),
 				)
-				log().Crit(e.Error())
+				log.Crit(e.Error())
 				return e
 			}
 		}
@@ -162,7 +163,7 @@ func ServerFromReader(r io.Reader) (*Server, error) {
 	registry = make(map[string]*Resource)
 
 	if e := dec.Decode(&config); e != nil {
-		log().Crit(
+		log.Crit(
 			fmt.Sprintf(
 				"Unable to decode server config: %v",
 				e,
@@ -178,7 +179,7 @@ func ServerFromReader(r io.Reader) (*Server, error) {
 				" network listener resource.",
 			),
 		)
-		log().Crit(e.Error())
+		log.Crit(e.Error())
 		return nil, e
 	}
 
@@ -189,7 +190,7 @@ func ServerFromReader(r io.Reader) (*Server, error) {
 				" HTTP handler resource.",
 			),
 		)
-		log().Crit(e.Error())
+		log.Crit(e.Error())
 		return nil, e
 	}
 
@@ -202,7 +203,7 @@ func ServerFromReader(r io.Reader) (*Server, error) {
 				return nil, e
 			} else {
 				r.complete = true
-				log().Debug(
+				log.Debug(
 					fmt.Sprintf(
 						"Saved resource to" +
 						" registry: %s: %v",
@@ -228,8 +229,8 @@ func ServerFromReader(r io.Reader) (*Server, error) {
 				config.Listener,
 			),
 		)
-		log().Crit(e.Error())
-		log().Debug(
+		log.Crit(e.Error())
+		log.Debug(
 			errors.New(
 				fmt.Sprintf(
 					"got: %v",
@@ -252,9 +253,9 @@ func ServerFromReader(r io.Reader) (*Server, error) {
 				config.Handler,
 			),
 		)
-		log().Crit(e.Error())
+		log.Crit(e.Error())
 		// TODO remove
-		log().Debug(
+		log.Debug(
 			fmt.Sprintf(
 				"handler %s has type %s",
 				config.Handler,
