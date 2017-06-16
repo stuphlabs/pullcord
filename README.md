@@ -3,6 +3,7 @@ Pullcord
 
 [![Build Status](https://img.shields.io/travis/stuphlabs/pullcord/master.svg)](https://travis-ci.org/stuphlabs/pullcord)
 [![Coverage](https://img.shields.io/coveralls/stuphlabs/pullcord/master.svg)](https://coveralls.io/github/stuphlabs/pullcord?branch=master)
+[![Go Report Card](https://goreportcard.com/badge/github.com/stuphlabs/pullcord)](https://goreportcard.com/report/github.com/stuphlabs/pullcord)
 [![Code Climate](https://img.shields.io/codeclimate/github/stuphlabs/pullcord.svg)](https://codeclimate.com/github/stuphlabs/pullcord)
 [![Issues in Ready](https://img.shields.io/waffle/label/stuphlabs/pullcord/ready.svg)](https://waffle.io/stuphlabs/pullcord)
 [![Godoc](http://img.shields.io/badge/godoc-reference-5272B4.svg)](http://godoc.org/github.com/stuphlabs/pullcord)
