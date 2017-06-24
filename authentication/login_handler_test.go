@@ -85,9 +85,7 @@ func TestInitialLoginPage(t *testing.T) {
 	hash, err := GetPbkdf2Hash(testPassword, Pbkdf2MinIterations)
 	assert.NoError(t, err)
 	passwordChecker := InMemPwdStore{
-		map[string]*Pbkdf2Hash{
-			testUser: hash,
-		},
+		testUser: hash,
 	}
 
 	request, err := http.NewRequest("GET", "/", nil)
@@ -147,9 +145,7 @@ func TestNoXsrfLoginPage(t *testing.T) {
 	hash, err := GetPbkdf2Hash(testPassword, Pbkdf2MinIterations)
 	assert.NoError(t, err)
 	passwordChecker := InMemPwdStore{
-		map[string]*Pbkdf2Hash{
-			testUser: hash,
-		},
+		testUser: hash,
 	}
 
 	request1, err := http.NewRequest("GET", "/", nil)
@@ -222,9 +218,7 @@ func TestBadXsrfLoginPage(t *testing.T) {
 	hash, err := GetPbkdf2Hash(testPassword, Pbkdf2MinIterations)
 	assert.NoError(t, err)
 	passwordChecker := InMemPwdStore{
-		map[string]*Pbkdf2Hash{
-			testUser: hash,
-		},
+		testUser: hash,
 	}
 
 	request1, err := http.NewRequest("GET", "/", nil)
@@ -299,9 +293,7 @@ func TestNoUsernameLoginPage(t *testing.T) {
 	hash, err := GetPbkdf2Hash(testPassword, Pbkdf2MinIterations)
 	assert.NoError(t, err)
 	passwordChecker := InMemPwdStore{
-		map[string]*Pbkdf2Hash{
-			testUser: hash,
-		},
+		testUser: hash,
 	}
 
 	request1, err := http.NewRequest("GET", "/", nil)
@@ -382,9 +374,7 @@ func TestNoPasswordLoginPage(t *testing.T) {
 	hash, err := GetPbkdf2Hash(testPassword, Pbkdf2MinIterations)
 	assert.NoError(t, err)
 	passwordChecker := InMemPwdStore{
-		map[string]*Pbkdf2Hash{
-			testUser: hash,
-		},
+		testUser: hash,
 	}
 
 	request1, err := http.NewRequest("GET", "/", nil)
@@ -466,9 +456,7 @@ func TestUsernameArrayLoginPage(t *testing.T) {
 	hash, err := GetPbkdf2Hash(testPassword, Pbkdf2MinIterations)
 	assert.NoError(t, err)
 	passwordChecker := InMemPwdStore{
-		map[string]*Pbkdf2Hash{
-			testUser: hash,
-		},
+		testUser: hash,
 	}
 
 	request1, err := http.NewRequest("GET", "/", nil)
@@ -554,9 +542,7 @@ func TestBadUsernameLoginPage(t *testing.T) {
 	hash, err := GetPbkdf2Hash(testPassword, Pbkdf2MinIterations)
 	assert.NoError(t, err)
 	passwordChecker := InMemPwdStore{
-		map[string]*Pbkdf2Hash{
-			testUser: hash,
-		},
+		testUser: hash,
 	}
 
 	request1, err := http.NewRequest("GET", "/", nil)
@@ -641,9 +627,7 @@ func TestBadPasswordLoginPage(t *testing.T) {
 	hash, err := GetPbkdf2Hash(testPassword, Pbkdf2MinIterations)
 	assert.NoError(t, err)
 	passwordChecker := InMemPwdStore{
-		map[string]*Pbkdf2Hash{
-			testUser: hash,
-		},
+		testUser: hash,
 	}
 
 	request1, err := http.NewRequest("GET", "/", nil)
@@ -728,9 +712,7 @@ func TestGoodLoginPage(t *testing.T) {
 	hash, err := GetPbkdf2Hash(testPassword, Pbkdf2MinIterations)
 	assert.NoError(t, err)
 	passwordChecker := InMemPwdStore{
-		map[string]*Pbkdf2Hash{
-			testUser: hash,
-		},
+		testUser: hash,
 	}
 
 	request1, err := http.NewRequest("GET", "/", nil)
@@ -815,9 +797,7 @@ func TestPassthruLoginPage(t *testing.T) {
 	hash, err := GetPbkdf2Hash(testPassword, Pbkdf2MinIterations)
 	assert.NoError(t, err)
 	passwordChecker := InMemPwdStore{
-		map[string]*Pbkdf2Hash{
-			testUser: hash,
-		},
+		testUser: hash,
 	}
 
 	request1, err := http.NewRequest("GET", "/", nil)

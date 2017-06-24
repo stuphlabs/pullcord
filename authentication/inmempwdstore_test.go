@@ -27,9 +27,7 @@ func TestGoodPassword(t *testing.T) {
 	hashStruct, err := GetPbkdf2Hash(password, Pbkdf2MinIterations)
 	assert.NoError(t, err)
 	store := InMemPwdStore{
-		map[string]*Pbkdf2Hash{
-			identifier: hashStruct,
-		},
+		identifier: hashStruct,
 	}
 
 	err = store.CheckPassword(identifier, password)
@@ -44,9 +42,7 @@ func TestBadPassword(t *testing.T) {
 	hashStruct, err := GetPbkdf2Hash(password, Pbkdf2MinIterations)
 	assert.NoError(t, err)
 	store := InMemPwdStore{
-		map[string]*Pbkdf2Hash{
-			identifier: hashStruct,
-		},
+		identifier: hashStruct,
 	}
 
 	err = store.CheckPassword(identifier, badPassword)

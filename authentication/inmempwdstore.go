@@ -121,9 +121,7 @@ func (hashStruct *Pbkdf2Hash) UnmarshalJSON(input []byte) (error) {
 // information are stored in memory. This would likely not be a useful password
 // store implementation in a production environment, but it can be useful in
 // testing. All passwords are hashed using PBKDF2 with SHA-256.
-type InMemPwdStore struct {
-	table map[string]*Pbkdf2Hash
-}
+type InMemPwdStore map[string]*Pbkdf2Hash
 
 // SetPassword is a function that allows a password to be hashed and added to
 // an InMemPwdStore instance.
@@ -177,7 +175,7 @@ func (hashStruct *Pbkdf2Hash) Check(
 // CheckPassword implements the required password checking function to make
 // InMemPwdStore a PasswordChecker implementation.
 func (store *InMemPwdStore) CheckPassword(id, pass string) (error) {
-	if hashStruct, present := store.table[id]; ! present {
+	if hashStruct, present := (map[string]*Pbkdf2Hash(*store))[id]; ! present {
 		return NoSuchIdentifierError
 	} else {
 		return hashStruct.Check(pass)
@@ -185,7 +183,6 @@ func (store *InMemPwdStore) CheckPassword(id, pass string) (error) {
 }
 
 func (store *InMemPwdStore) UnmarshalJSON(input []byte) (error) {
-	store.table = make(map[string]*Pbkdf2Hash)
-	return json.Unmarshal(input, &store.table)
+	return json.Unmarshal(input, (*map[string]*Pbkdf2Hash)(store))
 }
 
