@@ -8,12 +8,12 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"encoding/pem"
+	"errors"
 	"io"
 	"math/big"
 	"net"
 	"time"
 
-	"github.com/pkg/errors"
 	"github.com/stuphlabs/pullcord/config"
 )
 
@@ -177,10 +177,7 @@ func GenSelfSignedLocalhostCertificate(
 
 	privKey, e := rsa.GenerateKey(rand.Reader, 1024)
 	if e != nil {
-		return nil, nil, errors.Wrap(
-			e,
-			"Unable to gen RSA key for self-signed cert",
-		)
+		return nil, nil, e
 	}
 
 	derCert, e := x509.CreateCertificate(
@@ -191,10 +188,7 @@ func GenSelfSignedLocalhostCertificate(
 		privKey,
 	)
 	if e != nil {
-		return nil, nil, errors.Wrap(
-			e,
-			"Unable to get raw form of self-signed cert",
-		)
+		return nil, nil, e
 	}
 
 	pemCert := pem.EncodeToMemory(
@@ -213,18 +207,12 @@ func GenSelfSignedLocalhostCertificate(
 
 	x509Cert, e := x509.ParseCertificate(derCert)
 	if e != nil {
-		return nil, nil, errors.Wrap(
-			e,
-			"Unable to get x509 form of self-signed cert",
-		)
+		return nil, nil, e
 	}
 
 	tlsCert, e := tls.X509KeyPair(pemCert, pemKey)
 	if e != nil {
-		return nil, nil, errors.Wrap(
-			e,
-			"Unable to get tls form of self-signed cert",
-		)
+		return nil, nil, e
 	}
 
 	return &tlsCert, x509Cert, nil
