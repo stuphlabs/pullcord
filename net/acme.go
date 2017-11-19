@@ -5,8 +5,19 @@ import (
 	"encoding/json"
 	"errors"
 
+	"github.com/stuphlabs/pullcord/config"
+
 	"golang.org/x/crypto/acme/autocert"
 )
+
+func init() {
+	config.MustRegisterResourceType(
+		"acme",
+		func() json.Unmarshaler {
+			return new(AcmeConfig)
+		},
+	)
+}
 
 type AcmeConfig struct {
 	AcceptTOS bool
@@ -23,12 +34,15 @@ func (a *AcmeConfig) UnmarshalJSON(d []byte) error {
 		return e
 	}
 
-	if ! a.AcceptTOS {
+	if ! t.AcceptTOS {
 		return errors.New(
 			"The terms of service must be accepted in order to use"+
 				" the default ACME setup.",
 		)
 	}
+
+	a.AcceptTOS = t.AcceptTOS
+	a.Domains = t.Domains
 
 	return nil
 }

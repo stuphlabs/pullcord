@@ -42,6 +42,16 @@ func RegisterResourceType(
 	return nil
 }
 
+func MustRegisterResourceType(
+	typeName string,
+	newFunc func() json.Unmarshaler,
+) {
+	e := RegisterResourceType(typeName, newFunc)
+	if e != nil {
+		panic(e)
+	}
+}
+
 type Resource struct {
 	Unmarshaled json.Unmarshaler
 	complete bool
