@@ -780,55 +780,63 @@ func TestServerFromReader(t *testing.T) {
 	RegisterResourceType("dummyRouter", newDummyRouter)
 
 	for _, d := range syntacticallyBad {
-		s, e := ServerFromReader(strings.NewReader(d.config))
-		assert.Nil(
-			t,
-			s,
-			fmt.Sprintf(
-				"ServerFromReader is expected to return a" +
-				" nil config.Server when called with a" +
-				" syntactically bad config, but a non-nil" +
-				" config.Server was returned for such a" +
-				" config: %s",
-				d.reason,
-			),
-		)
-		assert.Error(
-			t,
-			e,
-			fmt.Sprintf(
-				"ServerFromReader is expected to return an" +
-				" error when called with a syntactically bad" +
-				" config, but no error was returned for such" +
-				" a config: %s",
-				d.reason,
-			),
-		)
+		d := d
+		t.Run(d.reason, func(t *testing.T) {
+			t.Parallel()
+			s, e := ServerFromReader(strings.NewReader(d.config))
+			assert.Nil(
+				t,
+				s,
+				fmt.Sprintf(
+					"ServerFromReader is expected to return a" +
+					" nil config.Server when called with a" +
+					" syntactically bad config, but a non-nil" +
+					" config.Server was returned for such a" +
+					" config: %s",
+					d.reason,
+				),
+			)
+			assert.Error(
+				t,
+				e,
+				fmt.Sprintf(
+					"ServerFromReader is expected to return an" +
+					" error when called with a syntactically bad" +
+					" config, but no error was returned for such" +
+					" a config: %s",
+					d.reason,
+				),
+			)
+		})
 	}
 
 	for _, d := range good {
-		s, e := ServerFromReader(strings.NewReader(d.config))
-		assert.NotNil(
-			t,
-			s,
-			fmt.Sprintf(
-				"ServerFromReader is expected to return a" +
-				" non-nil config.Server when called with a" +
-				" good config, but a nil config.Server was" +
-				" returned for such a config: %s",
-				d.reason,
-			),
-		)
-		assert.NoError(
-			t,
-			e,
-			fmt.Sprintf(
-				"ServerFromReader is expected to not return" +
-				" an error when called with a good config," +
-				" but an error was returned for such a" +
-				" config: %s",
-				d.reason,
-			),
-		)
+		d := d
+		t.Run(d.reason, func(t *testing.T) {
+			t.Parallel()
+			s, e := ServerFromReader(strings.NewReader(d.config))
+			assert.NotNil(
+				t,
+				s,
+				fmt.Sprintf(
+					"ServerFromReader is expected to return a" +
+					" non-nil config.Server when called with a" +
+					" good config, but a nil config.Server was" +
+					" returned for such a config: %s",
+					d.reason,
+				),
+			)
+			assert.NoError(
+				t,
+				e,
+				fmt.Sprintf(
+					"ServerFromReader is expected to not return" +
+					" an error when called with a good config," +
+					" but an error was returned for such a" +
+					" config: %s",
+					d.reason,
+				),
+			)
+		})
 	}
 }
