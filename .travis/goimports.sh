@@ -2,6 +2,8 @@
 
 set -eu
 
+go get golang.org/x/tools/cmd/goimports
+
 find . -name '*.go' -exec goimports -l {} \; | awk '
 /./ {
 	if (!found) {
