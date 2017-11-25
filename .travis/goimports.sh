@@ -8,7 +8,7 @@ find . -name '*.go' -exec goimports -l {} \; | awk '
 /./ {
 	if (!found) {
 		found = 1
-		print "The following files have gofmt issues:"
+		print "The following files have goimports issues:"
 	}
 	print
 }
@@ -16,7 +16,7 @@ END {
 	if (found) {
 		exit 1
 	} else {
-		print "No gofmt issues."
+		print "No goimports issues."
 	}
 }'
 
