@@ -5,9 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/proidiot/gone/log"
 	"github.com/stuphlabs/pullcord/config"
-	"time"
 )
 
 // RateLimitExceededError indicates that the trigger has been called more than
@@ -19,9 +20,9 @@ var RateLimitExceededError = errors.New("Rate limit exceeded for trigger.")
 // from being called more than a specified number of times over a specified
 // duration.
 type RateLimitTrigger struct {
-	GuardedTrigger TriggerHandler
-	MaxAllowed uint
-	Period time.Duration
+	GuardedTrigger   TriggerHandler
+	MaxAllowed       uint
+	Period           time.Duration
 	previousTriggers []time.Time
 }
 
@@ -34,11 +35,11 @@ func init() {
 	)
 }
 
-func (r *RateLimitTrigger) UnmarshalJSON(input []byte) (error) {
+func (r *RateLimitTrigger) UnmarshalJSON(input []byte) error {
 	var t struct {
 		GuardedTrigger config.Resource
-		MaxAllowed uint
-		Period string
+		MaxAllowed     uint
+		Period         string
 	}
 
 	dec := json.NewDecoder(bytes.NewReader(input))
@@ -75,7 +76,7 @@ func NewRateLimitTrigger(
 	guardedTrigger TriggerHandler,
 	maxAllowed uint,
 	period time.Duration,
-) (*RateLimitTrigger) {
+) *RateLimitTrigger {
 	return &RateLimitTrigger{
 		guardedTrigger,
 		maxAllowed,
@@ -109,4 +110,3 @@ func (rlt *RateLimitTrigger) Trigger() error {
 
 	return rlt.GuardedTrigger.Trigger()
 }
-

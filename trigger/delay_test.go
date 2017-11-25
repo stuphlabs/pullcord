@@ -1,11 +1,12 @@
 package trigger
 
 import (
+	"testing"
+	"time"
+
 	"github.com/stretchr/testify/assert"
 	configutil "github.com/stuphlabs/pullcord/config/util"
 	"github.com/stuphlabs/pullcord/util"
-	"testing"
-	"time"
 )
 
 func TestDelayTriggerSingleDelay(t *testing.T) {
@@ -17,7 +18,7 @@ func TestDelayTriggerSingleDelay(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 0, cth.count)
 
-	time.Sleep(2*time.Second)
+	time.Sleep(2 * time.Second)
 
 	assert.Equal(t, 1, cth.count)
 }
@@ -27,7 +28,7 @@ func TestDelayTriggerDoubleDelay(t *testing.T) {
 
 	dt := NewDelayTrigger(
 		cth,
-		3 * time.Second,
+		3*time.Second,
 	)
 
 	err := dt.Trigger()
@@ -45,7 +46,7 @@ func TestDelayTriggerDoubleDelay(t *testing.T) {
 	// hadn't occurred when it did
 	assert.Equal(t, 0, cth.count)
 
-	time.Sleep(2*time.Second)
+	time.Sleep(2 * time.Second)
 	assert.Equal(t, 1, cth.count)
 }
 
@@ -61,7 +62,7 @@ func TestDelayTriggerErrorMasking(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, -1, cth.count)
 
-	time.Sleep(2*time.Second)
+	time.Sleep(2 * time.Second)
 
 	assert.Equal(t, -1, cth.count)
 }
@@ -71,7 +72,7 @@ func TestDelayTriggerReplaceError(t *testing.T) {
 
 	dt := NewDelayTrigger(
 		cth,
-		3 * time.Second,
+		3*time.Second,
 	)
 
 	err := dt.Trigger()
@@ -93,7 +94,7 @@ func TestDelayTriggerReplaceError(t *testing.T) {
 	cth.count = 0
 	assert.Equal(t, 0, cth.count)
 
-	time.Sleep(2*time.Second)
+	time.Sleep(2 * time.Second)
 	assert.Equal(t, 1, cth.count)
 }
 
@@ -102,7 +103,7 @@ func TestDelayTriggerIntroduceError(t *testing.T) {
 
 	dt := NewDelayTrigger(
 		cth,
-		3 * time.Second,
+		3*time.Second,
 	)
 
 	err := dt.Trigger()
@@ -124,7 +125,7 @@ func TestDelayTriggerIntroduceError(t *testing.T) {
 	// hadn't occurred when it did
 	assert.Equal(t, -1, cth.count)
 
-	time.Sleep(2*time.Second)
+	time.Sleep(2 * time.Second)
 	assert.Equal(t, -1, cth.count)
 }
 
@@ -133,26 +134,26 @@ func TestDelayTriggerFromConfig(t *testing.T) {
 	test := configutil.ConfigTest{
 		ResourceType: "delaytrigger",
 		SyntacticallyBad: []configutil.ConfigTestData{
-			configutil.ConfigTestData{
-				Data: "",
+			{
+				Data:        "",
 				Explanation: "empty config",
 			},
-			configutil.ConfigTestData{
-				Data: "{}",
+			{
+				Data:        "{}",
 				Explanation: "empty object",
 			},
-			configutil.ConfigTestData{
-				Data: "null",
+			{
+				Data:        "null",
 				Explanation: "null config",
 			},
-			configutil.ConfigTestData{
+			{
 				Data: `{
 					"delayedtrigger": 7,
 					"delay": "42s"
 				}`,
 				Explanation: "numeric trigger",
 			},
-			configutil.ConfigTestData{
+			{
 				Data: `{
 					"delayedtrigger": {
 						"type": "landingfilter",
@@ -162,7 +163,7 @@ func TestDelayTriggerFromConfig(t *testing.T) {
 				}`,
 				Explanation: "non-trigger as trigger",
 			},
-			configutil.ConfigTestData{
+			{
 				Data: `{
 					"delayedtrigger": {
 						"type": "compoundtrigger",
@@ -172,7 +173,7 @@ func TestDelayTriggerFromConfig(t *testing.T) {
 				}`,
 				Explanation: "numeric delay",
 			},
-			configutil.ConfigTestData{
+			{
 				Data: `{
 					"delayedtrigger": {
 						"type": "compoundtrigger",
@@ -182,20 +183,20 @@ func TestDelayTriggerFromConfig(t *testing.T) {
 				}`,
 				Explanation: "nonsensical delay",
 			},
-			configutil.ConfigTestData{
+			{
 				Data: `{
 					"delayedtrigger": {},
 					"delay": "42s"
 				}`,
 				Explanation: "empty trigger",
 			},
-			configutil.ConfigTestData{
-				Data: "42",
+			{
+				Data:        "42",
 				Explanation: "numeric config",
 			},
 		},
 		Good: []configutil.ConfigTestData{
-			configutil.ConfigTestData{
+			{
 				Data: `{
 					"delayedtrigger": {
 						"type": "compoundtrigger",

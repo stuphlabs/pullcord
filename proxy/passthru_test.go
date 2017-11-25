@@ -3,15 +3,16 @@ package proxy
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"regexp"
+	"testing"
+
 	"github.com/fitstar/falcore"
 	"github.com/proidiot/gone/errors"
 	"github.com/stretchr/testify/assert"
 	configutil "github.com/stuphlabs/pullcord/config/util"
 	"github.com/stuphlabs/pullcord/util"
-	"io/ioutil"
-	"net/http"
-	"regexp"
-	"testing"
 )
 
 // serveLandingPage is a testing helper function that creates a webserver that
@@ -41,7 +42,7 @@ func TestPassthru(t *testing.T) {
 	go serveLandingPage(landingServer)
 	defer landingServer.StopAccepting()
 
-	<- landingServer.AcceptReady
+	<-landingServer.AcceptReady
 
 	_, response := falcore.TestWithRequest(
 		request,
@@ -66,10 +67,10 @@ func TestPassthruFilterFromConfig(t *testing.T) {
 			default:
 				return errors.New(
 					fmt.Sprintf(
-						"PassthruFilter IsValid" +
-						" received an object that" +
-						" doesn't have the type" +
-						" PassthruFilter: %v",
+						"PassthruFilter IsValid"+
+							" received an object that"+
+							" doesn't have the type"+
+							" PassthruFilter: %v",
 						i,
 					),
 				)
@@ -78,16 +79,16 @@ func TestPassthruFilterFromConfig(t *testing.T) {
 			if p.Host == "" {
 				return errors.New(
 					"PassthruFilter IsValid received a" +
-					" PassthruFilter with an empty host.",
+						" PassthruFilter with an empty host.",
 				)
 			}
 
 			if p.Port <= 0 {
 				return errors.New(
 					fmt.Sprintf(
-						"PassthruFilter IsValid" +
-						" received a PassthruFilter" +
-						" with a bad port: %d",
+						"PassthruFilter IsValid"+
+							" received a PassthruFilter"+
+							" with a bad port: %d",
 						p.Port,
 					),
 				)
@@ -96,47 +97,47 @@ func TestPassthruFilterFromConfig(t *testing.T) {
 			if p.upstreamFilter == nil {
 				return errors.New(
 					"PassthruFilter IsValid received a" +
-					" PassthruFilter with an" +
-					" uninitialized upstream filter.",
+						" PassthruFilter with an" +
+						" uninitialized upstream filter.",
 				)
 			}
 
 			return nil
 		},
 		SyntacticallyBad: []configutil.ConfigTestData{
-			configutil.ConfigTestData{
-				Data: "",
+			{
+				Data:        "",
 				Explanation: "empty config",
 			},
-			configutil.ConfigTestData{
+			{
 				Data: `{
 					"host": 7,
 					"port": 11
 				}`,
 				Explanation: "numeric host",
 			},
-			configutil.ConfigTestData{
+			{
 				Data: `{
 					"host": "127.0.0.1",
 					"port": "8080"
 				}`,
 				Explanation: "string port",
 			},
-			configutil.ConfigTestData{
-				Data: "42",
+			{
+				Data:        "42",
 				Explanation: "numeric config",
 			},
 		},
 		SemanticallyBad: []configutil.ConfigTestData{
-			configutil.ConfigTestData{
-				Data: "{}",
+			{
+				Data:        "{}",
 				Explanation: "empty object",
 			},
-			configutil.ConfigTestData{
-				Data: "null",
+			{
+				Data:        "null",
 				Explanation: "null config",
 			},
-			configutil.ConfigTestData{
+			{
 				Data: `{
 					"host": "127.0.0.1",
 					"port": -80
@@ -145,7 +146,7 @@ func TestPassthruFilterFromConfig(t *testing.T) {
 			},
 		},
 		Good: []configutil.ConfigTestData{
-			configutil.ConfigTestData{
+			{
 				Data: `{
 					"host": "127.0.0.1",
 					"port": 80

@@ -7,9 +7,10 @@ import (
 	"crypto/subtle"
 	"encoding/base64"
 	"encoding/json"
+
 	"github.com/proidiot/gone/errors"
-	// "github.com/stuphlabs/pullcord"
 	"github.com/stuphlabs/pullcord/config"
+
 	"golang.org/x/crypto/pbkdf2"
 )
 
@@ -41,7 +42,7 @@ const InsufficientIterationsError = errors.New(
 // length Pbkdf2KeyLength.
 const InsufficientEntropyError = errors.New(
 	"The amount of entropy available from the operating system was not" +
-	" enough to generate a salt of length Pbkdf2KeyLength",
+		" enough to generate a salt of length Pbkdf2KeyLength",
 )
 
 // NoSuchIdentifierError is the error object that is returned if the given
@@ -63,7 +64,7 @@ const NoSuchIdentifierError = errors.New(
 // given password does not generate a matching hash.
 const BadPasswordError = errors.New(
 	"The hash generated from the given password does not match the hash" +
-	" associated with the given identifier in the password store",
+		" associated with the given identifier in the password store",
 )
 
 // IncorrectSaltLengthError is the error object that is returned if the given
@@ -84,15 +85,15 @@ const IncorrectHashLengthError = errors.New(
 // base64 encoded (i.e. RFC 4648 with padding) byte arrays of length
 // Pbkdf2KeyLength.
 type Pbkdf2Hash struct {
-	Hash [Pbkdf2KeyLength]byte
-	Salt [Pbkdf2KeyLength]byte
+	Hash       [Pbkdf2KeyLength]byte
+	Salt       [Pbkdf2KeyLength]byte
 	Iterations uint16
 }
 
-func (hashStruct *Pbkdf2Hash) UnmarshalJSON(input []byte) (error) {
+func (hashStruct *Pbkdf2Hash) UnmarshalJSON(input []byte) error {
 	var t struct {
-		Hash string
-		Salt string
+		Hash       string
+		Salt       string
 		Iterations uint16
 	}
 
@@ -156,7 +157,7 @@ func GetPbkdf2Hash(
 
 func (hashStruct *Pbkdf2Hash) Check(
 	password string,
-) (error) {
+) error {
 	genHash := pbkdf2.Key(
 		[]byte(password),
 		hashStruct.Salt[:],
@@ -174,15 +175,14 @@ func (hashStruct *Pbkdf2Hash) Check(
 
 // CheckPassword implements the required password checking function to make
 // InMemPwdStore a PasswordChecker implementation.
-func (store *InMemPwdStore) CheckPassword(id, pass string) (error) {
-	if hashStruct, present := (map[string]*Pbkdf2Hash(*store))[id]; ! present {
+func (store *InMemPwdStore) CheckPassword(id, pass string) error {
+	if hs, present := (map[string]*Pbkdf2Hash(*store))[id]; !present {
 		return NoSuchIdentifierError
 	} else {
-		return hashStruct.Check(pass)
+		return hs.Check(pass)
 	}
 }
 
-func (store *InMemPwdStore) UnmarshalJSON(input []byte) (error) {
+func (store *InMemPwdStore) UnmarshalJSON(input []byte) error {
 	return json.Unmarshal(input, (*map[string]*Pbkdf2Hash)(store))
 }
-

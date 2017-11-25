@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"time"
+
 	"github.com/proidiot/gone/log"
 	"github.com/stuphlabs/pullcord/config"
-	"time"
 )
 
 // DelayTrigger is a TriggerHandler that delays the execution of another
@@ -15,8 +16,8 @@ import (
 // certain period has elapsed, but the timer is reset quite often.
 type DelayTrigger struct {
 	DelayedTrigger TriggerHandler
-	Delay time.Duration
-	c chan<- interface{}
+	Delay          time.Duration
+	c              chan<- interface{}
 }
 
 func init() {
@@ -28,10 +29,10 @@ func init() {
 	)
 }
 
-func (d *DelayTrigger) UnmarshalJSON(input []byte) (error) {
+func (d *DelayTrigger) UnmarshalJSON(input []byte) error {
 	var t struct {
 		DelayedTrigger config.Resource
-		Delay string
+		Delay          string
 	}
 
 	dec := json.NewDecoder(bytes.NewReader(input))
@@ -65,7 +66,7 @@ func (d *DelayTrigger) UnmarshalJSON(input []byte) (error) {
 func NewDelayTrigger(
 	delayedTrigger TriggerHandler,
 	delay time.Duration,
-) (*DelayTrigger) {
+) *DelayTrigger {
 	return &DelayTrigger{
 		delayedTrigger,
 		delay,
@@ -116,9 +117,8 @@ func (dt *DelayTrigger) Trigger() error {
 
 		go delaytrigger(dt.DelayedTrigger, dt.Delay, fc)
 	} else {
-		dt.c <-nil
+		dt.c <- nil
 	}
 
 	return nil
 }
-

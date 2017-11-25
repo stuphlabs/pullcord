@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+
 	"github.com/proidiot/gone/log"
 	"github.com/stuphlabs/pullcord/config"
 )
@@ -24,7 +25,7 @@ func init() {
 	)
 }
 
-func (c *CompoundTrigger) UnmarshalJSON(input []byte) (error) {
+func (c *CompoundTrigger) UnmarshalJSON(input []byte) error {
 	var t struct {
 		Triggers []config.Resource
 	}
@@ -43,8 +44,8 @@ func (c *CompoundTrigger) UnmarshalJSON(input []byte) (error) {
 			default:
 				log.Err(
 					fmt.Sprintf(
-						"Registry value is not a" +
-						" RequestFilter: %s",
+						"Registry value is not a"+
+							" RequestFilter: %s",
 						th,
 					),
 				)
@@ -66,4 +67,3 @@ func (ct *CompoundTrigger) Trigger() error {
 	}
 	return nil
 }
-

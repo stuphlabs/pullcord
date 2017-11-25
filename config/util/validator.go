@@ -7,26 +7,27 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/fitstar/falcore"
-	"github.com/stretchr/testify/assert"
-	"github.com/stuphlabs/pullcord/config"
 	"io"
 	"net"
 	"net/http"
 	"strings"
 	"testing"
+
+	"github.com/fitstar/falcore"
+	"github.com/stretchr/testify/assert"
+	"github.com/stuphlabs/pullcord/config"
 )
 
 type validation struct {
 	unmarshaled json.Unmarshaler
-	validate func(json.Unmarshaler) error
+	validate    func(json.Unmarshaler) error
 }
 
 func (v *validation) UnmarshalJSON(input []byte) error {
 	var r config.Resource
 
 	dec := json.NewDecoder(bytes.NewReader(input))
-	if e:= dec.Decode(&r); e != nil {
+	if e := dec.Decode(&r); e != nil {
 		return e
 	} else {
 		v.unmarshaled = r.Unmarshaled
@@ -65,14 +66,14 @@ func (v *validation) FilterRequest(req *falcore.Request) *http.Response {
 func (v *validation) Accept() (net.Conn, error) {
 	return nil, errors.New(
 		"Accept was called on a validator, presumably after an" +
-		" otherwise passing unit test.",
+			" otherwise passing unit test.",
 	)
 }
 
 func (v *validation) Close() error {
 	return errors.New(
 		"Close was called on a validator, presumably after an" +
-		" otherwise passing unit test.",
+			" otherwise passing unit test.",
 	)
 }
 
@@ -84,7 +85,7 @@ func (v *validation) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	panic(
 		errors.New(
 			"ServeHTTP was called on a validator, presumably" +
-			" after an otherwise passing unit test.",
+				" after an otherwise passing unit test.",
 		),
 	)
 }
@@ -93,7 +94,7 @@ func GenerateValidator(
 	validate func(json.Unmarshaler) error,
 ) (string, error) {
 	rbytes := make([]byte, 8) // we just don't want cheating in tests
-	if _, e := rand.Read(rbytes); e!= nil {
+	if _, e := rand.Read(rbytes); e != nil {
 		return "", e
 	}
 	validatorName := "validator-" + hex.EncodeToString(rbytes)
@@ -102,14 +103,14 @@ func GenerateValidator(
 		func() json.Unmarshaler {
 			return &validation{
 				unmarshaled: nil,
-				validate: validate,
+				validate:    validate,
 			}
 		},
 	)
 }
 
 type ConfigTestData struct {
-	Data string
+	Data        string
 	Explanation string
 }
 
@@ -178,12 +179,12 @@ func constructConfigReader(
 }
 
 type ConfigTest struct {
-	ResourceType string
-	IsValid func(json.Unmarshaler) error
+	ResourceType     string
+	IsValid          func(json.Unmarshaler) error
 	SyntacticallyBad []ConfigTestData
-	SemanticallyBad []ConfigTestData
-	Good []ConfigTestData
-	ListenerTest bool
+	SemanticallyBad  []ConfigTestData
+	Good             []ConfigTestData
+	ListenerTest     bool
 }
 
 func (c *ConfigTest) Run(t *testing.T) {
@@ -202,15 +203,15 @@ func (c *ConfigTest) Run(t *testing.T) {
 	assert.NoError(
 		t,
 		e,
-		"Generating a validator resource type should not produce an" +
-		" error.",
+		"Generating a validator resource type should not produce an"+
+			" error.",
 	)
 	assert.NotEqual(
 		t,
 		validatorName,
 		"",
-		"A generated validator resource type should not have an" +
-		" empty resource type name.",
+		"A generated validator resource type should not have an"+
+			" empty resource type name.",
 	)
 
 	for _, d := range c.SyntacticallyBad {
@@ -229,10 +230,10 @@ func (c *ConfigTest) Run(t *testing.T) {
 			t,
 			e,
 			fmt.Sprintf(
-				"Attempting to create a server from a config" +
-				" with syntax errors should produce an" +
-				" error, but no error was generated for a" +
-				" config with explanation: %s",
+				"Attempting to create a server from a config"+
+					" with syntax errors should produce an"+
+					" error, but no error was generated for a"+
+					" config with explanation: %s",
 				d.Explanation,
 			),
 		)
@@ -241,10 +242,10 @@ func (c *ConfigTest) Run(t *testing.T) {
 			t,
 			isValidWasRun,
 			fmt.Sprintf(
-				"Attempting to create a server from a config" +
-				" with syntactic errors should not run" +
-				" IsValid, but IsValid was run for a config" +
-				" with description: %s",
+				"Attempting to create a server from a config"+
+					" with syntactic errors should not run"+
+					" IsValid, but IsValid was run for a config"+
+					" with description: %s",
 				d.Explanation,
 			),
 		)
@@ -253,10 +254,10 @@ func (c *ConfigTest) Run(t *testing.T) {
 			t,
 			s,
 			fmt.Sprintf(
-				"Attempting to create a server from a config" +
-				" with syntax errors should produce a nil" +
-				" server, but a non-nil server was generated" +
-				" for a config with explanation: %s",
+				"Attempting to create a server from a config"+
+					" with syntax errors should produce a nil"+
+					" server, but a non-nil server was generated"+
+					" for a config with explanation: %s",
 				d.Explanation,
 			),
 		)
@@ -278,10 +279,10 @@ func (c *ConfigTest) Run(t *testing.T) {
 			t,
 			e,
 			fmt.Sprintf(
-				"Attempting to create a server from a config" +
-				" with semantic errors should produce an" +
-				" error, but no error was generated for a" +
-				" config with explanation: %s",
+				"Attempting to create a server from a config"+
+					" with semantic errors should produce an"+
+					" error, but no error was generated for a"+
+					" config with explanation: %s",
 				d.Explanation,
 			),
 		)
@@ -290,10 +291,10 @@ func (c *ConfigTest) Run(t *testing.T) {
 			t,
 			isValidWasRun,
 			fmt.Sprintf(
-				"Attempting to create a server from a config" +
-				" with semantic errors should run IsValid," +
-				" but IsValid was not run for a config with" +
-				" description: %s",
+				"Attempting to create a server from a config"+
+					" with semantic errors should run IsValid,"+
+					" but IsValid was not run for a config with"+
+					" description: %s",
 				d.Explanation,
 			),
 		)
@@ -302,10 +303,10 @@ func (c *ConfigTest) Run(t *testing.T) {
 			t,
 			s,
 			fmt.Sprintf(
-				"Attempting to create a server from a config" +
-				" with semantic errors should produce a nil" +
-				" server, but a non-nil server was generated" +
-				" for a config with explanation: %s",
+				"Attempting to create a server from a config"+
+					" with semantic errors should produce a nil"+
+					" server, but a non-nil server was generated"+
+					" for a config with explanation: %s",
 				d.Explanation,
 			),
 		)
@@ -327,10 +328,10 @@ func (c *ConfigTest) Run(t *testing.T) {
 			t,
 			e,
 			fmt.Sprintf(
-				"Attempting to create a server from a valid" +
-				" config should produce no errors, but an" +
-				" error was generated for a config with" +
-				" explanation: %s",
+				"Attempting to create a server from a valid"+
+					" config should produce no errors, but an"+
+					" error was generated for a config with"+
+					" explanation: %s",
 				d.Explanation,
 			),
 		)
@@ -339,9 +340,9 @@ func (c *ConfigTest) Run(t *testing.T) {
 			t,
 			isValidWasRun,
 			fmt.Sprintf(
-				"Attempting to create a server from a valid" +
-				" config should run IsValid, but IsValid was" +
-				" not run for a config with description: %s",
+				"Attempting to create a server from a valid"+
+					" config should run IsValid, but IsValid was"+
+					" not run for a config with description: %s",
 				d.Explanation,
 			),
 		)
@@ -350,10 +351,10 @@ func (c *ConfigTest) Run(t *testing.T) {
 			t,
 			s,
 			fmt.Sprintf(
-				"Attempting to create a server from a valid" +
-				" config should produce a non-nil server," +
-				" but a nil server was generated for a" +
-				" config with explanation: %s",
+				"Attempting to create a server from a valid"+
+					" config should produce a non-nil server,"+
+					" but a nil server was generated for a"+
+					" config with explanation: %s",
 				d.Explanation,
 			),
 		)

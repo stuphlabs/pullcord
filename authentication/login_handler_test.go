@@ -3,15 +3,17 @@ package authentication
 import (
 	"bytes"
 	"errors"
-	"github.com/fitstar/falcore"
-	"github.com/stretchr/testify/assert"
-	configutil "github.com/stuphlabs/pullcord/config/util"
-	"golang.org/x/net/html"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
 	"testing"
+
+	"github.com/fitstar/falcore"
+	"github.com/stretchr/testify/assert"
+	configutil "github.com/stuphlabs/pullcord/config/util"
+
+	"golang.org/x/net/html"
 )
 
 func getXsrfToken(n *html.Node, xsrfName string) (string, error) {
@@ -43,7 +45,7 @@ func getXsrfToken(n *html.Node, xsrfName string) (string, error) {
 			if xsrfToken != "" {
 				return xsrfToken, nil
 			} else if n.FirstChild.Type == html.TextNode &&
-				n.FirstChild.Data != ""{
+				n.FirstChild.Data != "" {
 				return n.FirstChild.Data, nil
 			} else {
 				return "", errors.New(
@@ -68,7 +70,7 @@ func TestInitialLoginPage(t *testing.T) {
 	testPassword := "P@ssword1"
 
 	downstreamFilter := falcore.NewRequestFilter(
-		func (request *falcore.Request) *http.Response {
+		func(request *falcore.Request) *http.Response {
 			return falcore.StringResponse(
 				request.HttpRequest,
 				200,
@@ -111,12 +113,12 @@ func TestInitialLoginPage(t *testing.T) {
 	assert.True(
 		t,
 		strings.Contains(string(content), "xsrf-testLoginHandler"),
-		"content is: " + string(content),
+		"content is: "+string(content),
 	)
 	assert.False(
 		t,
 		strings.Contains(string(content), "error"),
-		"content is: " + string(content),
+		"content is: "+string(content),
 	)
 
 	assert.NotEmpty(t, response.Header["Set-Cookie"])
@@ -128,7 +130,7 @@ func TestNoXsrfLoginPage(t *testing.T) {
 	testPassword := "P@ssword1"
 
 	downstreamFilter := falcore.NewRequestFilter(
-		func (request *falcore.Request) *http.Response {
+		func(request *falcore.Request) *http.Response {
 			return falcore.StringResponse(
 				request.HttpRequest,
 				200,
@@ -191,7 +193,7 @@ func TestNoXsrfLoginPage(t *testing.T) {
 	assert.True(
 		t,
 		strings.Contains(string(content), "Invalid credentials"),
-		"content is: " + string(content),
+		"content is: "+string(content),
 	)
 }
 
@@ -201,7 +203,7 @@ func TestBadXsrfLoginPage(t *testing.T) {
 	testPassword := "P@ssword1"
 
 	downstreamFilter := falcore.NewRequestFilter(
-		func (request *falcore.Request) *http.Response {
+		func(request *falcore.Request) *http.Response {
 			return falcore.StringResponse(
 				request.HttpRequest,
 				200,
@@ -248,7 +250,6 @@ func TestBadXsrfLoginPage(t *testing.T) {
 		handler,
 	}
 
-
 	_, response1 := falcore.TestWithRequest(request1, filter, nil)
 	assert.Equal(t, 200, response1.StatusCode)
 	assert.NotEmpty(t, response1.Header["Set-Cookie"])
@@ -266,7 +267,7 @@ func TestBadXsrfLoginPage(t *testing.T) {
 	assert.True(
 		t,
 		strings.Contains(string(content), "Invalid credentials"),
-		"content is: " + string(content),
+		"content is: "+string(content),
 	)
 }
 
@@ -276,7 +277,7 @@ func TestNoUsernameLoginPage(t *testing.T) {
 	testPassword := "P@ssword1"
 
 	downstreamFilter := falcore.NewRequestFilter(
-		func (request *falcore.Request) *http.Response {
+		func(request *falcore.Request) *http.Response {
 			return falcore.StringResponse(
 				request.HttpRequest,
 				200,
@@ -318,10 +319,10 @@ func TestNoUsernameLoginPage(t *testing.T) {
 	assert.NoError(t, err)
 	htmlRoot, err := html.Parse(bytes.NewReader(content1))
 	assert.NoError(t, err)
-	xsrfToken, err := getXsrfToken(htmlRoot, "xsrf-" + handler.Identifier)
+	xsrfToken, err := getXsrfToken(htmlRoot, "xsrf-"+handler.Identifier)
 	assert.NoError(t, err)
 	postdata2 := url.Values{}
-	postdata2.Add("xsrf-" + handler.Identifier, xsrfToken)
+	postdata2.Add("xsrf-"+handler.Identifier, xsrfToken)
 	request2, err := http.NewRequest(
 		"POST",
 		"/",
@@ -347,7 +348,7 @@ func TestNoUsernameLoginPage(t *testing.T) {
 	assert.True(
 		t,
 		strings.Contains(string(content2), "Invalid credentials"),
-		"content is: " + string(content2),
+		"content is: "+string(content2),
 	)
 }
 
@@ -357,7 +358,7 @@ func TestNoPasswordLoginPage(t *testing.T) {
 	testPassword := "P@ssword1"
 
 	downstreamFilter := falcore.NewRequestFilter(
-		func (request *falcore.Request) *http.Response {
+		func(request *falcore.Request) *http.Response {
 			return falcore.StringResponse(
 				request.HttpRequest,
 				200,
@@ -399,11 +400,11 @@ func TestNoPasswordLoginPage(t *testing.T) {
 	assert.NoError(t, err)
 	htmlRoot, err := html.Parse(bytes.NewReader(content1))
 	assert.NoError(t, err)
-	xsrfToken, err := getXsrfToken(htmlRoot, "xsrf-" + handler.Identifier)
+	xsrfToken, err := getXsrfToken(htmlRoot, "xsrf-"+handler.Identifier)
 	assert.NoError(t, err)
 	postdata2 := url.Values{}
-	postdata2.Add("xsrf-" + handler.Identifier, xsrfToken)
-	postdata2.Add("username-" + handler.Identifier, testUser)
+	postdata2.Add("xsrf-"+handler.Identifier, xsrfToken)
+	postdata2.Add("username-"+handler.Identifier, testUser)
 	request2, err := http.NewRequest(
 		"POST",
 		"/",
@@ -429,7 +430,7 @@ func TestNoPasswordLoginPage(t *testing.T) {
 	assert.True(
 		t,
 		strings.Contains(string(content2), "Invalid credentials"),
-		"content is: " + string(content2),
+		"content is: "+string(content2),
 	)
 }
 
@@ -439,7 +440,7 @@ func TestUsernameArrayLoginPage(t *testing.T) {
 	testPassword := "P@ssword1"
 
 	downstreamFilter := falcore.NewRequestFilter(
-		func (request *falcore.Request) *http.Response {
+		func(request *falcore.Request) *http.Response {
 			return falcore.StringResponse(
 				request.HttpRequest,
 				200,
@@ -481,14 +482,14 @@ func TestUsernameArrayLoginPage(t *testing.T) {
 	assert.NoError(t, err)
 	htmlRoot, err := html.Parse(bytes.NewReader(content1))
 	assert.NoError(t, err)
-	xsrfToken, err := getXsrfToken(htmlRoot, "xsrf-" + handler.Identifier)
+	xsrfToken, err := getXsrfToken(htmlRoot, "xsrf-"+handler.Identifier)
 	assert.NoError(t, err)
 
 	postdata2 := url.Values{}
-	postdata2.Add("xsrf-" + handler.Identifier, xsrfToken)
-	postdata2.Add("username-" + handler.Identifier, testUser)
-	postdata2.Add("username-" + handler.Identifier, testUser + "-number2")
-	postdata2.Add("password-" + handler.Identifier, testPassword)
+	postdata2.Add("xsrf-"+handler.Identifier, xsrfToken)
+	postdata2.Add("username-"+handler.Identifier, testUser)
+	postdata2.Add("username-"+handler.Identifier, testUser+"-number2")
+	postdata2.Add("password-"+handler.Identifier, testPassword)
 
 	request2, err := http.NewRequest(
 		"POST",
@@ -515,7 +516,7 @@ func TestUsernameArrayLoginPage(t *testing.T) {
 	assert.True(
 		t,
 		strings.Contains(string(content2), "Bad request"),
-		"content is: " + string(content2),
+		"content is: "+string(content2),
 	)
 }
 
@@ -525,7 +526,7 @@ func TestBadUsernameLoginPage(t *testing.T) {
 	testPassword := "P@ssword1"
 
 	downstreamFilter := falcore.NewRequestFilter(
-		func (request *falcore.Request) *http.Response {
+		func(request *falcore.Request) *http.Response {
 			return falcore.StringResponse(
 				request.HttpRequest,
 				200,
@@ -567,13 +568,13 @@ func TestBadUsernameLoginPage(t *testing.T) {
 	assert.NoError(t, err)
 	htmlRoot, err := html.Parse(bytes.NewReader(content1))
 	assert.NoError(t, err)
-	xsrfToken, err := getXsrfToken(htmlRoot, "xsrf-" + handler.Identifier)
+	xsrfToken, err := getXsrfToken(htmlRoot, "xsrf-"+handler.Identifier)
 	assert.NoError(t, err)
 
 	postdata2 := url.Values{}
-	postdata2.Add("xsrf-" + handler.Identifier, xsrfToken)
-	postdata2.Add("username-" + handler.Identifier, testUser + "-bad")
-	postdata2.Add("password-" + handler.Identifier, testPassword)
+	postdata2.Add("xsrf-"+handler.Identifier, xsrfToken)
+	postdata2.Add("username-"+handler.Identifier, testUser+"-bad")
+	postdata2.Add("password-"+handler.Identifier, testPassword)
 
 	request2, err := http.NewRequest(
 		"POST",
@@ -600,7 +601,7 @@ func TestBadUsernameLoginPage(t *testing.T) {
 	assert.True(
 		t,
 		strings.Contains(string(content2), "Invalid credentials"),
-		"content is: " + string(content2),
+		"content is: "+string(content2),
 	)
 }
 
@@ -610,7 +611,7 @@ func TestBadPasswordLoginPage(t *testing.T) {
 	testPassword := "P@ssword1"
 
 	downstreamFilter := falcore.NewRequestFilter(
-		func (request *falcore.Request) *http.Response {
+		func(request *falcore.Request) *http.Response {
 			return falcore.StringResponse(
 				request.HttpRequest,
 				200,
@@ -652,13 +653,13 @@ func TestBadPasswordLoginPage(t *testing.T) {
 	assert.NoError(t, err)
 	htmlRoot, err := html.Parse(bytes.NewReader(content1))
 	assert.NoError(t, err)
-	xsrfToken, err := getXsrfToken(htmlRoot, "xsrf-" + handler.Identifier)
+	xsrfToken, err := getXsrfToken(htmlRoot, "xsrf-"+handler.Identifier)
 	assert.NoError(t, err)
 
 	postdata2 := url.Values{}
-	postdata2.Add("xsrf-" + handler.Identifier, xsrfToken)
-	postdata2.Add("username-" + handler.Identifier, testUser)
-	postdata2.Add("password-" + handler.Identifier, testPassword + "-bad")
+	postdata2.Add("xsrf-"+handler.Identifier, xsrfToken)
+	postdata2.Add("username-"+handler.Identifier, testUser)
+	postdata2.Add("password-"+handler.Identifier, testPassword+"-bad")
 
 	request2, err := http.NewRequest(
 		"POST",
@@ -685,7 +686,7 @@ func TestBadPasswordLoginPage(t *testing.T) {
 	assert.True(
 		t,
 		strings.Contains(string(content2), "Invalid credentials"),
-		"content is: " + string(content2),
+		"content is: "+string(content2),
 	)
 }
 
@@ -695,7 +696,7 @@ func TestGoodLoginPage(t *testing.T) {
 	testPassword := "P@ssword1"
 
 	downstreamFilter := falcore.NewRequestFilter(
-		func (request *falcore.Request) *http.Response {
+		func(request *falcore.Request) *http.Response {
 			return falcore.StringResponse(
 				request.HttpRequest,
 				200,
@@ -737,13 +738,13 @@ func TestGoodLoginPage(t *testing.T) {
 	assert.NoError(t, err)
 	htmlRoot, err := html.Parse(bytes.NewReader(content1))
 	assert.NoError(t, err)
-	xsrfToken, err := getXsrfToken(htmlRoot, "xsrf-" + handler.Identifier)
+	xsrfToken, err := getXsrfToken(htmlRoot, "xsrf-"+handler.Identifier)
 	assert.NoError(t, err)
 
 	postdata2 := url.Values{}
-	postdata2.Add("xsrf-" + handler.Identifier, xsrfToken)
-	postdata2.Add("username-" + handler.Identifier, testUser)
-	postdata2.Add("password-" + handler.Identifier, testPassword)
+	postdata2.Add("xsrf-"+handler.Identifier, xsrfToken)
+	postdata2.Add("username-"+handler.Identifier, testUser)
+	postdata2.Add("password-"+handler.Identifier, testPassword)
 
 	request2, err := http.NewRequest(
 		"POST",
@@ -770,7 +771,7 @@ func TestGoodLoginPage(t *testing.T) {
 	assert.True(
 		t,
 		strings.Contains(string(content2), "logged in"),
-		"content is: " + string(content2),
+		"content is: "+string(content2),
 	)
 }
 
@@ -780,7 +781,7 @@ func TestPassthruLoginPage(t *testing.T) {
 	testPassword := "P@ssword1"
 
 	downstreamFilter := falcore.NewRequestFilter(
-		func (request *falcore.Request) *http.Response {
+		func(request *falcore.Request) *http.Response {
 			return falcore.StringResponse(
 				request.HttpRequest,
 				200,
@@ -822,13 +823,13 @@ func TestPassthruLoginPage(t *testing.T) {
 	assert.NoError(t, err)
 	htmlRoot, err := html.Parse(bytes.NewReader(content1))
 	assert.NoError(t, err)
-	xsrfToken, err := getXsrfToken(htmlRoot, "xsrf-" + handler.Identifier)
+	xsrfToken, err := getXsrfToken(htmlRoot, "xsrf-"+handler.Identifier)
 	assert.NoError(t, err)
 
 	postdata2 := url.Values{}
-	postdata2.Add("xsrf-" + handler.Identifier, xsrfToken)
-	postdata2.Add("username-" + handler.Identifier, testUser)
-	postdata2.Add("password-" + handler.Identifier, testPassword)
+	postdata2.Add("xsrf-"+handler.Identifier, xsrfToken)
+	postdata2.Add("username-"+handler.Identifier, testUser)
+	postdata2.Add("password-"+handler.Identifier, testPassword)
 
 	request2, err := http.NewRequest(
 		"POST",
@@ -854,7 +855,7 @@ func TestPassthruLoginPage(t *testing.T) {
 	assert.True(
 		t,
 		strings.Contains(string(content2), "logged in"),
-		"content is: " + string(content2),
+		"content is: "+string(content2),
 	)
 
 	request3, err := http.NewRequest("GET", "/", nil)
@@ -865,7 +866,6 @@ func TestPassthruLoginPage(t *testing.T) {
 
 	_, response3 := falcore.TestWithRequest(request3, filter, nil)
 
-
 	/* check */
 	assert.Equal(t, 200, response3.StatusCode)
 
@@ -874,7 +874,7 @@ func TestPassthruLoginPage(t *testing.T) {
 	assert.True(
 		t,
 		strings.Contains(string(content3), "logged in"),
-		"content is: " + string(content3),
+		"content is: "+string(content3),
 	)
 }
 
@@ -882,30 +882,30 @@ func TestLoginHandlerFromConfig(t *testing.T) {
 	test := configutil.ConfigTest{
 		ResourceType: "loginhandler",
 		SyntacticallyBad: []configutil.ConfigTestData{
-			configutil.ConfigTestData{
-				Data: "",
+			{
+				Data:        "",
 				Explanation: "empty config",
 			},
-			configutil.ConfigTestData{
-				Data: "{}",
+			{
+				Data:        "{}",
 				Explanation: "empty object",
 			},
-			configutil.ConfigTestData{
-				Data: "null",
+			{
+				Data:        "null",
 				Explanation: "null config",
 			},
-			configutil.ConfigTestData{
-				Data: "42",
+			{
+				Data:        "42",
 				Explanation: "numeric config",
 			},
-			configutil.ConfigTestData{
+			{
 				Data: `{
 					"passwordchecker": "notgonnadoit",
 					"masked: "wouldntbeprudent"
 				}`,
 				Explanation: "invalid subtypes",
 			},
-			configutil.ConfigTestData{
+			{
 				Data: `{
 					"passwordchecker": {
 						"type": "inmempwdstore",
@@ -930,7 +930,7 @@ func TestLoginHandlerFromConfig(t *testing.T) {
 				}`,
 				Explanation: "bad downstream",
 			},
-			configutil.ConfigTestData{
+			{
 				Data: `{
 					"passwordchecker": {
 						"type": "landingfilter",
@@ -945,7 +945,7 @@ func TestLoginHandlerFromConfig(t *testing.T) {
 			},
 		},
 		Good: []configutil.ConfigTestData{
-			configutil.ConfigTestData{
+			{
 				Data: `{
 					"passwordchecker": {
 						"type": "inmempwdstore",

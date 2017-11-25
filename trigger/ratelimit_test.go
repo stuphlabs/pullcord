@@ -1,11 +1,12 @@
 package trigger
 
 import (
+	"testing"
+	"time"
+
 	"github.com/stretchr/testify/assert"
 	configutil "github.com/stuphlabs/pullcord/config/util"
 	"github.com/stuphlabs/pullcord/util"
-	"testing"
-	"time"
 )
 
 func TestRateLimit(t *testing.T) {
@@ -33,19 +34,19 @@ func TestRateLimitTriggerFromConfig(t *testing.T) {
 	test := configutil.ConfigTest{
 		ResourceType: "ratelimittrigger",
 		SyntacticallyBad: []configutil.ConfigTestData{
-			configutil.ConfigTestData{
-				Data: "",
+			{
+				Data:        "",
 				Explanation: "empty config",
 			},
-			configutil.ConfigTestData{
-				Data: "{}",
+			{
+				Data:        "{}",
 				Explanation: "empty object",
 			},
-			configutil.ConfigTestData{
-				Data: "null",
+			{
+				Data:        "null",
 				Explanation: "null config",
 			},
-			configutil.ConfigTestData{
+			{
 				Data: `{
 					"guardedtrigger": 7,
 					"maxallowed": 42,
@@ -53,7 +54,7 @@ func TestRateLimitTriggerFromConfig(t *testing.T) {
 				}`,
 				Explanation: "numeric trigger",
 			},
-			configutil.ConfigTestData{
+			{
 				Data: `{
 					"guardedtrigger": {
 						"type": "landingfilter",
@@ -64,7 +65,7 @@ func TestRateLimitTriggerFromConfig(t *testing.T) {
 				}`,
 				Explanation: "non-trigger as trigger",
 			},
-			configutil.ConfigTestData{
+			{
 				Data: `{
 					"guardedtrigger": {
 						"type": "compoundtrigger",
@@ -75,7 +76,7 @@ func TestRateLimitTriggerFromConfig(t *testing.T) {
 				}`,
 				Explanation: "numeric delay",
 			},
-			configutil.ConfigTestData{
+			{
 				Data: `{
 					"guardedtrigger": {
 						"type": "compoundtrigger",
@@ -86,7 +87,7 @@ func TestRateLimitTriggerFromConfig(t *testing.T) {
 				}`,
 				Explanation: "nonsensical delay",
 			},
-			configutil.ConfigTestData{
+			{
 				Data: `{
 					"guardedtrigger": {},
 					"maxallowed": 42,
@@ -94,11 +95,11 @@ func TestRateLimitTriggerFromConfig(t *testing.T) {
 				}`,
 				Explanation: "empty trigger",
 			},
-			configutil.ConfigTestData{
-				Data: "42",
+			{
+				Data:        "42",
 				Explanation: "numeric config",
 			},
-			configutil.ConfigTestData{
+			{
 				Data: `{
 					"guardedtrigger": {
 						"type": "compoundtrigger",
@@ -109,7 +110,7 @@ func TestRateLimitTriggerFromConfig(t *testing.T) {
 				}`,
 				Explanation: "negative max allowed",
 			},
-			configutil.ConfigTestData{
+			{
 				Data: `{
 					"guardedtrigger": {
 						"type": "compoundtrigger",
@@ -122,7 +123,7 @@ func TestRateLimitTriggerFromConfig(t *testing.T) {
 			},
 		},
 		Good: []configutil.ConfigTestData{
-			configutil.ConfigTestData{
+			{
 				Data: `{
 					"guardedtrigger": {
 						"type": "compoundtrigger",

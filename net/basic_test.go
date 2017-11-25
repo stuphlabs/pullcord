@@ -2,10 +2,11 @@ package net
 
 import (
 	"bytes"
-	"github.com/stretchr/testify/assert"
-	configutil "github.com/stuphlabs/pullcord/config/util"
 	"net"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	configutil "github.com/stuphlabs/pullcord/config/util"
 )
 
 func TestBasicListenerType(t *testing.T) {
@@ -15,8 +16,8 @@ func TestBasicListenerType(t *testing.T) {
 		t,
 		(*net.Listener)(nil),
 		b,
-		"A BasicListener should be a net.Listener, but this" +
-		" BasicListener has the wrong type.",
+		"A BasicListener should be a net.Listener, but this"+
+			" BasicListener has the wrong type.",
 	)
 }
 
@@ -25,31 +26,31 @@ func TestBasicListenerConfig(t *testing.T) {
 		ResourceType: "basiclistener",
 		ListenerTest: true,
 		SyntacticallyBad: []configutil.ConfigTestData{
-			configutil.ConfigTestData{
-				Data: ``,
+			{
+				Data:        ``,
 				Explanation: "empty config",
 			},
-			configutil.ConfigTestData{
-				Data: `42`,
+			{
+				Data:        `42`,
 				Explanation: "numeric config",
 			},
-			configutil.ConfigTestData{
-				Data: `"test"`,
+			{
+				Data:        `"test"`,
 				Explanation: "string config",
 			},
-			configutil.ConfigTestData{
+			{
 				Data: `{
 				}`,
 				Explanation: "empty object",
 			},
-			configutil.ConfigTestData{
+			{
 				Data: `{
 					"proto": "droid",
 					"laddr": ":0"
 				}`,
 				Explanation: "bad protocol",
 			},
-			configutil.ConfigTestData{
+			{
 				Data: `{
 					"proto": "tcp",
 					"laddr": "1234 Main St. Podunk, OK 73000"
@@ -58,7 +59,7 @@ func TestBasicListenerConfig(t *testing.T) {
 			},
 		},
 		Good: []configutil.ConfigTestData{
-			configutil.ConfigTestData{
+			{
 				Data: `{
 					"proto": "tcp",
 					"laddr": ":0"
@@ -76,14 +77,14 @@ func TestBasicListenerBehavior(t *testing.T) {
 	assert.NoError(
 		t,
 		e,
-		"Attempting to create a valid basic listener should not" +
-		" produce an error, but an error was produced.",
+		"Attempting to create a valid basic listener should not"+
+			" produce an error, but an error was produced.",
 	)
 	assert.NotNil(
 		t,
 		nl,
-		"Attempting to create a valid basic listener should produce" +
-		" a non-nil listener, but a nil listener was produced.",
+		"Attempting to create a valid basic listener should produce"+
+			" a non-nil listener, but a nil listener was produced.",
 	)
 
 	l := &BasicListener{nl}
@@ -97,8 +98,8 @@ func TestBasicListenerBehavior(t *testing.T) {
 		assert.NoError(
 			t,
 			e,
-			"Attempting to close a basic listener should not" +
-			" produce an error, but an error was produced.",
+			"Attempting to close a basic listener should not"+
+				" produce an error, but an error was produced.",
 		)
 	}()
 
@@ -106,8 +107,8 @@ func TestBasicListenerBehavior(t *testing.T) {
 	assert.NotNil(
 		t,
 		addr,
-		"Attempting to get the address from a basic listener should" +
-		" return a non-nil address, but a nil address was returned.",
+		"Attempting to get the address from a basic listener should"+
+			" return a non-nil address, but a nil address was returned.",
 	)
 
 	if addr == nil {
@@ -135,16 +136,16 @@ func TestBasicListenerBehavior(t *testing.T) {
 		assert.NoError(
 			t,
 			e,
-			"Attempting to accept a connection from a valid" +
-			" basic listener should not produce an error, but an" +
-			" error was produced.",
+			"Attempting to accept a connection from a valid"+
+				" basic listener should not produce an error, but an"+
+				" error was produced.",
 		)
 		assert.NotNil(
 			t,
 			c,
-			"Attempting to accept a connection from a valid" +
-			" basic listener should produce a non-nil" +
-			" connection, but a nil connection was produced.",
+			"Attempting to accept a connection from a valid"+
+				" basic listener should produce a non-nil"+
+				" connection, but a nil connection was produced.",
 		)
 		if c == nil {
 			return
@@ -156,9 +157,9 @@ func TestBasicListenerBehavior(t *testing.T) {
 		assert.NoError(
 			t,
 			e,
-			"Attempting to read from an accepted connection that" +
-			" came from a valid basic listener should not" +
-			" produce an error, but an error was produced.",
+			"Attempting to read from an accepted connection that"+
+				" came from a valid basic listener should not"+
+				" produce an error, but an error was produced.",
 		)
 
 		actual := b.String()
@@ -166,10 +167,10 @@ func TestBasicListenerBehavior(t *testing.T) {
 			t,
 			expected,
 			actual,
-			"Attempting to transmit data through a basic" +
-			" listener should not result in alterred data, but" +
-			" the actual data received was not identical to the" +
-			" data expected to have been sent.",
+			"Attempting to transmit data through a basic"+
+				" listener should not result in alterred data, but"+
+				" the actual data received was not identical to the"+
+				" data expected to have been sent.",
 		)
 	}(t, l, expected, done)
 
@@ -177,15 +178,15 @@ func TestBasicListenerBehavior(t *testing.T) {
 	assert.NoError(
 		t,
 		e,
-		"Attempting to connect as a client to a basic listener" +
-		" should not produce an error, but an error was produced.",
+		"Attempting to connect as a client to a basic listener"+
+			" should not produce an error, but an error was produced.",
 	)
 	assert.NotNil(
 		t,
 		c,
-		"Attempting to connect as a client to a basic listener" +
-		" should produce a non-nil connection, but a nil connection" +
-		" was produced.",
+		"Attempting to connect as a client to a basic listener"+
+			" should produce a non-nil connection, but a nil connection"+
+			" was produced.",
 	)
 
 	if c == nil {
@@ -197,9 +198,9 @@ func TestBasicListenerBehavior(t *testing.T) {
 		assert.NoError(
 			t,
 			e,
-			"Attempting to close a client connection to a basic" +
-			" listener should not produce an error, but an error" +
-			" was produced.",
+			"Attempting to close a client connection to a basic"+
+				" listener should not produce an error, but an error"+
+				" was produced.",
 		)
 	}(t, c)
 
@@ -207,8 +208,8 @@ func TestBasicListenerBehavior(t *testing.T) {
 	assert.NoError(
 		t,
 		e,
-		"Attempting to write to a client connection of a basic" +
-		" listener should not produce an error, but an error was" +
-		" produced.",
+		"Attempting to write to a client connection of a basic"+
+			" listener should not produce an error, but an error was"+
+			" produced.",
 	)
 }

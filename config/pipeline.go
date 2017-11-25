@@ -4,8 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/fitstar/falcore"
 	"net/http"
+
+	"github.com/fitstar/falcore"
 )
 
 type ConfigPipeline struct {
@@ -32,7 +33,7 @@ func init() {
 
 func (p *ConfigPipeline) UnmarshalJSON(d []byte) error {
 	var t struct {
-		Upstream []Resource
+		Upstream   []Resource
 		Downstream []Resource
 	}
 	t.Upstream = make([]Resource, 0)
@@ -51,8 +52,8 @@ func (p *ConfigPipeline) UnmarshalJSON(d []byte) error {
 		default:
 			return errors.New(
 				fmt.Sprintf(
-					"The pipeline resource is not a" +
-					" RequestFilter: %v",
+					"The pipeline resource is not a"+
+						" RequestFilter: %v",
 					u,
 				),
 			)
@@ -68,8 +69,8 @@ func (p *ConfigPipeline) UnmarshalJSON(d []byte) error {
 		default:
 			return errors.New(
 				fmt.Sprintf(
-					"The pipeline resource is not a" +
-					" RequestFilter: %v",
+					"The pipeline resource is not a"+
+						" RequestFilter: %v",
 					u,
 				),
 			)

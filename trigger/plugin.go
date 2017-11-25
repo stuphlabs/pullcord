@@ -1,4 +1,3 @@
 package trigger
 
 func LoadPlugin() {}
-

@@ -21,23 +21,23 @@ func init() {
 
 type AcmeConfig struct {
 	AcceptTOS bool
-	Domains []string
+	Domains   []string
 }
 
 func (a *AcmeConfig) UnmarshalJSON(d []byte) error {
 	var t struct {
 		AcceptTOS bool
-		Domains []string
+		Domains   []string
 	}
 
 	if e := json.Unmarshal(d, &t); e != nil {
 		return e
 	}
 
-	if ! t.AcceptTOS {
+	if !t.AcceptTOS {
 		return errors.New(
-			"The terms of service must be accepted in order to use"+
-				" the default ACME setup.",
+			"The terms of service must be accepted in order to" +
+				" use the default ACME setup.",
 		)
 	}
 
@@ -48,15 +48,15 @@ func (a *AcmeConfig) UnmarshalJSON(d []byte) error {
 }
 
 func (a *AcmeConfig) GetManager() (*autocert.Manager, error) {
-	if ! a.AcceptTOS {
+	if !a.AcceptTOS {
 		return nil, errors.New(
-			"The terms of service must be accepted in order to use"+
-				" the default ACME setup.",
+			"The terms of service must be accepted in order to" +
+				" use the default ACME setup.",
 		)
 	}
 
 	return &autocert.Manager{
-		Prompt: autocert.AcceptTOS,
+		Prompt:     autocert.AcceptTOS,
 		HostPolicy: autocert.HostWhitelist(a.Domains...),
 	}, nil
 }

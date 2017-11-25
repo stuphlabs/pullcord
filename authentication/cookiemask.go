@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"strings"
+
 	"github.com/fitstar/falcore"
 	"github.com/proidiot/gone/log"
 	"github.com/stuphlabs/pullcord/config"
 	"github.com/stuphlabs/pullcord/util"
-	"net/http"
-	"strings"
 )
 
 // CookiemaskFilter is a falcore.RequestFilter that will apply a "cookie mask"
@@ -38,7 +39,7 @@ import (
 // receive no cookies as part of the request).
 type CookiemaskFilter struct {
 	Handler SessionHandler
-	Masked falcore.RequestFilter
+	Masked  falcore.RequestFilter
 }
 
 func init() {
@@ -50,10 +51,10 @@ func init() {
 	)
 }
 
-func (f *CookiemaskFilter) UnmarshalJSON(input []byte) (error) {
+func (f *CookiemaskFilter) UnmarshalJSON(input []byte) error {
 	var t struct {
 		Handler config.Resource
-		Masked config.Resource
+		Masked  config.Resource
 	}
 
 	dec := json.NewDecoder(bytes.NewReader(input))
@@ -67,7 +68,7 @@ func (f *CookiemaskFilter) UnmarshalJSON(input []byte) (error) {
 		default:
 			log.Err(
 				"Resource described by \"Handler\" is not a" +
-				" SessionHandler",
+					" SessionHandler",
 			)
 			return config.UnexpectedResourceType
 		}
@@ -79,7 +80,7 @@ func (f *CookiemaskFilter) UnmarshalJSON(input []byte) (error) {
 		default:
 			log.Err(
 				"Resource described by \"Masked\" is not a" +
-				" RequestFilter",
+					" RequestFilter",
 			)
 			return config.UnexpectedResourceType
 		}
@@ -92,19 +93,19 @@ func (f *CookiemaskFilter) UnmarshalJSON(input []byte) (error) {
 // be a falcore.RequestFilter.
 func (filter *CookiemaskFilter) FilterRequest(
 	req *falcore.Request,
-) (*http.Response) {
+) *http.Response {
 	log.Debug("running cookiemask filter")
 
 	//TODO remove
-	log.Debug(fmt.Sprintf("handler is: %v",filter))
+	log.Debug(fmt.Sprintf("handler is: %v", filter))
 
 	sesh, err := filter.Handler.GetSession()
 	if err != nil {
 		log.Err(
 			fmt.Sprintf(
-				"cookiemask filter was unable to get" +
-				" a new session from the session" +
-				" handler: %v",
+				"cookiemask filter was unable to get"+
+					" a new session from the session"+
+					" handler: %v",
 				err,
 			),
 		)
@@ -113,7 +114,7 @@ func (filter *CookiemaskFilter) FilterRequest(
 	}
 
 	// TODO remove
-	log.Debug(fmt.Sprintf("sesh is: %v",sesh))
+	log.Debug(fmt.Sprintf("sesh is: %v", sesh))
 
 	req.Context["session"] = sesh
 
@@ -125,9 +126,9 @@ func (filter *CookiemaskFilter) FilterRequest(
 	if err != nil {
 		log.Err(
 			fmt.Sprintf(
-				"cookiemask filter's call to the" +
-				" session handler's CookieMask" +
-				" function returned an error: %v",
+				"cookiemask filter's call to the"+
+					" session handler's CookieMask"+
+					" function returned an error: %v",
 				err,
 			),
 		)
@@ -144,8 +145,8 @@ func (filter *CookiemaskFilter) FilterRequest(
 		}
 		log.Debug(
 			fmt.Sprintf(
-				"cookiemask forwarding  cookies with" +
-				" these keys: [%s]",
+				"cookiemask forwarding  cookies with"+
+					" these keys: [%s]",
 				cke_keys_buffer.String(),
 			),
 		)
@@ -157,7 +158,7 @@ func (filter *CookiemaskFilter) FilterRequest(
 
 		log.Info(
 			"request has run through cookiemask, now" +
-			" forwarding to next filter",
+				" forwarding to next filter",
 		)
 		resp = filter.Masked.FilterRequest(req)
 	}
@@ -171,8 +172,8 @@ func (filter *CookiemaskFilter) FilterRequest(
 	}
 	log.Debug(
 		fmt.Sprintf(
-			"cookiemask sending back with the response" +
-			" new cookies with these keys: [%s]",
+			"cookiemask sending back with the response"+
+				" new cookies with these keys: [%s]",
 			set_cke_keys_buffer.String(),
 		),
 	)

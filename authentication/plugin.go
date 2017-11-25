@@ -1,4 +1,3 @@
 package authentication
 
 func LoadPlugin() {}
-

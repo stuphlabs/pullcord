@@ -30,7 +30,7 @@ func init() {
 	}
 }
 
-type TestCertificateGetter struct{
+type TestCertificateGetter struct {
 	Cert *tls.Certificate
 }
 
@@ -52,8 +52,8 @@ func (t *TestCertificateGetter) GetCertificate(
 }
 
 type EavesdroppedConn struct {
-	Target net.Conn
-	Inbound io.Writer
+	Target   net.Conn
+	Inbound  io.Writer
 	Outbound io.Writer
 }
 
@@ -130,8 +130,8 @@ func (ec EavesdroppedConn) SetWriteDeadline(t time.Time) error {
 }
 
 type BufferedEavesdropListener struct {
-	Target net.Listener
-	Inbound bytes.Buffer
+	Target   net.Listener
+	Inbound  bytes.Buffer
 	Outbound bytes.Buffer
 }
 
@@ -139,8 +139,8 @@ func (bel *BufferedEavesdropListener) Accept() (net.Conn, error) {
 	c, e := bel.Target.Accept()
 
 	ec := EavesdroppedConn{
-		Target: c,
-		Inbound: &bel.Inbound,
+		Target:   c,
+		Inbound:  &bel.Inbound,
 		Outbound: &bel.Outbound,
 	}
 
@@ -155,7 +155,6 @@ func (bel *BufferedEavesdropListener) Addr() net.Addr {
 	return bel.Target.Addr()
 }
 
-
 func GenSelfSignedLocalhostCertificate(
 	validFor time.Duration,
 ) (*tls.Certificate, *x509.Certificate, error) {
@@ -167,11 +166,11 @@ func GenSelfSignedLocalhostCertificate(
 			net.ParseIP("127.0.0.1"),
 			net.ParseIP("::1"),
 		},
-		IsCA: true,
-		NotBefore: now,
-		NotAfter: now.Add(validFor),
+		IsCA:               true,
+		NotBefore:          now,
+		NotAfter:           now.Add(validFor),
 		PublicKeyAlgorithm: x509.RSA,
-		SerialNumber: big.NewInt(1),
+		SerialNumber:       big.NewInt(1),
 		SignatureAlgorithm: x509.SHA512WithRSA,
 	}
 
@@ -193,14 +192,14 @@ func GenSelfSignedLocalhostCertificate(
 
 	pemCert := pem.EncodeToMemory(
 		&pem.Block{
-			Type: "CERTIFICATE",
+			Type:  "CERTIFICATE",
 			Bytes: derCert,
 		},
 	)
 
 	pemKey := pem.EncodeToMemory(
 		&pem.Block{
-			Type: "RSA PRIVATE KEY",
+			Type:  "RSA PRIVATE KEY",
 			Bytes: x509.MarshalPKCS1PrivateKey(privKey),
 		},
 	)

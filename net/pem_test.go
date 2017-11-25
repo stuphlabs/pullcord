@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	configutil"github.com/stuphlabs/pullcord/config/util"
+	configutil "github.com/stuphlabs/pullcord/config/util"
 )
 
 // example key and cert stolen from
@@ -98,22 +98,22 @@ mtiMRaeQnHpWbIH2YnQikWKffZlsZGnW0x99+6P1bEp1NdV7tajjxXECFlnOW+cS
 -----END CERTIFICATE-----`
 
 func TestPem(t *testing.T) {
-	testCases := map[string]struct{
-		inputCert []byte
-		inputKey []byte
-		inputHello *tls.ClientHelloInfo
+	testCases := map[string]struct {
+		inputCert     []byte
+		inputKey      []byte
+		inputHello    *tls.ClientHelloInfo
 		errorExpected bool
-	} {
+	}{
 		"nil values": {
-			inputCert: nil,
-			inputKey: nil,
-			inputHello: nil,
+			inputCert:     nil,
+			inputKey:      nil,
+			inputHello:    nil,
 			errorExpected: true,
 		},
 		"example cert": {
-			inputKey: []byte(exampleKey),
-			inputCert: []byte(exampleCert),
-			inputHello: nil,
+			inputKey:      []byte(exampleKey),
+			inputCert:     []byte(exampleCert),
+			inputHello:    nil,
 			errorExpected: false,
 		},
 	}
@@ -156,57 +156,57 @@ func TestPemConfig(t *testing.T) {
 		ResourceType: "pem",
 		ListenerTest: true,
 		SyntacticallyBad: []configutil.ConfigTestData{
-			configutil.ConfigTestData{
-				Data: ``,
+			{
+				Data:        ``,
 				Explanation: "empty config",
 			},
-			configutil.ConfigTestData{
-				Data: `42`,
+			{
+				Data:        `42`,
 				Explanation: "numeric config",
 			},
-			configutil.ConfigTestData{
-				Data: `"test"`,
+			{
+				Data:        `"test"`,
 				Explanation: "string config",
 			},
-			configutil.ConfigTestData{
+			{
 				Data: `{
 					"key": 7,
-					"cert": "`+escnl(exampleCert)+`"
+					"cert": "` + escnl(exampleCert) + `"
 				}`,
 				Explanation: "bad key",
 			},
-			configutil.ConfigTestData{
+			{
 				Data: `{
-					"key": "`+escnl(exampleKey)+`",
+					"key": "` + escnl(exampleKey) + `",
 					"cert": {
-						"val": "`+escnl(exampleCert)+`"
+						"val": "` + escnl(exampleCert) + `"
 					}
 				}`,
 				Explanation: "bad cert",
 			},
 		},
 		Good: []configutil.ConfigTestData{
-			configutil.ConfigTestData{
+			{
 				Data: `{
 				}`,
 				Explanation: "empty object",
 			},
-			configutil.ConfigTestData{
+			{
 				Data: `{
-					"key": "`+escnl(exampleKey)+`",
-					"cert": "`+escnl(exampleCert)+`"
+					"key": "` + escnl(exampleKey) + `",
+					"cert": "` + escnl(exampleCert) + `"
 				}`,
 				Explanation: "good config",
 			},
-			configutil.ConfigTestData{
+			{
 				Data: `{
-					"key": "`+escnl(exampleKey)+`"
+					"key": "` + escnl(exampleKey) + `"
 				}`,
 				Explanation: "missing cert",
 			},
-			configutil.ConfigTestData{
+			{
 				Data: `{
-					"cert": "`+escnl(exampleCert)+`"
+					"cert": "` + escnl(exampleCert) + `"
 				}`,
 				Explanation: "missing key",
 			},
@@ -215,5 +215,3 @@ func TestPemConfig(t *testing.T) {
 
 	test.Run(t)
 }
-
-

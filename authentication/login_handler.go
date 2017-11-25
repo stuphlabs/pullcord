@@ -7,12 +7,12 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"net/http"
+
 	"github.com/fitstar/falcore"
 	"github.com/proidiot/gone/log"
-	// "github.com/stuphlabs/pullcord"
 	"github.com/stuphlabs/pullcord/config"
 	"github.com/stuphlabs/pullcord/util"
-	"net/http"
 )
 
 const XsrfTokenLength = 64
@@ -26,9 +26,9 @@ const XsrfTokenLength = 64
 // authenticate against in conjunction with its own XSRF token), and a
 // downstream RequestFilter (possibly an entire pipeline).
 type LoginHandler struct {
-	Identifier string
+	Identifier      string
 	PasswordChecker PasswordChecker
-	Downstream falcore.RequestFilter
+	Downstream      falcore.RequestFilter
 }
 
 func init() {
@@ -40,11 +40,11 @@ func init() {
 	)
 }
 
-func (h *LoginHandler) UnmarshalJSON(input []byte) (error) {
+func (h *LoginHandler) UnmarshalJSON(input []byte) error {
 	var t struct {
-		Identifier string
+		Identifier      string
 		PasswordChecker config.Resource
-		Downstream config.Resource
+		Downstream      config.Resource
 	}
 
 	dec := json.NewDecoder(bytes.NewReader(input))
@@ -59,8 +59,8 @@ func (h *LoginHandler) UnmarshalJSON(input []byte) (error) {
 		default:
 			log.Err(
 				fmt.Sprintf(
-					"Registry value is not a" +
-					" PasswordChecker: %s",
+					"Registry value is not a"+
+						" PasswordChecker: %s",
 					t.PasswordChecker,
 				),
 			)
@@ -74,8 +74,8 @@ func (h *LoginHandler) UnmarshalJSON(input []byte) (error) {
 		default:
 			log.Err(
 				fmt.Sprintf(
-					"Registry value is not a" +
-					" RequestFilter: %s",
+					"Registry value is not a"+
+						" RequestFilter: %s",
 					t.Downstream,
 				),
 			)
@@ -96,7 +96,7 @@ func (handler *LoginHandler) FilterRequest(
 	if !present {
 		log.Crit(
 			"login handler was unable to retrieve session from" +
-			" context",
+				" context",
 		)
 		return util.InternalServerError.FilterRequest(request)
 	}
@@ -114,8 +114,8 @@ func (handler *LoginHandler) FilterRequest(
 	} else if err != NoSuchSessionValueError {
 		log.Err(
 			fmt.Sprintf(
-				"login handler error during auth status" +
-				" retrieval: %v",
+				"login handler error during auth status"+
+					" retrieval: %v",
 				err,
 			),
 		)
@@ -126,8 +126,8 @@ func (handler *LoginHandler) FilterRequest(
 	if err != nil && err != NoSuchSessionValueError {
 		log.Err(
 			fmt.Sprintf(
-				"login handler error during xsrf token" +
-				" retrieval: %v",
+				"login handler error during xsrf token"+
+					" retrieval: %v",
 				err,
 			),
 		)
@@ -143,27 +143,27 @@ func (handler *LoginHandler) FilterRequest(
 		)
 		errString = "Bad request"
 	} else if xsrfRcvd, present :=
-		request.HttpRequest.PostForm[xsrfKey]; ! present {
+		request.HttpRequest.PostForm[xsrfKey]; !present {
 		log.Info("login handler did not receive xsrf token")
 		errString = "Invalid credentials"
-	} else  if len(xsrfRcvd) != 1 || 1 != subtle.ConstantTimeCompare(
+	} else if len(xsrfRcvd) != 1 || 1 != subtle.ConstantTimeCompare(
 		[]byte(xsrfStored.(string)),
 		[]byte(xsrfRcvd[0]),
 	) {
 		log.Info("login handler received bad xsrf token")
 		errString = "Invalid credentials"
 	} else if uVals, present :=
-		request.HttpRequest.PostForm[usernameKey]; ! present {
+		request.HttpRequest.PostForm[usernameKey]; !present {
 		log.Info("login handler did not receive username")
 		errString = "Invalid credentials"
 	} else if pVals, present :=
-		request.HttpRequest.PostForm[passwordKey]; ! present {
+		request.HttpRequest.PostForm[passwordKey]; !present {
 		log.Info("login handler did not receive password")
 		errString = "Invalid credentials"
 	} else if len(uVals) != 1 || len(pVals) != 1 {
 		log.Info(
 			"login handler received multi values for username or" +
-			" password",
+				" password",
 		)
 		errString = "Bad request"
 	} else if err = handler.PasswordChecker.CheckPassword(
@@ -175,7 +175,7 @@ func (handler *LoginHandler) FilterRequest(
 	} else if err == BadPasswordError {
 		log.Info("login handler received bad password")
 		errString = "Invalid credentials"
-	} else if err != nil{
+	} else if err != nil {
 		log.Err(
 			fmt.Sprintf(
 				"login handler error during CheckPassword: %v",
@@ -207,8 +207,9 @@ func (handler *LoginHandler) FilterRequest(
 	); err != nil || rsize != XsrfTokenLength {
 		log.Err(
 			fmt.Sprintf(
-				"login handler error during xsrf generation:" +
-				" len expected: %u, actual: %u, err: %v",
+				"login handler error during xsrf generation:"+
+					" len expected: %u, actual: %u,"+
+					" err: %v",
 				XsrfTokenLength,
 				rsize,
 				err,
@@ -241,16 +242,17 @@ func (handler *LoginHandler) FilterRequest(
 		200,
 		nil,
 		fmt.Sprintf(
-			"<html><head><title>Pullcord Login</title></head>" +
-			"<body><form method=\"POST\" action=\"%s\">" +
-			"<fieldset><legend>Pullcord Login</legend>%s<label " +
-			"for=\"username\">Username:</label><input " +
-			"type=\"text\" name=\"%s\" id=\"username\" /><label " +
-			"for=\"password\">Password:</label><input " +
-			"type=\"password\" name=\"%s\" id=\"password\" />" +
-			"<input type=\"hidden\" name=\"%s\" value=\"%s\" />" +
-			"<input type=\"submit\" value=\"Login\"/></fieldset>" +
-			"</form></body></html>",
+			"<html><head><title>Pullcord Login</title></head>"+
+				"<body><form method=\"POST\" action=\"%s\">"+
+				"<fieldset><legend>Pullcord Login</legend>"+
+				"%s<label for=\"username\">Username:</label>"+
+				"<input type=\"text\" name=\"%s\""+
+				" id=\"username\" /><label for=\"password\">"+
+				"Password:</label><input type=\"password\""+
+				" name=\"%s\" id=\"password\" /><input"+
+				" type=\"hidden\" name=\"%s\" value=\"%s\" />"+
+				"<input type=\"submit\" value=\"Login\"/>"+
+				"</fieldset></form></body></html>",
 			request.HttpRequest.URL.Path,
 			errMarkup,
 			usernameKey,
@@ -260,4 +262,3 @@ func (handler *LoginHandler) FilterRequest(
 		),
 	)
 }
-

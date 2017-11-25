@@ -3,7 +3,7 @@ package net
 import (
 	"testing"
 
-	configutil"github.com/stuphlabs/pullcord/config/util"
+	configutil "github.com/stuphlabs/pullcord/config/util"
 )
 
 func TestAcmeConfig(t *testing.T) {
@@ -11,30 +11,30 @@ func TestAcmeConfig(t *testing.T) {
 		ResourceType: "acme",
 		ListenerTest: true,
 		SyntacticallyBad: []configutil.ConfigTestData{
-			configutil.ConfigTestData{
-				Data: ``,
+			{
+				Data:        ``,
 				Explanation: "empty config",
 			},
-			configutil.ConfigTestData{
-				Data: `42`,
+			{
+				Data:        `42`,
 				Explanation: "numeric config",
 			},
-			configutil.ConfigTestData{
-				Data: `"test"`,
+			{
+				Data:        `"test"`,
 				Explanation: "string config",
 			},
-			configutil.ConfigTestData{
+			{
 				Data: `{
 				}`,
 				Explanation: "empty object",
 			},
-			configutil.ConfigTestData{
+			{
 				Data: `{
 					"accepttos": false
 				}`,
 				Explanation: "unaccepted tos",
 			},
-			configutil.ConfigTestData{
+			{
 				Data: `{
 					"accepttos": true,
 					"domains": 7
@@ -43,7 +43,7 @@ func TestAcmeConfig(t *testing.T) {
 			},
 		},
 		Good: []configutil.ConfigTestData{
-			configutil.ConfigTestData{
+			{
 				Data: `{
 					"AcceptTOS": true,
 					"domains": [
@@ -54,7 +54,7 @@ func TestAcmeConfig(t *testing.T) {
 				}`,
 				Explanation: "good config",
 			},
-			configutil.ConfigTestData{
+			{
 				Data: `{
 					"accepttos": true
 				}`,

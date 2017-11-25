@@ -3,15 +3,16 @@ package proxy
 import (
 	"bytes"
 	"encoding/json"
+	"net/http"
+
 	"github.com/fitstar/falcore"
 	"github.com/fitstar/falcore/filter"
 	"github.com/stuphlabs/pullcord/config"
-	"net/http"
 )
 
 type PassthruFilter struct {
-	Host string
-	Port int
+	Host           string
+	Port           int
 	upstreamFilter *filter.Upstream
 }
 
@@ -24,7 +25,7 @@ func init() {
 	)
 }
 
-func NewPassthruFilter(host string, port int) (*PassthruFilter) {
+func NewPassthruFilter(host string, port int) *PassthruFilter {
 	return &PassthruFilter{
 		host,
 		port,
@@ -39,7 +40,7 @@ func NewPassthruFilter(host string, port int) (*PassthruFilter) {
 	}
 }
 
-func (f *PassthruFilter) UnmarshalJSON(input []byte) (error) {
+func (f *PassthruFilter) UnmarshalJSON(input []byte) error {
 	var t struct {
 		Host string
 		Port int
@@ -70,7 +71,7 @@ func (f *PassthruFilter) UnmarshalJSON(input []byte) (error) {
 // As such, this is the core of the proxying system.
 func (f *PassthruFilter) FilterRequest(
 	req *falcore.Request,
-) (*http.Response) {
+) *http.Response {
 	if f.upstreamFilter == nil {
 		f.upstreamFilter = filter.NewUpstream(
 			filter.NewUpstreamTransport(
@@ -84,4 +85,3 @@ func (f *PassthruFilter) FilterRequest(
 
 	return f.upstreamFilter.FilterRequest(req)
 }
-

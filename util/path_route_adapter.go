@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+
 	"github.com/fitstar/falcore"
 	"github.com/proidiot/gone/log"
 	"github.com/stuphlabs/pullcord/config"
@@ -22,7 +23,7 @@ func init() {
 	)
 }
 
-func (r *ExactPathRouter) UnmarshalJSON(input []byte) (error) {
+func (r *ExactPathRouter) UnmarshalJSON(input []byte) error {
 	var t struct {
 		Routes map[string]config.Resource
 	}
@@ -41,8 +42,8 @@ func (r *ExactPathRouter) UnmarshalJSON(input []byte) (error) {
 		default:
 			log.Err(
 				fmt.Sprintf(
-					"Registry value is not a" +
-					" RequestFilter: %s",
+					"Registry value is not a"+
+						" RequestFilter: %s",
 					f,
 				),
 			)
@@ -55,11 +56,10 @@ func (r *ExactPathRouter) UnmarshalJSON(input []byte) (error) {
 
 func (r *ExactPathRouter) SelectPipeline(
 	req *falcore.Request,
-) (falcore.RequestFilter) {
+) falcore.RequestFilter {
 	if f, present := r.Routes[req.HttpRequest.URL.Path]; present {
 		return *f
 	} else {
 		return nil
 	}
 }
-

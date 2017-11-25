@@ -1,9 +1,5 @@
 package trigger
 
-import (
-	// "github.com/stuphlabs/pullcord"
-)
-
 // TriggerHandler is an abstract interface describing a system which provides
 // triggers that can be called based on certain events (like a service being
 // detected as down, an amount of time passing without a service being
@@ -17,4 +13,3 @@ import (
 type TriggerHandler interface {
 	Trigger() (err error)
 }
-

@@ -2,12 +2,13 @@ package pullcord
 
 import (
 	"errors"
-	"github.com/fitstar/falcore"
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net/http"
 	"strings"
 	"testing"
+
+	"github.com/fitstar/falcore"
+	"github.com/stretchr/testify/assert"
 )
 
 // testableConditionalFilter is a testing helper function that gets a Falcore
@@ -29,9 +30,9 @@ func testableConditionalFilter(
 					req.HttpRequest,
 					200,
 					nil,
-					"<html><body><p>" +
-					"condition was true" +
-					"</p></body></html>",
+					"<html><body><p>"+
+						"condition was true"+
+						"</p></body></html>",
 				)
 			},
 		),
@@ -41,9 +42,9 @@ func testableConditionalFilter(
 					req.HttpRequest,
 					200,
 					nil,
-					"<html><body><p>" +
-					"condition was false" +
-					"</p></body></html>",
+					"<html><body><p>"+
+						"condition was false"+
+						"</p></body></html>",
 				)
 			},
 		),
@@ -53,9 +54,9 @@ func testableConditionalFilter(
 					req.HttpRequest,
 					500,
 					nil,
-					"<html><body><p>" +
-					"an error occurred" +
-					"</p></body></html>",
+					"<html><body><p>"+
+						"an error occurred"+
+						"</p></body></html>",
 				)
 			},
 		),

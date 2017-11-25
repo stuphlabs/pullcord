@@ -1,11 +1,12 @@
 package trigger
 
 import (
-	"github.com/stretchr/testify/assert"
-	configutil "github.com/stuphlabs/pullcord/config/util"
 	"io/ioutil"
 	"os"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	configutil "github.com/stuphlabs/pullcord/config/util"
 )
 
 func goRemoveAll(dir string) {
@@ -52,39 +53,39 @@ func TestShellTriggerFromConfig(t *testing.T) {
 	test := configutil.ConfigTest{
 		ResourceType: "shelltrigger",
 		SyntacticallyBad: []configutil.ConfigTestData{
-			configutil.ConfigTestData{
-				Data: "",
+			{
+				Data:        "",
 				Explanation: "empty config",
 			},
-			configutil.ConfigTestData{
+			{
 				Data: `{
 					"command": 7,
 					"args": []
 				}`,
 				Explanation: "numeric command",
 			},
-			configutil.ConfigTestData{
+			{
 				Data: `{
 					"command": {},
 					"args": []
 				}`,
 				Explanation: "object command",
 			},
-			configutil.ConfigTestData{
+			{
 				Data: `{
 					"command": "echo",
 					"args": 42
 				}`,
 				Explanation: "numeric args",
 			},
-			configutil.ConfigTestData{
+			{
 				Data: `{
 					"command": "echo",
 					"args": "hello"
 				}`,
 				Explanation: "non-array string args",
 			},
-			configutil.ConfigTestData{
+			{
 				Data: `{
 					"command": "echo",
 					"args": [
@@ -94,27 +95,27 @@ func TestShellTriggerFromConfig(t *testing.T) {
 				}`,
 				Explanation: "numeric array args",
 			},
-			configutil.ConfigTestData{
-				Data: "42",
+			{
+				Data:        "42",
 				Explanation: "numeric config",
 			},
 		},
 		Good: []configutil.ConfigTestData{
-			configutil.ConfigTestData{
-				Data: "{}",
+			{
+				Data:        "{}",
 				Explanation: "empty object",
 			},
-			configutil.ConfigTestData{
-				Data: "null",
+			{
+				Data:        "null",
 				Explanation: "null config",
 			},
-			configutil.ConfigTestData{
+			{
 				Data: `{
 					"command": "echo"
 				}`,
 				Explanation: "missing args",
 			},
-			configutil.ConfigTestData{
+			{
 				Data: `{
 					"command": "echo",
 					"args": [

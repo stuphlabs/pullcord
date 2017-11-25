@@ -1,9 +1,5 @@
 package authentication
 
-import (
-	// "github.com/stuphlabs/pullcord"
-)
-
 // PasswordChecker is an abstract interface describing any system which can
 // check password (and presumably also store them in some way?).
 //

@@ -20,8 +20,8 @@ func TestBasicTlsListenerType(t *testing.T) {
 		t,
 		(*net.Listener)(nil),
 		b,
-		"A BasicTlsListener should be a net.Listener, but this" +
-		" BasicTlsListener has the wrong type.",
+		"A BasicTlsListener should be a net.Listener, but this"+
+			" BasicTlsListener has the wrong type.",
 	)
 }
 
@@ -30,31 +30,31 @@ func TestBasicTlsListenerConfig(t *testing.T) {
 		ResourceType: "basictlslistener",
 		ListenerTest: true,
 		SyntacticallyBad: []configutil.ConfigTestData{
-			configutil.ConfigTestData{
-				Data: ``,
+			{
+				Data:        ``,
 				Explanation: "empty config",
 			},
-			configutil.ConfigTestData{
-				Data: `42`,
+			{
+				Data:        `42`,
 				Explanation: "numeric config",
 			},
-			configutil.ConfigTestData{
-				Data: `"test"`,
+			{
+				Data:        `"test"`,
 				Explanation: "string config",
 			},
-			configutil.ConfigTestData{
+			{
 				Data: `{
 				}`,
 				Explanation: "empty object",
 			},
-			configutil.ConfigTestData{
+			{
 				Data: `{
 					"listener": null,
 					"certgetter": null
 				}`,
 				Explanation: "bad protocol",
 			},
-			configutil.ConfigTestData{
+			{
 				Data: `{
 					"listener": {
 						"type": "testcertgetter",
@@ -67,7 +67,7 @@ func TestBasicTlsListenerConfig(t *testing.T) {
 				}`,
 				Explanation: "bad listener",
 			},
-			configutil.ConfigTestData{
+			{
 				Data: `{
 					"listener": {
 						"type": "testlistener",
@@ -82,7 +82,7 @@ func TestBasicTlsListenerConfig(t *testing.T) {
 			},
 		},
 		Good: []configutil.ConfigTestData{
-			configutil.ConfigTestData{
+			{
 				Data: `{
 					"listener": {
 						"type": "testlistener",
@@ -106,14 +106,14 @@ func TestBasicTlsListenerBehavior(t *testing.T) {
 	assert.NoError(
 		t,
 		e,
-		"Attempting to create a valid basic listener should not" +
-		" produce an error, but an error was produced.",
+		"Attempting to create a valid basic listener should not"+
+			" produce an error, but an error was produced.",
 	)
 	assert.NotNil(
 		t,
 		nl,
-		"Attempting to create a valid basic listener should produce" +
-		" a non-nil listener, but a nil listener was produced.",
+		"Attempting to create a valid basic listener should produce"+
+			" a non-nil listener, but a nil listener was produced.",
 	)
 
 	tlsCert, x509Cert, e := GenSelfSignedLocalhostCertificate(
@@ -126,7 +126,7 @@ func TestBasicTlsListenerBehavior(t *testing.T) {
 	}
 
 	l := &BasicTlsListener{
-		Listener: bel,
+		Listener:  bel,
 		TlsConfig: &TestCertificateGetter{Cert: tlsCert},
 	}
 
@@ -139,8 +139,8 @@ func TestBasicTlsListenerBehavior(t *testing.T) {
 		assert.NoError(
 			t,
 			e,
-			"Attempting to close a basic listener should not" +
-			" produce an error, but an error was produced.",
+			"Attempting to close a basic listener should not"+
+				" produce an error, but an error was produced.",
 		)
 	}()
 
@@ -148,8 +148,8 @@ func TestBasicTlsListenerBehavior(t *testing.T) {
 	assert.NotNil(
 		t,
 		addr,
-		"Attempting to get the address from a basic listener should" +
-		" return a non-nil address, but a nil address was returned.",
+		"Attempting to get the address from a basic listener should"+
+			" return a non-nil address, but a nil address was returned.",
 	)
 
 	if addr == nil {
@@ -178,16 +178,16 @@ func TestBasicTlsListenerBehavior(t *testing.T) {
 		assert.NoError(
 			t,
 			e,
-			"Attempting to accept a connection from a valid" +
-			" basic listener should not produce an error, but an" +
-			" error was produced.",
+			"Attempting to accept a connection from a valid"+
+				" basic listener should not produce an error, but an"+
+				" error was produced.",
 		)
 		assert.NotNil(
 			t,
 			c,
-			"Attempting to accept a connection from a valid" +
-			" basic listener should produce a non-nil" +
-			" connection, but a nil connection was produced.",
+			"Attempting to accept a connection from a valid"+
+				" basic listener should produce a non-nil"+
+				" connection, but a nil connection was produced.",
 		)
 		if c == nil {
 			return
@@ -199,9 +199,9 @@ func TestBasicTlsListenerBehavior(t *testing.T) {
 		assert.NoError(
 			t,
 			e,
-			"Attempting to read from an accepted connection that" +
-			" came from a valid basic listener should not" +
-			" produce an error, but an error was produced.",
+			"Attempting to read from an accepted connection that"+
+				" came from a valid basic listener should not"+
+				" produce an error, but an error was produced.",
 		)
 
 		actualEndToEndMsg := endToEndBuffer.String()
@@ -209,10 +209,10 @@ func TestBasicTlsListenerBehavior(t *testing.T) {
 			t,
 			expected,
 			actualEndToEndMsg,
-			"Attempting to transmit data through a basic" +
-			" listener should not result in alterred data, but" +
-			" the actual data received was not identical to the" +
-			" data expected to have been sent.",
+			"Attempting to transmit data through a basic"+
+				" listener should not result in alterred data, but"+
+				" the actual data received was not identical to the"+
+				" data expected to have been sent.",
 		)
 
 		actualTransportMsg := bel.Inbound.String()
@@ -220,9 +220,9 @@ func TestBasicTlsListenerBehavior(t *testing.T) {
 			t,
 			expected,
 			actualTransportMsg,
-			"Transmitting data through a basic TLS listener" +
-				" should not result in the original message" +
-				" being sent in the clear of the raw" +
+			"Transmitting data through a basic TLS listener"+
+				" should not result in the original message"+
+				" being sent in the clear of the raw"+
 				" transport layer.",
 		)
 	}(t, l, bel, expected, done)
@@ -240,15 +240,15 @@ func TestBasicTlsListenerBehavior(t *testing.T) {
 	assert.NoError(
 		t,
 		e,
-		"Attempting to connect as a client to a basic listener" +
-		" should not produce an error, but an error was produced.",
+		"Attempting to connect as a client to a basic listener"+
+			" should not produce an error, but an error was produced.",
 	)
 	assert.NotNil(
 		t,
 		c,
-		"Attempting to connect as a client to a basic listener" +
-		" should produce a non-nil connection, but a nil connection" +
-		" was produced.",
+		"Attempting to connect as a client to a basic listener"+
+			" should produce a non-nil connection, but a nil connection"+
+			" was produced.",
 	)
 
 	if c == nil {
@@ -260,9 +260,9 @@ func TestBasicTlsListenerBehavior(t *testing.T) {
 		assert.NoError(
 			t,
 			e,
-			"Attempting to close a client connection to a basic" +
-			" listener should not produce an error, but an error" +
-			" was produced.",
+			"Attempting to close a client connection to a basic"+
+				" listener should not produce an error, but an error"+
+				" was produced.",
 		)
 	}(t, c)
 
@@ -270,8 +270,8 @@ func TestBasicTlsListenerBehavior(t *testing.T) {
 	assert.NoError(
 		t,
 		e,
-		"Attempting to write to a client connection of a basic" +
-		" listener should not produce an error, but an error was" +
-		" produced.",
+		"Attempting to write to a client connection of a basic"+
+			" listener should not produce an error, but an error was"+
+			" produced.",
 	)
 }

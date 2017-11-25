@@ -2,8 +2,9 @@ package net
 
 import (
 	"encoding/json"
-	"github.com/stuphlabs/pullcord/config"
 	"net"
+
+	"github.com/stuphlabs/pullcord/config"
 )
 
 type BasicListener struct {
