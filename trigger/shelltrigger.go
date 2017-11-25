@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"os/exec"
+
 	"github.com/proidiot/gone/log"
 	"github.com/stuphlabs/pullcord/config"
-	"os/exec"
 )
 
 // ShellTriggerHandler is a basic TriggerHandler that calls a stored shell
@@ -15,7 +16,7 @@ import (
 // The message given to TriggerString will be passed to the command via stdin.
 type ShellTriggerHandler struct {
 	Command string
-	Args []string
+	Args    []string
 }
 
 func init() {
@@ -27,7 +28,7 @@ func init() {
 	)
 }
 
-func (s *ShellTriggerHandler) UnmarshalJSON(input []byte) (error) {
+func (s *ShellTriggerHandler) UnmarshalJSON(input []byte) error {
 	// It shouldn't habe been necessary to do this, but by giving a
 	// defnition of how to unmarshal a pointer-to ShellTriggerHandler
 	// (which we apparently need to do), it seems that unmarshalling a
@@ -35,7 +36,7 @@ func (s *ShellTriggerHandler) UnmarshalJSON(input []byte) (error) {
 	// unmarshal, resulting in an infinite stack.
 	var t struct {
 		Command string
-		Args []string
+		Args    []string
 	}
 
 	dec := json.NewDecoder(bytes.NewReader(input))

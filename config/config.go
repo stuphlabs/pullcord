@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/proidiot/gone/errors"
-	"github.com/proidiot/gone/log"
 	"io"
 	"net"
 	"net/http"
 	"sync"
+
+	"github.com/proidiot/gone/errors"
+	"github.com/proidiot/gone/log"
 )
 
 const UnexpectedResourceType = errors.New(
@@ -31,8 +32,8 @@ func RegisterResourceType(
 	if present || typeName == ReferenceResourceTypeName {
 		return errors.New(
 			fmt.Sprintf(
-				"More than one resource type has registerred" +
-				" the same name: %s",
+				"More than one resource type has registerred"+
+					" the same name: %s",
 				typeName,
 			),
 		)
@@ -54,7 +55,7 @@ func MustRegisterResourceType(
 
 type Resource struct {
 	Unmarshaled json.Unmarshaler
-	complete bool
+	complete    bool
 }
 
 func (rsc *Resource) UnmarshalJSON(input []byte) error {
@@ -85,8 +86,8 @@ func (rsc *Resource) UnmarshalJSON(input []byte) error {
 		if e := json.Unmarshal(newRscDef.Data, &name); e != nil {
 			log.Crit(
 				fmt.Sprintf(
-					"Unable to decode the resource" +
-					" string: %s",
+					"Unable to decode the resource"+
+						" string: %s",
 					e.Error(),
 				),
 			)
@@ -102,10 +103,11 @@ func (rsc *Resource) UnmarshalJSON(input []byte) error {
 			} else {
 				e := errors.New(
 					fmt.Sprintf(
-						"The resource depenency was" +
-						" already under construction" +
-						" (implying a cyclic" +
-						" dependency): %s",
+						"The resource depenency was"+
+							" already under"+
+							" construction"+
+							" (implying a cyclic"+
+							" dependency): %s",
 						name,
 					),
 				)
@@ -121,8 +123,8 @@ func (rsc *Resource) UnmarshalJSON(input []byte) error {
 	if !present {
 		return errors.New(
 			fmt.Sprintf(
-				"The specified resource type is not a" +
-				" registerred resource type: %s",
+				"The specified resource type is not a"+
+					" registerred resource type: %s",
 				newRscDef.Type,
 			),
 		)
@@ -152,7 +154,7 @@ func (r *Resource) unmarshalByName(name string) error {
 
 type Server struct {
 	Listener net.Listener
-	Handler http.Handler
+	Handler  http.Handler
 }
 
 func (s *Server) Serve() error {
@@ -165,8 +167,8 @@ func ServerFromReader(r io.Reader) (*Server, error) {
 
 	var config struct {
 		Resources map[string]json.RawMessage
-		Listener string
-		Handler string
+		Listener  string
+		Handler   string
 	}
 
 	dec := json.NewDecoder(r)
@@ -186,7 +188,7 @@ func ServerFromReader(r io.Reader) (*Server, error) {
 		e := errors.New(
 			fmt.Sprintf(
 				"A config must specify the name of a" +
-				" network listener resource.",
+					" network listener resource.",
 			),
 		)
 		log.Crit(e.Error())
@@ -197,7 +199,7 @@ func ServerFromReader(r io.Reader) (*Server, error) {
 		e := errors.New(
 			fmt.Sprintf(
 				"A config must specify the name of an" +
-				" HTTP handler resource.",
+					" HTTP handler resource.",
 			),
 		)
 		log.Crit(e.Error())
@@ -205,7 +207,7 @@ func ServerFromReader(r io.Reader) (*Server, error) {
 	}
 
 	unregisterredResources = config.Resources
-	for name, _ := range config.Resources {
+	for name := range config.Resources {
 		if _, present := registry[name]; !present {
 			r := new(Resource)
 			registry[name] = r
@@ -215,8 +217,8 @@ func ServerFromReader(r io.Reader) (*Server, error) {
 				r.complete = true
 				log.Debug(
 					fmt.Sprintf(
-						"Saved resource to" +
-						" registry: %s: %v",
+						"Saved resource to"+
+							" registry: %s: %v",
 						name,
 						r.Unmarshaled,
 					),
@@ -234,8 +236,8 @@ func ServerFromReader(r io.Reader) (*Server, error) {
 	default:
 		e := errors.New(
 			fmt.Sprintf(
-				"The specified resource is not a" +
-				" net.Listener: %s",
+				"The specified resource is not a"+
+					" net.Listener: %s",
 				config.Listener,
 			),
 		)
@@ -258,8 +260,8 @@ func ServerFromReader(r io.Reader) (*Server, error) {
 	default:
 		e := errors.New(
 			fmt.Sprintf(
-				"The specified resource is not an" +
-				" http.Handler: %s",
+				"The specified resource is not an"+
+					" http.Handler: %s",
 				config.Handler,
 			),
 		)
@@ -277,4 +279,3 @@ func ServerFromReader(r io.Reader) (*Server, error) {
 
 	return server, nil
 }
-

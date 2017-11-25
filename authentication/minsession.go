@@ -6,12 +6,13 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"github.com/proidiot/gone/errors"
-	"github.com/proidiot/gone/log"
-	"github.com/stuphlabs/pullcord/config"
 	"net/http"
 	"regexp"
 	"strconv"
+
+	"github.com/proidiot/gone/errors"
+	"github.com/proidiot/gone/log"
+	"github.com/stuphlabs/pullcord/config"
 )
 
 const minSessionCookieNameRandSize = 32
@@ -20,8 +21,8 @@ const minSessionCookieMaxAge = 2 * 60 * 60
 
 const rngCollisionError = errors.New(
 	"The random number generator produced a colliding value. This is" +
-	" perfectly fine if it occurs extremely rarely, but if it occurs" +
-	" more than once, it would be extremely concerning.",
+		" perfectly fine if it occurs extremely rarely, but if it" +
+		" occurs more than once, it would be extremely concerning.",
 )
 
 // MinSessionHandler is a somewhat minimalist form of a SessionHandler.
@@ -44,8 +45,8 @@ func init() {
 func (h *MinSessionHandler) UnmarshalJSON(data []byte) error {
 	log.Debug("Unmarshaling a MinSessionHandler")
 	var t struct {
-		Name string
-		Path string
+		Name   string
+		Path   string
 		Domain string
 	}
 
@@ -60,7 +61,7 @@ func (h *MinSessionHandler) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func NewMinSessionHandler(name, path, domain string) (*MinSessionHandler) {
+func NewMinSessionHandler(name, path, domain string) *MinSessionHandler {
 	return &MinSessionHandler{
 		name,
 		path,
@@ -112,7 +113,7 @@ func (handler *MinSessionHandler) genCookie() (*http.Cookie, error) {
 		if randReadErr != nil {
 			log.Err(
 				"minsession cookie generation was unable to" +
-				" read the needed random bytes",
+					" read the needed random bytes",
 			)
 			return nil, randReadErr
 		}
@@ -127,11 +128,12 @@ func (handler *MinSessionHandler) genCookie() (*http.Cookie, error) {
 			// Is the random number generator broken?
 			log.Err(
 				fmt.Sprintf(
-					"minsession cookie generation has" +
-					" created a new cookie with a name" +
-					" that collides with an already" +
-					" existing cookie from the cookie" +
-					" table which shares the name: %s",
+					"minsession cookie generation has"+
+						" created a new cookie with a"+
+						" name that collides with an"+
+						" already existing cookie from"+
+						" the cookie table which"+
+						" shares the name: %s",
 					cookie_name,
 				),
 			)
@@ -144,7 +146,7 @@ func (handler *MinSessionHandler) genCookie() (*http.Cookie, error) {
 	if randReadErr != nil {
 		log.Err(
 			"minsession cookie generation was unable to" +
-			" read the needed random bytes",
+				" read the needed random bytes",
 		)
 		return nil, randReadErr
 	}
@@ -168,7 +170,7 @@ type minSessionCore struct {
 }
 
 type MinSession struct {
-	core *minSessionCore
+	core    *minSessionCore
 	handler *MinSessionHandler
 }
 
@@ -176,20 +178,20 @@ func (sesh *MinSession) GetValue(key string) (interface{}, error) {
 	log.Debug(fmt.Sprintf("minsession requesting value for: %s", key))
 
 	value, present := sesh.core.data[key]
-	if ! present {
+	if !present {
 		return nil, NoSuchSessionValueError
 	} else {
 		return value, nil
 	}
 }
 
-func (sesh *MinSession) GetValues() (map[string]interface{}) {
+func (sesh *MinSession) GetValues() map[string]interface{} {
 	log.Debug("minsession requesting all values")
 
 	return sesh.core.data
 }
 
-func (sesh *MinSession) SetValue(key string, value interface{}) (error) {
+func (sesh *MinSession) SetValue(key string, value interface{}) error {
 	log.Debug(fmt.Sprintf("minsession setting value for: %s", key))
 
 	sesh.core.data[key] = value
@@ -208,10 +210,10 @@ func (sesh *MinSession) CookieMask(incomingCookies []*http.Cookie) (
 	new_cookie_needed := true
 	cookieNameRegex := regexp.MustCompile(
 		"^" +
-		sesh.handler.Name +
-		"-[0-9A-Fa-f]{" +
-		strconv.Itoa(minSessionCookieNameRandSize * 2) +
-		"}$",
+			sesh.handler.Name +
+			"-[0-9A-Fa-f]{" +
+			strconv.Itoa(minSessionCookieNameRandSize*2) +
+			"}$",
 	)
 
 	in_ckes_buffer := new(bytes.Buffer)
@@ -221,13 +223,13 @@ func (sesh *MinSession) CookieMask(incomingCookies []*http.Cookie) (
 		if cookieNameRegex.MatchString(cookie.Name) {
 			sesh2, present := sesh.handler.table[cookie.Name]
 			if present &&
-			    len(cookie.Value) > 0 &&
-			    cookie.Value == sesh2.core.cvalue {
+				len(cookie.Value) > 0 &&
+				cookie.Value == sesh2.core.cvalue {
 				log.Debug(
 					fmt.Sprintf(
-						"minsession cookiemask" +
-						" received valid cookie with" +
-						" name: %s",
+						"minsession cookiemask"+
+							" received valid"+
+							" cookie with name: %s",
 						cookie.Name,
 					),
 				)
@@ -255,11 +257,13 @@ func (sesh *MinSession) CookieMask(incomingCookies []*http.Cookie) (
 					// TODO: configurable info vs warn?
 					log.Info(
 						fmt.Sprintf(
-							"minsession" +
-							" cookiemask received" +
-							" bad cookie value" +
-							" for valid cookie" +
-							" name: %s",
+							"minsession"+
+								" cookiemask"+
+								" received bad"+
+								" cookie value"+
+								" for valid"+
+								" cookie name:"+
+								" %s",
 							cookie.Name,
 						),
 					)
@@ -271,11 +275,13 @@ func (sesh *MinSession) CookieMask(incomingCookies []*http.Cookie) (
 				} else {
 					log.Info(
 						fmt.Sprintf(
-							"minsession" +
-							" cookiemask received" +
-							" matching but" +
-							" invalid cookie with" +
-							" name: %s",
+							"minsession"+
+								" cookiemask"+
+								" received"+
+								" matching but"+
+								" invalid"+
+								" cookie with"+
+								" name: %s",
 							cookie.Name,
 						),
 					)
@@ -293,8 +299,8 @@ func (sesh *MinSession) CookieMask(incomingCookies []*http.Cookie) (
 	}
 	log.Debug(
 		fmt.Sprintf(
-			"minsession cookiemask received cookies with these" +
-			" cookie names: [%s]",
+			"minsession cookiemask received cookies with these"+
+				" cookie names: [%s]",
 			in_ckes_buffer.String(),
 		),
 	)
@@ -308,19 +314,20 @@ func (sesh *MinSession) CookieMask(incomingCookies []*http.Cookie) (
 		if new_cookie == nil {
 			log.Err(
 				fmt.Sprintf(
-					"minsession cookiemask ran into" +
-					" unexpected, unrecoverable  errors" +
-					" during cookie generation: %s",
+					"minsession cookiemask ran into"+
+						" unexpected, unrecoverable"+
+						" errors during cookie"+
+						" generation: %s",
 					err,
 				),
 			)
 		} else if err != nil && err != rngCollisionError {
 			log.Warning(
 				fmt.Sprintf(
-					"minsession cookiemask ran into" +
-					" unexpected but apparently" +
-					" recoverable errors during cookie" +
-					" generation: %s",
+					"minsession cookiemask ran into"+
+						" unexpected but apparently"+
+						" recoverable errors during"+
+						" cookie generation: %s",
 					err,
 				),
 			)
@@ -329,8 +336,8 @@ func (sesh *MinSession) CookieMask(incomingCookies []*http.Cookie) (
 		setCookies = append(setCookies, new_cookie)
 		log.Info(
 			fmt.Sprintf(
-				"minsession cookiemask has added a new cookie" +
-				" with name: %s",
+				"minsession cookiemask has added a new cookie"+
+					" with name: %s",
 				new_cookie.Name,
 			),
 		)
@@ -339,9 +346,9 @@ func (sesh *MinSession) CookieMask(incomingCookies []*http.Cookie) (
 		sesh.handler.table[new_cookie.Name] = sesh
 		log.Debug(
 			fmt.Sprintf(
-				"minsession cookiemask has created a new" +
-				" session to go with the new cookie with" +
-				" name: %s",
+				"minsession cookiemask has created a new"+
+					" session to go with the new cookie"+
+					" with name: %s",
 				new_cookie.Name,
 			),
 		)

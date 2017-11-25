@@ -3,10 +3,11 @@ package authentication
 import (
 	"encoding/json"
 	"fmt"
+	"testing"
+
 	"github.com/proidiot/gone/errors"
 	"github.com/stretchr/testify/assert"
 	configutil "github.com/stuphlabs/pullcord/config/util"
-	"testing"
 )
 
 func TestBadIdentifier(t *testing.T) {
@@ -169,11 +170,11 @@ func TestInMemPwdStoreFromConfig(t *testing.T) {
 			default:
 				return errors.New(
 					fmt.Sprintf(
-						"Expecting" +
-						" unmarsheled" +
-						" resource to be a" +
-						" inmempwdstore," +
-						" but instead got: %v",
+						"Expecting"+
+							" unmarsheled"+
+							" resource to be a"+
+							" inmempwdstore,"+
+							" but instead got: %v",
 						i,
 					),
 				)
@@ -182,28 +183,28 @@ func TestInMemPwdStoreFromConfig(t *testing.T) {
 			return nil
 		},
 		SyntacticallyBad: []configutil.ConfigTestData{
-			configutil.ConfigTestData{
-				Data:``,
+			{
+				Data:        ``,
 				Explanation: "empty config",
 			},
-			configutil.ConfigTestData{
-				Data:`42`,
+			{
+				Data:        `42`,
 				Explanation: "numeric config",
 			},
-			configutil.ConfigTestData{
-				Data:`[
+			{
+				Data: `[
 					"test_user"
 				]`,
 				Explanation: "incomplete store",
 			},
-			configutil.ConfigTestData{
-				Data:`{
+			{
+				Data: `{
 					"test_user": {}
 				}`,
 				Explanation: "invalid nested resource",
 			},
-			configutil.ConfigTestData{
-				Data:`{
+			{
+				Data: `{
 					"test_user": {
 						"salt": 7,
 						"iterations": 4096,
@@ -212,8 +213,8 @@ func TestInMemPwdStoreFromConfig(t *testing.T) {
 				}`,
 				Explanation: "salt and hash have wrong types",
 			},
-			configutil.ConfigTestData{
-				Data:`{
+			{
+				Data: `{
 					"test_user": {
 						"salt": "RMM0WEV4s0vxZWb9Yvw0ooBU1Bs9louzqNsa+/E/SVzZg+ez72TLoXL8pFOOzk2aOFO5XLtbSECYKUK7XtF+ZQ==",
 						"iterations": "Four thousand ninety six",,
@@ -222,8 +223,8 @@ func TestInMemPwdStoreFromConfig(t *testing.T) {
 				}`,
 				Explanation: "iterations has wrong type",
 			},
-			configutil.ConfigTestData{
-				Data:`{
+			{
+				Data: `{
 					"test_user": {
 						"hash": "hey does this look base64 to you?",
 						"iterations": 4096,
@@ -234,8 +235,8 @@ func TestInMemPwdStoreFromConfig(t *testing.T) {
 			},
 		},
 		Good: []configutil.ConfigTestData{
-			configutil.ConfigTestData{
-				Data:`{
+			{
+				Data: `{
 					"test_user": {
 						"salt": "RMM0WEV4s0vxZWb9Yvw0ooBU1Bs9louzqNsa+/E/SVzZg+ez72TLoXL8pFOOzk2aOFO5XLtbSECYKUK7XtF+ZQ==",
 						"iterations": 4096,
@@ -244,8 +245,8 @@ func TestInMemPwdStoreFromConfig(t *testing.T) {
 				}`,
 				Explanation: "valid",
 			},
-			configutil.ConfigTestData{
-				Data:`{
+			{
+				Data: `{
 				}`,
 				Explanation: "empty object",
 			},

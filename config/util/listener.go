@@ -3,8 +3,9 @@ package util
 import (
 	"encoding/json"
 	"errors"
-	"github.com/stuphlabs/pullcord/config"
 	"net"
+
+	"github.com/stuphlabs/pullcord/config"
 )
 
 type TestListener struct {

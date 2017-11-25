@@ -32,9 +32,9 @@ func TestMinSessionHandlerFirstPass(t *testing.T) {
 	}
 	assert.NotNil(t, sesh)
 	/*
-	if sesh != nil {
-		assert.Equal(t, 0, len(sesh))
-	}
+		if sesh != nil {
+			assert.Equal(t, 0, len(sesh))
+		}
 	*/
 }
 
@@ -75,15 +75,15 @@ func TestMinSessionHandlerReuseCookie(t *testing.T) {
 	assert.Nil(t, stc2)
 	assert.NotNil(t, sesh1)
 	/*
-	if sesh1 != nil {
-		assert.Equal(t, 0, len(sesh1))
-	}
+		if sesh1 != nil {
+			assert.Equal(t, 0, len(sesh1))
+		}
 	*/
 	assert.NotNil(t, sesh2)
 	/*
-	if sesh2 != nil {
-		assert.Equal(t, 0, len(sesh2))
-	}
+		if sesh2 != nil {
+			assert.Equal(t, 0, len(sesh2))
+		}
 	*/
 }
 
@@ -139,9 +139,9 @@ func TestMinSessionHandlerSessionDataPreservation(t *testing.T) {
 	assert.NotNil(t, sesh1)
 	assert.NotNil(t, sesh2)
 	/*
-	if sesh2 != nil {
-		assert.Equal(t, 1, len(sesh2))
-	}
+		if sesh2 != nil {
+			assert.Equal(t, 1, len(sesh2))
+		}
 	*/
 
 	assert.Error(t, present1)
@@ -207,15 +207,15 @@ func TestMinSessionHandlerBadCookie(t *testing.T) {
 	assert.True(t, bad_cookie_deleted)
 	assert.NotNil(t, sesh1)
 	/*
-	if sesh1 != nil {
-		assert.Equal(t, 0, len(sesh1))
-	}
+		if sesh1 != nil {
+			assert.Equal(t, 0, len(sesh1))
+		}
 	*/
 	assert.NotNil(t, sesh2)
 	/*
-	if sesh2 != nil {
-		assert.Equal(t, 0, len(sesh2))
-	}
+		if sesh2 != nil {
+			assert.Equal(t, 0, len(sesh2))
+		}
 	*/
 }
 
@@ -265,9 +265,9 @@ func TestMinSessionHandlerInvalidCookie(t *testing.T) {
 	assert.True(t, bad_cookie_deleted)
 	assert.NotNil(t, sesh)
 	/*
-	if sesh != nil {
-		assert.Equal(t, 0, len(sesh))
-	}
+		if sesh != nil {
+			assert.Equal(t, 0, len(sesh))
+		}
 	*/
 }
 
@@ -298,7 +298,7 @@ func TestMinSessionHandlerMultiSession(t *testing.T) {
 	var (
 		local_cookies1    []*http.Cookie
 		local_cookies2    []*http.Cookie
-		sesh_key           = "test key"
+		sesh_key          = "test key"
 		expected_present1 = NoSuchSessionValueError
 		actual_present1   error
 		expected_present2 = NoSuchSessionValueError
@@ -414,13 +414,13 @@ func TestMinSessionHandlerBadCookieDestroysSession(t *testing.T) {
 		good_cookies             []*http.Cookie
 		bad_cookies              []*http.Cookie
 		bad_cookie               http.Cookie
-		sesh_key                  = "test key"
-		expected_sesh_present1    = NoSuchSessionValueError
-		actual_sesh_present1      error
-		expected_sesh_present2    = NoSuchSessionValueError
-		actual_sesh_present2      error
-		expected_sesh_present3    = NoSuchSessionValueError
-		actual_sesh_present3      error
+		sesh_key                 = "test key"
+		expected_sesh_present1   = NoSuchSessionValueError
+		actual_sesh_present1     error
+		expected_sesh_present2   = NoSuchSessionValueError
+		actual_sesh_present2     error
+		expected_sesh_present3   = NoSuchSessionValueError
+		actual_sesh_present3     error
 		expected_cookie_present2 = true
 		actual_cookie_present2   bool
 		expected_cookie_present3 = true
@@ -532,7 +532,7 @@ func TestMinSessionHandlerNonInterfering(t *testing.T) {
 	var (
 		local_cookies1    []*http.Cookie
 		local_cookies2    []*http.Cookie
-		sesh_key           = "test key"
+		sesh_key          = "test key"
 		expected_present1 = NoSuchSessionValueError
 		actual_present1   error
 		expected_present2 = NoSuchSessionValueError

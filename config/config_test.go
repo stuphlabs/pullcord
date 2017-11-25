@@ -3,17 +3,19 @@ package config
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/fitstar/falcore"
-	"github.com/proidiot/gone/errors"
-	"github.com/stretchr/testify/assert"
 	"net"
 	"net/http"
 	"strings"
 	"testing"
+
+	"github.com/fitstar/falcore"
+	"github.com/proidiot/gone/errors"
+	"github.com/stretchr/testify/assert"
 )
 
 // we need an umarshaler, but we won't actually be using it, so...
-type dummyType struct {}
+type dummyType struct{}
+
 func (s *dummyType) UnmarshalJSON(i []byte) error {
 	if string(i) == "\"error\"" {
 		return errors.New(`*dummyType.UnmarshalJSON("error")`)
@@ -29,6 +31,7 @@ func newDummy() json.Unmarshaler {
 }
 
 type randomType int
+
 func (s *randomType) UnmarshalJSON([]byte) error {
 	return nil
 }
@@ -37,7 +40,8 @@ func newRandom() json.Unmarshaler {
 	return &r
 }
 
-type dummyRouter struct {}
+type dummyRouter struct{}
+
 func (r *dummyRouter) UnmarshalJSON([]byte) error {
 	return nil
 }
@@ -51,63 +55,63 @@ func newDummyRouter() json.Unmarshaler {
 func TestRegisterResourceType(t *testing.T) {
 	type testStruct struct {
 		validate func(error)
-		name string
-		newFunc func() json.Unmarshaler
+		name     string
+		newFunc  func() json.Unmarshaler
 	}
 
-	testData := []testStruct {
-		testStruct {
+	testData := []testStruct{
+		{
 			func(e error) {
 				assert.NoError(
 					t,
 					e,
-					"RegisterResourceType should not" +
-					" return an error when a new valid" +
-					" type is registerred for the first" +
-					" time.",
+					"RegisterResourceType should not"+
+						" return an error when a new valid"+
+						" type is registerred for the first"+
+						" time.",
 				)
 			},
 			"dummyType",
 			newDummy,
 		},
-		testStruct {
+		{
 			func(e error) {
 				assert.NoError(
 					t,
 					e,
-					"RegisterResourceType should not" +
-					" return an error when a new valid" +
-					" type is registerred for the first" +
-					" time.",
+					"RegisterResourceType should not"+
+						" return an error when a new valid"+
+						" type is registerred for the first"+
+						" time.",
 				)
 			},
 			"randomType",
 			newRandom,
 		},
-		testStruct {
+		{
 			func(e error) {
 				assert.Error(
 					t,
 					e,
-					"RegisterResourceType should return" +
-					" an error when an attempt is made" +
-					" to register a constructor for the" +
-					" second time with the same type" +
-					" name.",
+					"RegisterResourceType should return"+
+						" an error when an attempt is made"+
+						" to register a constructor for the"+
+						" second time with the same type"+
+						" name.",
 				)
 			},
 			"dummyType",
 			newDummy,
 		},
-		testStruct {
+		{
 			func(e error) {
 				assert.Error(
 					t,
 					e,
-					"RegisterResourceType should return" +
-					" an error if an attempt is made to" +
-					" register a constructor with the" +
-					" reserved type name %s.",
+					"RegisterResourceType should return"+
+						" an error if an attempt is made to"+
+						" register a constructor with the"+
+						" reserved type name %s.",
 					ReferenceResourceTypeName,
 				)
 			},
@@ -128,237 +132,237 @@ func TestRegisterResourceType(t *testing.T) {
 func TestResourceUnmarshalJSON(t *testing.T) {
 	type testStruct struct {
 		validate func(*Resource, error)
-		input []byte
+		input    []byte
 	}
 
-	testData := []testStruct {
-		testStruct {
+	testData := []testStruct{
+		{
 			func(r *Resource, e error) {
 				assert.Error(
 					t,
 					e,
-					"An error should be generated if an" +
-					" attempt is made to unmarshal into" +
-					" a Resource non-JSON input as JSON.",
+					"An error should be generated if an"+
+						" attempt is made to unmarshal into"+
+						" a Resource non-JSON input as JSON.",
 				)
 				assert.False(
 					t,
 					r.complete,
-					"Invalid input should not allow" +
-					" Resource unmarshalling to complete.",
+					"Invalid input should not allow"+
+						" Resource unmarshalling to complete.",
 				)
 			},
 			[]byte("not json"),
 		},
-		testStruct {
+		{
 			func(r *Resource, e error) {
 				assert.NoError(
 					t,
 					e,
-					"As a null Resource value could make" +
-					" sense in some circumstances," +
-					" attempting to unmarshal a JSON" +
-					" null should not produce an error.",
+					"As a null Resource value could make"+
+						" sense in some circumstances,"+
+						" attempting to unmarshal a JSON"+
+						" null should not produce an error.",
 				)
 				assert.True(
 					t,
 					r.complete,
-					"As a null Resource value could make" +
-					" sense in some circumstances," +
-					" attempting to unmarshal a JSON" +
-					" null should allow the Resource" +
-					" unmarshalling to ultimately" +
-					" complete.",
+					"As a null Resource value could make"+
+						" sense in some circumstances,"+
+						" attempting to unmarshal a JSON"+
+						" null should allow the Resource"+
+						" unmarshalling to ultimately"+
+						" complete.",
 				)
 				assert.Nil(
 					t,
 					r.Unmarshaled,
-					"As a null Resource value could make" +
-					" sense in some circumstances," +
-					" unmarshalling a JSON null should" +
-					" result in a nil valued object.",
+					"As a null Resource value could make"+
+						" sense in some circumstances,"+
+						" unmarshalling a JSON null should"+
+						" result in a nil valued object.",
 				)
 			},
 			[]byte("null"),
 		},
-		testStruct {
+		{
 			func(r *Resource, e error) {
 				assert.NoError(
 					t,
 					e,
-					"As a null Resource value could make" +
-					" sense in some circumstances," +
-					" attempting to unmarshal an empty" +
-					" JSON object (which could" +
-					" reasonably be interpereted as a" +
-					" null value) should not produce an" +
-					" error.",
+					"As a null Resource value could make"+
+						" sense in some circumstances,"+
+						" attempting to unmarshal an empty"+
+						" JSON object (which could"+
+						" reasonably be interpereted as a"+
+						" null value) should not produce an"+
+						" error.",
 				)
 				assert.True(
 					t,
 					r.complete,
-					"As a null Resource value could make" +
-					" sense in some circumstances," +
-					" attempting to unmarshal an empty" +
-					" JSON object (which could" +
-					" reasonably be interpereted as a" +
-					" null value) should allow the" +
-					" Resource unmarshalling to" +
-					" ultimately complete.",
+					"As a null Resource value could make"+
+						" sense in some circumstances,"+
+						" attempting to unmarshal an empty"+
+						" JSON object (which could"+
+						" reasonably be interpereted as a"+
+						" null value) should allow the"+
+						" Resource unmarshalling to"+
+						" ultimately complete.",
 				)
 				assert.Nil(
 					t,
 					r.Unmarshaled,
-					"As a null Resource value could make" +
-					" sense in some circumstances," +
-					" attempting to unmarshal an empty" +
-					" JSON object (which could" +
-					" reasonably be interpereted as a" +
-					" null value) should result in a nil" +
-					" valued object.",
+					"As a null Resource value could make"+
+						" sense in some circumstances,"+
+						" attempting to unmarshal an empty"+
+						" JSON object (which could"+
+						" reasonably be interpereted as a"+
+						" null value) should result in a nil"+
+						" valued object.",
 				)
 			},
 			[]byte("{}"),
 		},
-		testStruct {
+		{
 			func(r *Resource, e error) {
 				assert.Error(
 					t,
 					e,
-					"Attempting to unmarshal a Resource" +
-					" with a non-string type name should" +
-					" produce an error.",
+					"Attempting to unmarshal a Resource"+
+						" with a non-string type name should"+
+						" produce an error.",
 				)
 				assert.False(
 					t,
 					r.complete,
-					"Attempting to unmarshal a Resource" +
-					" with a non-string type name should" +
-					" not produce a Resource that has" +
-					" completed its unmarshalling.",
+					"Attempting to unmarshal a Resource"+
+						" with a non-string type name should"+
+						" not produce a Resource that has"+
+						" completed its unmarshalling.",
 				)
 			},
 			[]byte("{\"type\":7}"),
 		},
-		testStruct {
+		{
 			func(r *Resource, e error) {
 				assert.Error(
 					t,
 					e,
-					"Attempting to unmarshal a" +
-					" partially defined Resource should" +
-					" produce an error.",
+					"Attempting to unmarshal a"+
+						" partially defined Resource should"+
+						" produce an error.",
 				)
 				assert.False(
 					t,
 					r.complete,
-					"Attempting to unmarshal a" +
-					" partially defined Resource should" +
-					" not produce a Resource that has" +
-					" completed its unmarshalling.",
+					"Attempting to unmarshal a"+
+						" partially defined Resource should"+
+						" not produce a Resource that has"+
+						" completed its unmarshalling.",
 				)
 			},
 			[]byte("{\"type\":\"dummyType\"}"),
 		},
-		testStruct {
+		{
 			func(r *Resource, e error) {
 				assert.Error(
 					t,
 					e,
-					"Attempting to unmarshal a reference" +
-					" Resource with a non-string data" +
-					" section should produce an error.",
+					"Attempting to unmarshal a reference"+
+						" Resource with a non-string data"+
+						" section should produce an error.",
 				)
 				assert.False(
 					t,
 					r.complete,
-					"Attempting to unmarshal a reference" +
-					" Resource with a non-string data" +
-					" section should not produce a" +
-					" Resource that has completed its" +
-					" unmarshalling.",
+					"Attempting to unmarshal a reference"+
+						" Resource with a non-string data"+
+						" section should not produce a"+
+						" Resource that has completed its"+
+						" unmarshalling.",
 				)
 			},
 			[]byte("{\"type\":\"ref\",\"data\":7}"),
 		},
-		testStruct {
+		{
 			func(r *Resource, e error) {
 				assert.Error(
 					t,
 					e,
-					"Attempting to unmarshal a reference" +
-					" Resource with a non-string data" +
-					" section should produce an error.",
+					"Attempting to unmarshal a reference"+
+						" Resource with a non-string data"+
+						" section should produce an error.",
 				)
 				assert.False(
 					t,
 					r.complete,
-					"Attempting to unmarshal a reference" +
-					" Resource with a non-string data" +
-					" section should not produce a" +
-					" Resource that has completed its" +
-					" unmarshalling.",
+					"Attempting to unmarshal a reference"+
+						" Resource with a non-string data"+
+						" section should not produce a"+
+						" Resource that has completed its"+
+						" unmarshalling.",
 				)
 			},
 			[]byte("{\"type\":\"ref\",\"data\":null}"),
 		},
-		testStruct {
+		{
 			func(r *Resource, e error) {
 				assert.Error(
 					t,
 					e,
-					"Attempting to unmarshal a reference" +
-					" Resource with an unregisterred" +
-					" name should produce an error.",
+					"Attempting to unmarshal a reference"+
+						" Resource with an unregisterred"+
+						" name should produce an error.",
 				)
 				assert.False(
 					t,
 					r.complete,
-					"Attempting to unmarshal a reference" +
-					" Resource with an unregisterred" +
-					" name should not produce a Resource" +
-					" that has completed its" +
-					" unmarshalling.",
+					"Attempting to unmarshal a reference"+
+						" Resource with an unregisterred"+
+						" name should not produce a Resource"+
+						" that has completed its"+
+						" unmarshalling.",
 				)
 			},
 			[]byte("{\"type\":\"ref\",\"data\":\"taco\"}"),
 		},
-		testStruct {
+		{
 			func(r *Resource, e error) {
 				assert.Error(
 					t,
 					e,
-					"Attempting to unmarshal a Resource" +
-					" with an unregisterred type name" +
-					" should produce an error.",
+					"Attempting to unmarshal a Resource"+
+						" with an unregisterred type name"+
+						" should produce an error.",
 				)
 				assert.False(
 					t,
 					r.complete,
-					"Attempting to unmarshal a Resource" +
-					" with an unregisterred type name" +
-					" should not produce a Resource that" +
-					" has completed its unmarshalling.",
+					"Attempting to unmarshal a Resource"+
+						" with an unregisterred type name"+
+						" should not produce a Resource that"+
+						" has completed its unmarshalling.",
 				)
 			},
 			[]byte("{\"type\":\"mytype\"}"),
 		},
-		testStruct {
+		{
 			func(r *Resource, e error) {
 				assert.NoError(
 					t,
 					e,
-					"An attempt to unmarshal a Resource" +
-					" given a valid JSON input should" +
-					" not produce an error.",
+					"An attempt to unmarshal a Resource"+
+						" given a valid JSON input should"+
+						" not produce an error.",
 				)
 				assert.True(
 					t,
 					r.complete,
-					"An attempt to unmarshal a Resource" +
-					" given a valid JSON input should" +
-					" produce a Resource that has" +
-					" completed its unmarshalling.",
+					"An attempt to unmarshal a Resource"+
+						" given a valid JSON input should"+
+						" produce a Resource that has"+
+						" completed its unmarshalling.",
 				)
 				var expectedType *dummyType
 				assert.IsType(
@@ -369,29 +373,29 @@ func TestResourceUnmarshalJSON(t *testing.T) {
 			},
 			[]byte("{\"type\":\"dummyType\",\"data\":{}}"),
 		},
-		testStruct {
+		{
 			func(r *Resource, e error) {
 				assert.Error(
 					t,
 					e,
-					"An attempt to unmarshal a Resource" +
-					" given valid JSON input which would" +
-					" cause the particular Resource" +
-					" type's unmarshaler to produce an" +
-					" error should result in an error" +
-					" coming from the top-level" +
-					" json.Unmarshal call as well.",
+					"An attempt to unmarshal a Resource"+
+						" given valid JSON input which would"+
+						" cause the particular Resource"+
+						" type's unmarshaler to produce an"+
+						" error should result in an error"+
+						" coming from the top-level"+
+						" json.Unmarshal call as well.",
 				)
 				assert.False(
 					t,
 					r.complete,
-					"An attempt to unmarshal a Resource" +
-					" given valid JSON input which would" +
-					" cause the particular Resource" +
-					" type's unmarshaler to produce an" +
-					" error should result in a Resource" +
-					" that has not completed its" +
-					" unmarshalling.",
+					"An attempt to unmarshal a Resource"+
+						" given valid JSON input which would"+
+						" cause the particular Resource"+
+						" type's unmarshaler to produce an"+
+						" error should result in a Resource"+
+						" that has not completed its"+
+						" unmarshalling.",
 				)
 			},
 			[]byte("{\"type\":\"dummyType\",\"data\":\"error\"}"),
@@ -407,7 +411,7 @@ func TestResourceUnmarshalJSON(t *testing.T) {
 	}
 }
 
-type TestHandler struct {}
+type TestHandler struct{}
 
 func (h *TestHandler) UnmarshalJSON([]byte) error {
 	return nil
@@ -417,12 +421,12 @@ func (h *TestHandler) ServeHTTP(http.ResponseWriter, *http.Request) {
 	panic(
 		errors.New(
 			"A testHandler can't actually serve HTTP, but an" +
-			" attempt was made to do so.",
+				" attempt was made to do so.",
 		),
 	)
 }
 
-type TestListener struct {}
+type TestListener struct{}
 
 func (l *TestListener) UnmarshalJSON([]byte) error {
 	return nil
@@ -431,14 +435,14 @@ func (l *TestListener) UnmarshalJSON([]byte) error {
 func (l *TestListener) Accept() (net.Conn, error) {
 	return nil, errors.New(
 		"A testListener can't actually accept connections, but an" +
-		" attempt was made to do so.",
+			" attempt was made to do so.",
 	)
 }
 
 func (l *TestListener) Close() error {
 	return errors.New(
 		"A testListener can't actually close, but an attempt was" +
-		" made to do so.",
+			" made to do so.",
 	)
 }
 
@@ -466,21 +470,21 @@ func TestServerFromReader(t *testing.T) {
 		},
 	)
 
-	syntacticallyBad := []testStruct {
-		testStruct {
+	syntacticallyBad := []testStruct{
+		{
 			config: `not JSON`,
 			reason: "bad JSON",
 		},
-		testStruct {
+		{
 			config: `null`,
 			reason: "null config",
 		},
-		testStruct {
+		{
 			config: `{
 			}`,
 			reason: "empty config",
 		},
-		testStruct {
+		{
 			config: `{
 				"resources": {
 					"handler": {
@@ -497,7 +501,7 @@ func TestServerFromReader(t *testing.T) {
 			}`,
 			reason: "invalid handler type",
 		},
-		testStruct {
+		{
 			config: `{
 				"resources": {
 					"handler": {
@@ -514,7 +518,7 @@ func TestServerFromReader(t *testing.T) {
 			}`,
 			reason: "invalid listener type",
 		},
-		testStruct {
+		{
 			config: `{
 				"resources": {
 					"testResource": {
@@ -539,9 +543,9 @@ func TestServerFromReader(t *testing.T) {
 				"listener": "listener"
 			}`,
 			reason: "non-filter Resource specified as an" +
-			" upstream for a Pipeline",
+				" upstream for a Pipeline",
 		},
-		testStruct {
+		{
 			config: `{
 				"resources": {
 					"testResource": {
@@ -566,9 +570,9 @@ func TestServerFromReader(t *testing.T) {
 				"listener": "listener"
 			}`,
 			reason: "non-filter Resource specified as a" +
-			" downstream for a Pipeline",
+				" downstream for a Pipeline",
 		},
-		testStruct {
+		{
 			config: `{
 				"resources": {
 					"testResource2": {
@@ -593,9 +597,9 @@ func TestServerFromReader(t *testing.T) {
 				"listener": "listener"
 			}`,
 			reason: "non-existant Resource specified as an" +
-			" upstream for a Pipeline",
+				" upstream for a Pipeline",
 		},
-		testStruct {
+		{
 			config: `{
 				"resources": {
 					"testResource": {
@@ -621,7 +625,7 @@ func TestServerFromReader(t *testing.T) {
 			}`,
 			reason: "error during Resource creation",
 		},
-		testStruct {
+		{
 			config: `{
 				"resources": {
 					"testResource": null,
@@ -643,9 +647,9 @@ func TestServerFromReader(t *testing.T) {
 				"listener": "listener"
 			}`,
 			reason: "null Resource specified as an upstream for" +
-			" a Pipeline",
+				" a Pipeline",
 		},
-		testStruct {
+		{
 			config: `{
 				"resources": {
 					"testResource": {
@@ -670,12 +674,12 @@ func TestServerFromReader(t *testing.T) {
 				"listener": "listener"
 			}`,
 			reason: "self-referential Resource specified as an" +
-			" upstream for a Pipeline",
+				" upstream for a Pipeline",
 		},
 	}
 
 	good := []testStruct{
-		testStruct{
+		{
 			config: `{
 				"resources": {
 					"handler": {
@@ -692,8 +696,8 @@ func TestServerFromReader(t *testing.T) {
 			}`,
 			reason: "test resources",
 		},
-		testStruct {
-			config:`{
+		{
+			config: `{
 				"resources": {
 					"handler": {
 						"type": "pipeline",
@@ -718,8 +722,8 @@ func TestServerFromReader(t *testing.T) {
 			}`,
 			reason: "valid config",
 		},
-		testStruct {
-			config:`{
+		{
+			config: `{
 				"resources": {
 					"handler": {
 						"type": "pipeline",
@@ -748,8 +752,8 @@ func TestServerFromReader(t *testing.T) {
 			}`,
 			reason: "double reference",
 		},
-		testStruct {
-			config:`{
+		{
+			config: `{
 				"resources": {
 					"handler": {
 						"type": "pipeline",
@@ -788,11 +792,11 @@ func TestServerFromReader(t *testing.T) {
 				t,
 				s,
 				fmt.Sprintf(
-					"ServerFromReader is expected to return a" +
-					" nil config.Server when called with a" +
-					" syntactically bad config, but a non-nil" +
-					" config.Server was returned for such a" +
-					" config: %s",
+					"ServerFromReader is expected to return a"+
+						" nil config.Server when called with a"+
+						" syntactically bad config, but a non-nil"+
+						" config.Server was returned for such a"+
+						" config: %s",
 					d.reason,
 				),
 			)
@@ -800,10 +804,10 @@ func TestServerFromReader(t *testing.T) {
 				t,
 				e,
 				fmt.Sprintf(
-					"ServerFromReader is expected to return an" +
-					" error when called with a syntactically bad" +
-					" config, but no error was returned for such" +
-					" a config: %s",
+					"ServerFromReader is expected to return an"+
+						" error when called with a syntactically bad"+
+						" config, but no error was returned for such"+
+						" a config: %s",
 					d.reason,
 				),
 			)
@@ -819,10 +823,10 @@ func TestServerFromReader(t *testing.T) {
 				t,
 				s,
 				fmt.Sprintf(
-					"ServerFromReader is expected to return a" +
-					" non-nil config.Server when called with a" +
-					" good config, but a nil config.Server was" +
-					" returned for such a config: %s",
+					"ServerFromReader is expected to return a"+
+						" non-nil config.Server when called with a"+
+						" good config, but a nil config.Server was"+
+						" returned for such a config: %s",
 					d.reason,
 				),
 			)
@@ -830,10 +834,10 @@ func TestServerFromReader(t *testing.T) {
 				t,
 				e,
 				fmt.Sprintf(
-					"ServerFromReader is expected to not return" +
-					" an error when called with a good config," +
-					" but an error was returned for such a" +
-					" config: %s",
+					"ServerFromReader is expected to not return"+
+						" an error when called with a good config,"+
+						" but an error was returned for such a"+
+						" config: %s",
 					d.reason,
 				),
 			)

@@ -2,15 +2,16 @@ package util
 
 import (
 	"encoding/json"
-	"github.com/stuphlabs/pullcord/config"
 	"net/http"
+
+	"github.com/stuphlabs/pullcord/config"
 )
 
 type TestHandler struct {
 }
 
 func init() {
-	e :=config.RegisterResourceType(
+	e := config.RegisterResourceType(
 		"testhandler",
 		func() json.Unmarshaler {
 			return new(TestHandler)

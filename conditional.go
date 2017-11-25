@@ -2,9 +2,10 @@ package pullcord
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/fitstar/falcore"
 	"github.com/proidiot/gone/log"
-	"net/http"
 )
 
 // NewConditionalFilter generates a Falcore RequesFilter that will apply one of
@@ -34,8 +35,9 @@ func NewConditionalFilter(
 			if err != nil {
 				log.Info(
 					fmt.Sprintf(
-						"conditional filter's test" +
-						" returned an error: %v",
+						"conditional filter's test"+
+							" returned an error:"+
+							" %v",
 						err,
 					),
 				)
@@ -44,14 +46,14 @@ func NewConditionalFilter(
 			} else if test_true {
 				log.Info(
 					"conditional filter's test returned" +
-					" true",
+						" true",
 				)
 
 				return onTrue.FilterRequest(req)
 			} else {
 				log.Info(
 					"conditional filter's test returned" +
-					" false",
+						" false",
 				)
 
 				return onFalse.FilterRequest(req)

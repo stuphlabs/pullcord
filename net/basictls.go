@@ -4,8 +4,9 @@ import (
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
-	"github.com/stuphlabs/pullcord/config"
 	"net"
+
+	"github.com/stuphlabs/pullcord/config"
 )
 
 type TlsCertificateGetter interface {
@@ -13,8 +14,8 @@ type TlsCertificateGetter interface {
 }
 
 type BasicTlsListener struct {
-	Listener net.Listener
-	TlsConfig TlsCertificateGetter
+	Listener       net.Listener
+	TlsConfig      TlsCertificateGetter
 	actualListener net.Listener
 }
 
@@ -33,7 +34,7 @@ func init() {
 
 func (b *BasicTlsListener) UnmarshalJSON(d []byte) error {
 	var t struct {
-		Listener config.Resource
+		Listener   config.Resource
 		CertGetter config.Resource
 	}
 

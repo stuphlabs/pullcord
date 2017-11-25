@@ -2,10 +2,11 @@ package trigger
 
 import (
 	"errors"
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	configutil "github.com/stuphlabs/pullcord/config/util"
 	"github.com/stuphlabs/pullcord/util"
-	"testing"
 )
 
 type counterTriggerHandler struct {
@@ -68,17 +69,17 @@ func TestCompoundTriggerFromConfig(t *testing.T) {
 	test := configutil.ConfigTest{
 		ResourceType: "compoundtrigger",
 		SyntacticallyBad: []configutil.ConfigTestData{
-			configutil.ConfigTestData{
-				Data: "",
+			{
+				Data:        "",
 				Explanation: "empty config",
 			},
-			configutil.ConfigTestData{
+			{
 				Data: `{
 					"triggers": 7
 				}`,
 				Explanation: "numeric triggers",
 			},
-			configutil.ConfigTestData{
+			{
 				Data: `{
 					"triggers": [
 						7,
@@ -87,7 +88,7 @@ func TestCompoundTriggerFromConfig(t *testing.T) {
 				}`,
 				Explanation: "numeric array triggers",
 			},
-			configutil.ConfigTestData{
+			{
 				Data: `{
 					"triggers": [{
 						"type": "landingfilter",
@@ -96,27 +97,27 @@ func TestCompoundTriggerFromConfig(t *testing.T) {
 				}`,
 				Explanation: "non-trigger in triggers",
 			},
-			configutil.ConfigTestData{
-				Data: "42",
+			{
+				Data:        "42",
 				Explanation: "numeric config",
 			},
 		},
 		Good: []configutil.ConfigTestData{
-			configutil.ConfigTestData{
-				Data: "{}",
+			{
+				Data:        "{}",
 				Explanation: "empty object",
 			},
-			configutil.ConfigTestData{
-				Data: "null",
+			{
+				Data:        "null",
 				Explanation: "null config",
 			},
-			configutil.ConfigTestData{
+			{
 				Data: `{
 					"triggers": []
 				}`,
 				Explanation: "empty triggers",
 			},
-			configutil.ConfigTestData{
+			{
 				Data: `{
 					"triggers": [{
 						"type": "compoundtrigger",

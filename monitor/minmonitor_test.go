@@ -3,11 +3,6 @@ package monitor
 import (
 	"bufio"
 	"fmt"
-	"github.com/fitstar/falcore"
-	"github.com/proidiot/gone/errors"
-	"github.com/stretchr/testify/assert"
-	configutil "github.com/stuphlabs/pullcord/config/util"
-	"github.com/stuphlabs/pullcord/util"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -16,6 +11,12 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/fitstar/falcore"
+	"github.com/proidiot/gone/errors"
+	"github.com/stretchr/testify/assert"
+	configutil "github.com/stuphlabs/pullcord/config/util"
+	"github.com/stuphlabs/pullcord/util"
 )
 
 // serveLandingPage is a testing helper function that creates a webserver that
@@ -41,7 +42,7 @@ func TestMinMonitorUpService(t *testing.T) {
 	go serveLandingPage(landingServer)
 	defer landingServer.StopAccepting()
 
-	<- landingServer.AcceptReady
+	<-landingServer.AcceptReady
 
 	service, err := NewMinMonitorredService(
 		testHost,
@@ -149,7 +150,7 @@ func TestMinMonitorUpReprobe(t *testing.T) {
 	go serveLandingPage(landingServer)
 	defer landingServer.StopAccepting()
 
-	<- landingServer.AcceptReady
+	<-landingServer.AcceptReady
 
 	svc, err := NewMinMonitorredService(
 		testHost,
@@ -272,7 +273,7 @@ func TestMinMonitorFalsePositive(t *testing.T) {
 	landingServer := falcore.NewServer(0, landingPipeline)
 	go serveLandingPage(landingServer)
 
-	<- landingServer.AcceptReady
+	<-landingServer.AcceptReady
 
 	service, err := NewMinMonitorredService(
 		testHost,
@@ -352,7 +353,7 @@ func TestMinMonitorTrueNegative(t *testing.T) {
 	tcpTimeoutReader := bufio.NewReader(tcpTimeoutFile)
 	line, err := tcpTimeoutReader.ReadString('\n')
 	assert.NoError(t, err)
-	line = line[:len(line) - 1]
+	line = line[:len(line)-1]
 	tcpTimeout, err := strconv.Atoi(line)
 	assert.NoError(t, err)
 	sleepSeconds := tcpTimeout + 1
@@ -419,7 +420,7 @@ func TestMinMonitorAddExistant(t *testing.T) {
 	go serveLandingPage(landingServer)
 	defer landingServer.StopAccepting()
 
-	<- landingServer.AcceptReady
+	<-landingServer.AcceptReady
 
 	svc, err := NewMinMonitorredService(
 		testHost,
@@ -440,7 +441,7 @@ func TestMinMonitorAddExistant(t *testing.T) {
 
 	svc2, err := NewMinMonitorredService(
 		testHost,
-		landingServer.Port() + 1,
+		landingServer.Port()+1,
 		testProtocol,
 		gracePeriod,
 		nil,
@@ -471,7 +472,7 @@ func TestMonitorFilterUp(t *testing.T) {
 	go serveLandingPage(landingServer)
 	defer landingServer.StopAccepting()
 
-	<- landingServer.AcceptReady
+	<-landingServer.AcceptReady
 
 	service, err := NewMinMonitorredService(
 		testHost,
@@ -505,7 +506,7 @@ func TestMonitorFilterUp(t *testing.T) {
 	assert.True(
 		t,
 		strings.Contains(string(contents), "Pullcord Landing Page"),
-		"content is: " + string(contents),
+		"content is: "+string(contents),
 	)
 }
 
@@ -559,7 +560,7 @@ func TestMonitorFilterDown(t *testing.T) {
 	assert.True(
 		t,
 		strings.Contains(string(contents), "Service Not Ready"),
-		"content is: " + string(contents),
+		"content is: "+string(contents),
 	)
 }
 
@@ -597,7 +598,7 @@ func TestMonitorFilterUpTriggers(t *testing.T) {
 	go serveLandingPage(landingServer)
 	defer landingServer.StopAccepting()
 
-	<- landingServer.AcceptReady
+	<-landingServer.AcceptReady
 
 	onDown := &counterTriggerHandler{}
 	onUp := &counterTriggerHandler{}
@@ -637,7 +638,7 @@ func TestMonitorFilterUpTriggers(t *testing.T) {
 	assert.True(
 		t,
 		strings.Contains(string(contents), "Pullcord Landing Page"),
-		"content is: " + string(contents),
+		"content is: "+string(contents),
 	)
 	assert.Equal(t, 0, onDown.count)
 	assert.Equal(t, 1, onUp.count)
@@ -700,7 +701,7 @@ func TestMonitorFilterDownTriggers(t *testing.T) {
 	assert.True(
 		t,
 		strings.Contains(string(contents), "Service Not Ready"),
-		"content is: " + string(contents),
+		"content is: "+string(contents),
 	)
 	assert.Equal(t, 1, onDown.count)
 	assert.Equal(t, 0, onUp.count)
@@ -722,7 +723,7 @@ func TestMonitorFilterUpOnUpTriggerError(t *testing.T) {
 	go serveLandingPage(landingServer)
 	defer landingServer.StopAccepting()
 
-	<- landingServer.AcceptReady
+	<-landingServer.AcceptReady
 
 	onDown := &counterTriggerHandler{}
 	onUp := &counterTriggerHandler{-1}
@@ -762,7 +763,7 @@ func TestMonitorFilterUpOnUpTriggerError(t *testing.T) {
 	assert.True(
 		t,
 		strings.Contains(string(contents), "Internal Server Error"),
-		"content is: " + string(contents),
+		"content is: "+string(contents),
 	)
 	assert.Equal(t, -1, onUp.count)
 }
@@ -823,7 +824,7 @@ func TestMonitorFilterDownOnDownTriggerError(t *testing.T) {
 	assert.True(
 		t,
 		strings.Contains(string(contents), "Internal Server Error"),
-		"content is: " + string(contents),
+		"content is: "+string(contents),
 	)
 	assert.Equal(t, -1, onDown.count)
 }
@@ -884,7 +885,7 @@ func TestMonitorFilterDownAlwaysTriggerError(t *testing.T) {
 	assert.True(
 		t,
 		strings.Contains(string(contents), "Internal Server Error"),
-		"content is: " + string(contents),
+		"content is: "+string(contents),
 	)
 	assert.Equal(t, -1, always.count)
 }
@@ -893,25 +894,25 @@ func TestMinMonitorFromConfig(t *testing.T) {
 	test := configutil.ConfigTest{
 		ResourceType: "minmonitorredservice",
 		SyntacticallyBad: []configutil.ConfigTestData{
-			configutil.ConfigTestData{
-				Data: "",
+			{
+				Data:        "",
 				Explanation: "empty config",
 			},
-			configutil.ConfigTestData{
-				Data: "{}",
+			{
+				Data:        "{}",
 				Explanation: "empty object",
 			},
-			configutil.ConfigTestData{
-				Data: "null",
+			{
+				Data:        "null",
 				Explanation: "null config",
 			},
-			configutil.ConfigTestData{
-				Data: "42",
+			{
+				Data:        "42",
 				Explanation: "numeric config",
 			},
 		},
 		Good: []configutil.ConfigTestData{
-			configutil.ConfigTestData{
+			{
 				Data: `{
 					"address": "127.0.0.1",
 					"port": 80,

@@ -2,6 +2,7 @@ package pullcord
 
 import (
 	"testing"
+
 	"github.com/stretchr/testify/assert"
 )
 
@@ -9,4 +10,3 @@ import (
 func TestIdentity(t *testing.T) {
 	assert.True(t, true)
 }
-

@@ -22,13 +22,13 @@ func init() {
 
 type PemConfig struct {
 	Cert []byte
-	Key []byte
+	Key  []byte
 }
 
 func (p *PemConfig) UnmarshalJSON(d []byte) error {
 	var t struct {
 		Cert string
-		Key string
+		Key  string
 	}
 
 	if e := json.Unmarshal(d, &t); e != nil {
