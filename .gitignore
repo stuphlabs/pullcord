@@ -1,7 +1,7 @@
 # don't include the binaries
-pullcord
-scale-down
-scaledown
+#pullcord
+#scale-down
+#scaledown
 
 # don't include temporary or other miscellaneous local files
 *~
@@ -9,4 +9,7 @@ scaledown
 *.bak
 
 # don't include generated output files
+/cover.html
+/cover.out
+/Dockerfile.cbuild
 *.out
