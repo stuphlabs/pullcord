@@ -1,5 +1,5 @@
 # don't include the binaries
-#pullcord
+/pullcord
 #scale-down
 #scaledown
 
