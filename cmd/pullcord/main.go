@@ -32,7 +32,7 @@ func main() {
 
 	if cfgPath == nil {
 		log.Warning(
-			"Command line flag for the config file did not parse"+
+			"Command line flag for the config file did not parse" +
 				" as expected.",
 		)
 		cfgPathVal := DefaultConfigFilePath
@@ -41,7 +41,7 @@ func main() {
 
 	if cfgFallback == nil {
 		log.Warning(
-			"Command line flag for the config fallback did not"+
+			"Command line flag for the config fallback did not" +
 				" parse as expected.",
 		)
 		cfgFallbackVal := true
@@ -125,4 +125,3 @@ func main() {
 		panic(critErr)
 	}
 }
-
