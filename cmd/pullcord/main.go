@@ -39,32 +39,28 @@ func main() {
 		cfgPath = &cfgPathVal
 	}
 
+	if cfgFallback == nil {
+		log.Warning(
+			"Command line flag for the config fallback did not"+
+				" parse as expected.",
+		)
+		cfgFallbackVal := true
+		cfgFallback = &cfgFallbackVal
+	}
+
 	var server *config.Server
 	cfgReader, err := os.Open(*cfgPath)
 	if err != nil {
-		if cfgFallback == nil {
-			log.Err(
-				"Command line flag for the config fallback did"+
-					" not parse as expected, proceeding as"+
-					" though it had been set to true since"+
-					" the alternative is immediate"+
-					" termination.",
-			)
-			cfgFallbackVal := true
-			cfgFallback = &cfgFallbackVal
-		}
+		log.Debug(err)
 
 		if !*cfgFallback {
-			log.Crit(
-				fmt.Sprintf(
-					"Not falling back to a basic config,"+
-						" but unable to open config"+
-						" file: %s",
-					err.Error(),
-				),
+			critErr := fmt.Errorf(
+				"Unable to open config file: %s\nConsider"+
+					" using --config-fallback.",
+				err.Error(),
 			)
-			log.Debug(err)
-			panic(err)
+			log.Crit(critErr)
+			panic(critErr)
 		}
 
 		log.Notice(
@@ -74,20 +70,18 @@ func main() {
 				err.Error(),
 			),
 		)
-		log.Debug(err)
 
 		var nl net.Listener
 		nl, err = net.Listen("tcp", ":80")
 		if err != nil {
-			log.Crit(
-				fmt.Sprintf(
-					"Unable to open port 80 for the"+
-						" fallback config: %s",
-					err.Error(),
-				),
-			)
 			log.Debug(err)
-			panic(err)
+			critErr := fmt.Errorf(
+				"Unable to open port 80 for the fallback"+
+					" config: %s",
+				err.Error(),
+			)
+			log.Crit(critErr)
+			panic(critErr)
 		}
 
 		handler := &config.ConfigPipeline{
@@ -110,27 +104,25 @@ func main() {
 	} else {
 		server, err = config.ServerFromReader(cfgReader)
 		if err != nil {
-			log.Crit(
-				fmt.Sprintf(
-					"Error while parsing server config: %s",
-					err.Error(),
-				),
-			)
 			log.Debug(err)
-			panic(err)
+			critErr := fmt.Errorf(
+				"Error while parsing server config: %s",
+				err.Error(),
+			)
+			log.Crit(critErr)
+			panic(critErr)
 		}
 	}
 
 	err = server.Serve()
 	if err != nil {
-		log.Crit(
-			fmt.Sprintf(
-				"Error while running server: %s",
-				err.Error(),
-			),
-		)
 		log.Debug(err)
-		panic(err)
+		critErr := fmt.Errorf(
+			"Error while running server: %s",
+			err.Error(),
+		)
+		log.Crit(critErr)
+		panic(critErr)
 	}
 }
 
