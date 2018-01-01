@@ -1,15 +1,12 @@
 # don't include the binaries
-/pullcord
-#scale-down
-#scaledown
+/bin
 
 # don't include temporary or other miscellaneous local files
 *~
 *.swp
 *.bak
 
-# don't include generated output files
+# don't include coverage files
+/all.cov
 /cover.html
-/cover.out
-/Dockerfile.cbuild
-*.out
+pkg.cov
