@@ -1,6 +1,7 @@
 # Basic config to be filled in
 
 ROOTPKG = github.com/stuphlabs/pullcord
+CONTAINERNAME = pullcord
 
 binfiles = bin/pullcord
 
@@ -34,6 +35,9 @@ clean:
 	-rm -rv ${cleanfiles} `for file in ${recursivecleanfiles}; do \
 		find . -name $${file}; \
 	done`
+
+container: test Dockerfile ${binfiles}
+	docker build -t ${CONTAINERNAME} .
 
 cover.html: all.cov
 	go tool cover -html $< -o $@

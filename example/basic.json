@@ -1,0 +1,27 @@
+{
+	"resources": {
+		"handler": {
+			"type": "pipeline",
+			"data": {
+				"upstream": [{
+					"type": "exactpathrouter",
+					"data": {
+						"/index.html": {
+							"type": "landingfilter",
+							"data": {}
+						}
+					}
+				}]
+			}
+		},
+		"listener": {
+			"type": "basiclistener",
+			"data": {
+				"proto": "tcp",
+				"laddr": ":8080"
+			}
+		}
+	},
+	"listener": "listener",
+	"handler": "handler"
+}

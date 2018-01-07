@@ -1,0 +1,3 @@
+package net
+
+func LoadPlugin() {}
