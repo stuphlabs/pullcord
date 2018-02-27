@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"net/http"
 
 	"github.com/fitstar/falcore"
 	"github.com/proidiot/gone/log"
@@ -11,7 +12,7 @@ import (
 )
 
 type ExactPathRouter struct {
-	Routes map[string]*falcore.RequestFilter
+	Routes map[string]falcore.RequestFilter
 }
 
 func init() {
@@ -34,11 +35,19 @@ func (r *ExactPathRouter) UnmarshalJSON(input []byte) error {
 		return e
 	}
 
-	r.Routes = make(map[string]*falcore.RequestFilter)
+	r.Routes = make(map[string]falcore.RequestFilter)
 	for path, rsc := range t.Routes {
 		switch f := rsc.Unmarshaled.(type) {
 		case falcore.RequestFilter:
-			r.Routes[path] = &f
+			log.Debug(
+				fmt.Sprintf(
+					"ExactPathRouter registration for %s:"+
+						" %#v",
+					path,
+					f,
+				),
+			)
+			r.Routes[path] = f
 		default:
 			log.Err(
 				fmt.Sprintf(
@@ -54,12 +63,33 @@ func (r *ExactPathRouter) UnmarshalJSON(input []byte) error {
 	return nil
 }
 
-func (r *ExactPathRouter) SelectPipeline(
+func (r *ExactPathRouter) FilterRequest(
 	req *falcore.Request,
-) falcore.RequestFilter {
+) *http.Response {
+	log.Debug(
+		fmt.Sprintf(
+			"ExactPathRouter has received request: %#v",
+			req,
+		),
+	)
+	log.Info(
+		fmt.Sprintf(
+			"ExactPathRouter has received request for path: %s",
+			req.HttpRequest.URL.Path,
+		),
+	)
 	if f, present := r.Routes[req.HttpRequest.URL.Path]; present {
-		return *f
+		log.Debug(
+			fmt.Sprintf(
+				"ExactPathRouter found filter: %#v",
+				f,
+			),
+		)
+		return f.FilterRequest(req)
 	} else {
-		return nil
+		log.Debug(
+			"ExactPathRouter did not find a filter",
+		)
+		return StandardResponse(404).FilterRequest(req)
 	}
 }

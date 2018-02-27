@@ -7,6 +7,8 @@ import (
 	"net/http"
 
 	"github.com/fitstar/falcore"
+
+	"github.com/proidiot/gone/log"
 )
 
 type ConfigPipeline struct {
@@ -53,7 +55,7 @@ func (p *ConfigPipeline) UnmarshalJSON(d []byte) error {
 			return errors.New(
 				fmt.Sprintf(
 					"The pipeline resource is not a"+
-						" RequestFilter: %v",
+						" RequestFilter: %#v",
 					u,
 				),
 			)
@@ -70,7 +72,7 @@ func (p *ConfigPipeline) UnmarshalJSON(d []byte) error {
 			return errors.New(
 				fmt.Sprintf(
 					"The pipeline resource is not a"+
-						" RequestFilter: %v",
+						" RequestFilter: %#v",
 					u,
 				),
 			)
@@ -81,5 +83,17 @@ func (p *ConfigPipeline) UnmarshalJSON(d []byte) error {
 }
 
 func (p *ConfigPipeline) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Debug(
+		fmt.Sprintf(
+			"Pipeline handling HTTP request: %#v",
+			r,
+		),
+	)
 	p.Server.ServeHTTP(w, r)
+	log.Debug(
+		fmt.Sprintf(
+			"Pipeline handled HTTP request: %#v",
+			w,
+		),
+	)
 }

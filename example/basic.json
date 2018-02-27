@@ -1,16 +1,20 @@
 {
 	"resources": {
+		"pathrouter": {
+			"type": "exactpathrouter",
+			"data": {
+				"/": {
+					"type": "landingfilter",
+					"data": {}
+				}
+			}
+		},
 		"handler": {
 			"type": "pipeline",
 			"data": {
 				"upstream": [{
-					"type": "exactpathrouter",
-					"data": {
-						"/index.html": {
-							"type": "landingfilter",
-							"data": {}
-						}
-					}
+					"type": "ref",
+					"data": "pathrouter"
 				}]
 			}
 		},

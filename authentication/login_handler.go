@@ -60,7 +60,7 @@ func (h *LoginHandler) UnmarshalJSON(input []byte) error {
 			log.Err(
 				fmt.Sprintf(
 					"Registry value is not a"+
-						" PasswordChecker: %s",
+						" PasswordChecker: %#v",
 					t.PasswordChecker,
 				),
 			)
@@ -75,7 +75,7 @@ func (h *LoginHandler) UnmarshalJSON(input []byte) error {
 			log.Err(
 				fmt.Sprintf(
 					"Registry value is not a"+
-						" RequestFilter: %s",
+						" RequestFilter: %#v",
 					t.Downstream,
 				),
 			)
@@ -115,7 +115,7 @@ func (handler *LoginHandler) FilterRequest(
 		log.Err(
 			fmt.Sprintf(
 				"login handler error during auth status"+
-					" retrieval: %v",
+					" retrieval: %#v",
 				err,
 			),
 		)
@@ -127,7 +127,7 @@ func (handler *LoginHandler) FilterRequest(
 		log.Err(
 			fmt.Sprintf(
 				"login handler error during xsrf token"+
-					" retrieval: %v",
+					" retrieval: %#v",
 				err,
 			),
 		)
@@ -137,7 +137,7 @@ func (handler *LoginHandler) FilterRequest(
 	} else if err = request.HttpRequest.ParseForm(); err != nil {
 		log.Warning(
 			fmt.Sprintf(
-				"login handler error during ParseForm: %v",
+				"login handler error during ParseForm: %#v",
 				err,
 			),
 		)
@@ -178,7 +178,7 @@ func (handler *LoginHandler) FilterRequest(
 	} else if err != nil {
 		log.Err(
 			fmt.Sprintf(
-				"login handler error during CheckPassword: %v",
+				"login handler error during CheckPassword: %#v",
 				err,
 			),
 		)
@@ -186,7 +186,7 @@ func (handler *LoginHandler) FilterRequest(
 	} else if err = sesh.SetValue(authSeshKey, true); err != nil {
 		log.Err(
 			fmt.Sprintf(
-				"login handler error during auth set: %v",
+				"login handler error during auth set: %#v",
 				err,
 			),
 		)
@@ -208,8 +208,8 @@ func (handler *LoginHandler) FilterRequest(
 		log.Err(
 			fmt.Sprintf(
 				"login handler error during xsrf generation:"+
-					" len expected: %u, actual: %u,"+
-					" err: %v",
+					" len expected: %d, actual: %d,"+
+					" err: %#v",
 				XsrfTokenLength,
 				rsize,
 				err,
@@ -222,7 +222,7 @@ func (handler *LoginHandler) FilterRequest(
 	if err = sesh.SetValue(xsrfKey, nextXsrfToken); err != nil {
 		log.Err(
 			fmt.Sprintf(
-				"login handler error during xsrf set: %v",
+				"login handler error during xsrf set: %#v",
 				err,
 			),
 		)

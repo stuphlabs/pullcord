@@ -20,7 +20,7 @@ func TestExactPathRouterWithinPipeline(t *testing.T) {
 		check func(*testing.T, *http.Response)
 	}
 
-	stringFilter := func(s string) *falcore.RequestFilter {
+	stringFilter := func(s string) falcore.RequestFilter {
 		f := falcore.NewRequestFilter(
 			func(req *falcore.Request) *http.Response {
 				return falcore.StringResponse(
@@ -31,7 +31,7 @@ func TestExactPathRouterWithinPipeline(t *testing.T) {
 				)
 			},
 		)
-		return &f
+		return f
 	}
 
 	genReq := func(method, path string, body io.Reader) *http.Request {
@@ -52,7 +52,7 @@ func TestExactPathRouterWithinPipeline(t *testing.T) {
 	testCases := []testCase{
 		{
 			p: &ExactPathRouter{
-				Routes: map[string]*falcore.RequestFilter{
+				Routes: map[string]falcore.RequestFilter{
 					"/foo": stringFilter("foo"),
 					"/bar": stringFilter("bar"),
 				},
@@ -99,7 +99,7 @@ func TestExactPathRouterWithinPipeline(t *testing.T) {
 		},
 		{
 			p: &ExactPathRouter{
-				Routes: map[string]*falcore.RequestFilter{
+				Routes: map[string]falcore.RequestFilter{
 					"/foo": stringFilter("foo"),
 					"/bar": stringFilter("bar"),
 				},
@@ -146,7 +146,7 @@ func TestExactPathRouterWithinPipeline(t *testing.T) {
 		},
 		{
 			p: &ExactPathRouter{
-				Routes: map[string]*falcore.RequestFilter{
+				Routes: map[string]falcore.RequestFilter{
 					"/foo": stringFilter("foo"),
 					"/bar": stringFilter("bar"),
 				},
@@ -171,7 +171,7 @@ func TestExactPathRouterWithinPipeline(t *testing.T) {
 
 	for _, c := range testCases {
 		pipeline := falcore.NewPipeline()
-		_ = pipeline.Upstream.PushBack(falcore.Router(c.p))
+		_ = pipeline.Upstream.PushBack(falcore.RequestFilter(c.p))
 		_ = pipeline.Upstream.PushBack(NotFound)
 		_, r := falcore.TestWithRequest(c.req, pipeline, nil)
 		c.check(t, r)

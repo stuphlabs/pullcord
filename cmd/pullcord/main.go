@@ -59,6 +59,8 @@ func main() {
 	trigger.LoadPlugin()
 	util.LoadPlugin()
 
+	log.Debug("Plugins loaded")
+
 	var server *config.Server
 	cfgReader, err := os.Open(*cfgPath)
 	if err != nil {
@@ -101,8 +103,8 @@ func main() {
 		landingFilter := falcore.RequestFilter(new(util.LandingFilter))
 		handler.Server.Pipeline.Upstream.PushBack(
 			&util.ExactPathRouter{
-				Routes: map[string]*falcore.RequestFilter{
-					"/": &landingFilter,
+				Routes: map[string]falcore.RequestFilter{
+					"/": landingFilter,
 				},
 			},
 		)
