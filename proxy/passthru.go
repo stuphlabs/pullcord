@@ -3,18 +3,15 @@ package proxy
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"net/http/httputil"
+	"net/url"
 
-	"github.com/fitstar/falcore"
-	"github.com/fitstar/falcore/filter"
 	"github.com/stuphlabs/pullcord/config"
 )
 
-type PassthruFilter struct {
-	Host           string
-	Port           int
-	upstreamFilter *filter.Upstream
-}
+type PassthruFilter httputil.ReverseProxy
 
 func init() {
 	config.RegisterResourceType(
@@ -25,19 +22,8 @@ func init() {
 	)
 }
 
-func NewPassthruFilter(host string, port int) *PassthruFilter {
-	return &PassthruFilter{
-		host,
-		port,
-		filter.NewUpstream(
-			filter.NewUpstreamTransport(
-				host,
-				port,
-				0,
-				nil,
-			),
-		),
-	}
+func NewPassthruFilter(u *url.URL) *PassthruFilter {
+	return (*PassthruFilter)(httputil.NewSingleHostReverseProxy(u))
 }
 
 func (f *PassthruFilter) UnmarshalJSON(input []byte) error {
@@ -50,38 +36,17 @@ func (f *PassthruFilter) UnmarshalJSON(input []byte) error {
 	if e := dec.Decode(&t); e != nil {
 		return e
 	} else {
-		f.Host = t.Host
-		f.Port = t.Port
-		f.upstreamFilter = filter.NewUpstream(
-			filter.NewUpstreamTransport(
-				f.Host,
-				f.Port,
-				0,
-				nil,
-			),
-		)
+		u, e := url.Parse(fmt.Sprintf("http://%s:%d", t.Host, t.Port))
+		if e != nil {
+			return e
+		}
+
+		*f = PassthruFilter(*httputil.NewSingleHostReverseProxy(u))
 
 		return nil
 	}
 }
 
-// NewPassthruFilter generates a Falcore RequestFilter that proxies all requests
-// that reach it back and forth to a given host and port.
-//
-// As such, this is the core of the proxying system.
-func (f *PassthruFilter) FilterRequest(
-	req *falcore.Request,
-) *http.Response {
-	if f.upstreamFilter == nil {
-		f.upstreamFilter = filter.NewUpstream(
-			filter.NewUpstreamTransport(
-				f.Host,
-				f.Port,
-				0,
-				nil,
-			),
-		)
-	}
-
-	return f.upstreamFilter.FilterRequest(req)
+func (f *PassthruFilter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	(*httputil.ReverseProxy)(f).ServeHTTP(w, r)
 }
