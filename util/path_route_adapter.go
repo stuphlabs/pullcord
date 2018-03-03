@@ -4,14 +4,14 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"net/http"
 
-	"github.com/fitstar/falcore"
 	"github.com/proidiot/gone/log"
 	"github.com/stuphlabs/pullcord/config"
 )
 
 type ExactPathRouter struct {
-	Routes map[string]*falcore.RequestFilter
+	Routes map[string]http.Handler
 }
 
 func init() {
@@ -34,16 +34,16 @@ func (r *ExactPathRouter) UnmarshalJSON(input []byte) error {
 		return e
 	}
 
-	r.Routes = make(map[string]*falcore.RequestFilter)
+	r.Routes = make(map[string]http.Handler)
 	for path, rsc := range t.Routes {
 		switch f := rsc.Unmarshaled.(type) {
-		case falcore.RequestFilter:
-			r.Routes[path] = &f
+		case http.Handler:
+			r.Routes[path] = f
 		default:
 			log.Err(
 				fmt.Sprintf(
 					"Registry value is not a"+
-						" RequestFilter: %s",
+						" http.Handler: %s",
 					f,
 				),
 			)
@@ -54,12 +54,10 @@ func (r *ExactPathRouter) UnmarshalJSON(input []byte) error {
 	return nil
 }
 
-func (r *ExactPathRouter) SelectPipeline(
-	req *falcore.Request,
-) falcore.RequestFilter {
-	if f, present := r.Routes[req.HttpRequest.URL.Path]; present {
-		return *f
+func (r *ExactPathRouter) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	if f, present := r.Routes[req.URL.Path]; present {
+		f.ServeHTTP(w, req)
 	} else {
-		return nil
+		StandardResponse(404).ServeHTTP(w, req)
 	}
 }

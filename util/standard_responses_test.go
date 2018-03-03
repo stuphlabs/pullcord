@@ -2,9 +2,9 @@ package util
 
 import (
 	"net/http"
+	"net/http/httptest"
 	"testing"
 
-	"github.com/fitstar/falcore"
 	"github.com/stretchr/testify/assert"
 	configutil "github.com/stuphlabs/pullcord/config/util"
 )
@@ -38,18 +38,19 @@ func TestStandardResponseFilterRequest(t *testing.T) {
 	}
 
 	for _, c := range testCases {
-		var r *http.Response
-		if c.req == nil {
-			req, e := http.NewRequest("GET", "/", nil)
-			assert.NoError(t, e)
-			_, r = falcore.TestWithRequest(req, c.s, nil)
+		var req *http.Request
+		if c.req != nil {
+			req = c.req
 		} else {
-			_, r = falcore.TestWithRequest(c.req, c.s, nil)
+			req = httptest.NewRequest("GET", "/", nil)
 		}
+		w := httptest.NewRecorder()
+		c.s.ServeHTTP(w, req)
+		res := w.Result()
 		if c.check == nil {
-			assert.Equal(t, int(c.s), r.StatusCode)
+			assert.Equal(t, int(c.s), res.StatusCode)
 		} else {
-			c.check(t, r)
+			c.check(t, res)
 		}
 	}
 }
