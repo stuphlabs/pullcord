@@ -12,7 +12,6 @@ import (
 	"testing"
 
 	"github.com/dustin/randbo"
-	"github.com/fitstar/falcore"
 	"github.com/proidiot/gone/errors"
 	"github.com/stretchr/testify/assert"
 	configutil "github.com/stuphlabs/pullcord/config/util"
