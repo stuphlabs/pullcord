@@ -35,8 +35,14 @@ func getLandingResponder(t *testing.T) (*url.URL, *http.Server, error) {
 	}
 
 	go func(t *testing.T, s *http.Server, l net.Listener) {
-		e := s.Serve(l)
-		require.NoError(t, e)
+		expectedErr := http.ErrServerClosed
+		actualErr := s.Serve(l)
+		require.Equal(
+			t,
+			expectedErr,
+			actualErr,
+			"Unable to serve HTTP required by tests",
+		)
 	}(t, s, l)
 
 	return u, s, nil
