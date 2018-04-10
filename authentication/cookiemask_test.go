@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -36,22 +37,21 @@ var cookieMaskTestPage = (http.HandlerFunc)(func(
 	req *http.Request,
 ){
 	w.WriteHeader(200)
-	w.Write("<html><body><h1>cookies</h1><ul>")
+	io.WriteString(w, "<html><body><h1>cookies</h1><ul>")
 	for _, cke := range req.Cookies() {
-		w.Write("<li class=\"cke\">")
-		w.Write(cke.String())
-		w.Write("</li>")
+		fmt.Fprintf(w, "<li class=\"cke\">%s</li>", cke.String())
 	}
-	w.Write("</ul><h1>context</h1><ul>")
-	sesh := req.Context()["session"].(*MinSession)
+	io.WriteString(w, "</ul><h1>context</h1><ul>")
+	sesh := req.Context().Value("session").(*MinSession)
 	for key, val := range sesh.GetValues() {
-		w.Write("<li class=\"sesh\">")
-		w.Write(key)
-		w.Write(": ")
-		w.Write(gostring(val))
-		w.Write("</li>")
+		fmt.Fprintf(
+			w,
+			"<li class=\"sesh\">%s: %s</li>",
+			key,
+			gostring(val),
+		)
 	}
-	w.Write("</ul></body></html>")
+	io.WriteString(w, "</ul></body></html>")
 })
 
 // testCookieGen is a testing helper function that generates a randomized

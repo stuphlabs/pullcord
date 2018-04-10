@@ -135,7 +135,7 @@ func (ca cookieAppender) Write(d []byte) (int, error) {
 		ca.started = true
 		ca.writeHeaders()
 	}
-	return ca.Write(d)
+	return ca.w.Write(d)
 }
 
 func (ca cookieAppender) WriteHeader(statusCode int) {
@@ -143,7 +143,7 @@ func (ca cookieAppender) WriteHeader(statusCode int) {
 		ca.started = true
 		ca.writeHeaders()
 	}
-	ca.WriteHeader(statusCode)
+	ca.w.WriteHeader(statusCode)
 }
 
 // FilterRequest implements the required function to allow CookiemaskFilter to
