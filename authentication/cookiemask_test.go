@@ -35,7 +35,7 @@ func gostring(i interface{}) string {
 var cookieMaskTestPage = (http.HandlerFunc)(func(
 	w http.ResponseWriter,
 	req *http.Request,
-){
+) {
 	w.WriteHeader(200)
 	io.WriteString(w, "<html><body><h1>cookies</h1><ul>")
 	for _, cke := range req.Cookies() {

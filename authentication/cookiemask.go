@@ -90,9 +90,9 @@ func (f *CookiemaskFilter) UnmarshalJSON(input []byte) error {
 }
 
 type cookieAppender struct {
-	ckes []*http.Cookie
-	w http.ResponseWriter
-	hdrs http.Header
+	ckes    []*http.Cookie
+	w       http.ResponseWriter
+	hdrs    http.Header
 	started bool
 }
 
@@ -186,9 +186,9 @@ func (filter *CookiemaskFilter) ServeHTTP(
 	}
 
 	ca := cookieAppender{
-		ckes: set_ckes,
-		w: w,
-		hdrs: make(map[string][]string),
+		ckes:    set_ckes,
+		w:       w,
+		hdrs:    make(map[string][]string),
 		started: false,
 	}
 	defer ca.writeTrailers()

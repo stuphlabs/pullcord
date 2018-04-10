@@ -254,7 +254,7 @@ func (svc *MinMonitorredService) Reprobe() (up bool, err error) {
 				)
 
 				return false, nil
-		} else {
+			} else {
 				log.Warning(
 					fmt.Sprintf(
 						"minmonitor encountered an"+

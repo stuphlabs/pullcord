@@ -107,6 +107,7 @@ func getTCPTimeout() (time.Duration, error) {
 }
 
 var _downService *url.URL
+
 func getDownService(t *testing.T) (*url.URL, error) {
 	if _downService == nil {
 		u, e := url.Parse("//127.0.0.1:2")
@@ -115,23 +116,23 @@ func getDownService(t *testing.T) (*url.URL, error) {
 		}
 		_downService = u
 		/*
-		u, s, e := getUpService(t)
-		if e != nil {
-			return nil, e
-		}
-		s.Close()
+			u, s, e := getUpService(t)
+			if e != nil {
+				return nil, e
+			}
+			s.Close()
 
-		d, e := getTCPTimeout()
-		if e != nil {
-			return nil, e
-		}
-		t.Logf(
-			"Sleeping for %s so that the test socket can close",
-			d.String(),
-		)
-		time.Sleep(d)
+			d, e := getTCPTimeout()
+			if e != nil {
+				return nil, e
+			}
+			t.Logf(
+				"Sleeping for %s so that the test socket can close",
+				d.String(),
+			)
+			time.Sleep(d)
 
-		_downService = u
+			_downService = u
 		*/
 	}
 
