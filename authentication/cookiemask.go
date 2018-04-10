@@ -180,6 +180,7 @@ func (filter *CookiemaskFilter) ServeHTTP(
 	fwd_ckes, set_ckes, err := sesh.CookieMask(
 		req.Cookies(),
 	)
+	req.Header.Del("Cookie")
 	for _, cke := range fwd_ckes {
 		req.AddCookie(cke)
 	}
