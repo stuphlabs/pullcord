@@ -4,15 +4,16 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
+	"net/http/httptest"
 	"regexp"
 	"strconv"
 	"strings"
 	"testing"
 
 	"github.com/dustin/randbo"
-	"github.com/fitstar/falcore"
 	"github.com/proidiot/gone/errors"
 	"github.com/stretchr/testify/assert"
 	configutil "github.com/stuphlabs/pullcord/config/util"
@@ -31,34 +32,27 @@ func gostring(i interface{}) string {
 	return fmt.Sprintf("%#v", i)
 }
 
-var cookieMaskTestPage = falcore.NewRequestFilter(
-	func(req *falcore.Request) *http.Response {
-		var content = "<html><body><h1>cookies</h1><ul>"
-		for _, cke := range req.HttpRequest.Cookies() {
-			content +=
-				"<li class=\"cke\">" +
-					cke.String() +
-					"</li>"
-		}
-		content += "</ul><h1>context</h1><ul>"
-		sesh := req.Context["session"].(*MinSession)
-		for key, val := range sesh.GetValues() {
-			content +=
-				"<li class=\"sesh\">" +
-					key +
-					": " +
-					gostring(val) +
-					"</li>"
-		}
-		content += "</ul></body></html>"
-		return falcore.StringResponse(
-			req.HttpRequest,
-			200,
-			nil,
-			content,
+var cookieMaskTestPage = (http.HandlerFunc)(func(
+	w http.ResponseWriter,
+	req *http.Request,
+) {
+	w.WriteHeader(200)
+	io.WriteString(w, "<html><body><h1>cookies</h1><ul>")
+	for _, cke := range req.Cookies() {
+		fmt.Fprintf(w, "<li class=\"cke\">%s</li>", cke.String())
+	}
+	io.WriteString(w, "</ul><h1>context</h1><ul>")
+	sesh := req.Context().Value("session").(*MinSession)
+	for key, val := range sesh.GetValues() {
+		fmt.Fprintf(
+			w,
+			"<li class=\"sesh\">%s: %s</li>",
+			key,
+			gostring(val),
 		)
-	},
-)
+	}
+	io.WriteString(w, "</ul></body></html>")
+})
 
 // testCookieGen is a testing helper function that generates a randomized
 // cookie name and value pair but with the given variant string being in a
@@ -138,11 +132,10 @@ func TestCookiemaskCookieless(t *testing.T) {
 		NewMinSessionHandler("test", "/", "example.com"),
 		cookieMaskTestPage,
 	}
-	_, response := falcore.TestWithRequest(
-		request,
-		&filter,
-		nil,
-	)
+
+	rec := httptest.NewRecorder()
+	filter.ServeHTTP(rec, request)
+	response := rec.Result()
 
 	/* check */
 	assert.Equal(t, 200, response.StatusCode)
@@ -195,11 +188,10 @@ func TestCookiemaskNoMasking(t *testing.T) {
 		NewMinSessionHandler("test", "/", "example.com"),
 		cookieMaskTestPage,
 	}
-	_, response := falcore.TestWithRequest(
-		request,
-		&filter,
-		nil,
-	)
+
+	rec := httptest.NewRecorder()
+	filter.ServeHTTP(rec, request)
+	response := rec.Result()
 
 	/* check */
 	assert.Equal(t, 200, response.StatusCode)
@@ -258,11 +250,10 @@ func TestCookiemaskHandlerError(t *testing.T) {
 		handlerAlwaysErrorsOnSessionRequest,
 		cookieMaskTestPage,
 	}
-	_, response := falcore.TestWithRequest(
-		request,
-		&filter,
-		nil,
-	)
+
+	rec := httptest.NewRecorder()
+	filter.ServeHTTP(rec, request)
+	response := rec.Result()
 
 	/* check */
 	assert.Equal(t, 500, response.StatusCode)
@@ -300,11 +291,10 @@ func TestCookiemaskError(t *testing.T) {
 		handlerSessionsAlwaysError,
 		cookieMaskTestPage,
 	}
-	_, response := falcore.TestWithRequest(
-		request,
-		&filter,
-		nil,
-	)
+
+	rec := httptest.NewRecorder()
+	filter.ServeHTTP(rec, request)
+	response := rec.Result()
 
 	/* check */
 	assert.Equal(t, 500, response.StatusCode)
@@ -351,11 +341,10 @@ func TestCookiemaskMasking(t *testing.T) {
 		handler,
 		cookieMaskTestPage,
 	}
-	_, response := falcore.TestWithRequest(
-		request,
-		&filter,
-		nil,
-	)
+
+	rec := httptest.NewRecorder()
+	filter.ServeHTTP(rec, request)
+	response := rec.Result()
 
 	/* check */
 	assert.Equal(t, 200, response.StatusCode)
@@ -427,11 +416,10 @@ func TestDoubleCookiemaskNoMasking(t *testing.T) {
 		NewMinSessionHandler("test1", "/", "example.com"),
 		&innerFilter,
 	}
-	_, response := falcore.TestWithRequest(
-		request,
-		&outerFilter,
-		nil,
-	)
+
+	rec := httptest.NewRecorder()
+	outerFilter.ServeHTTP(rec, request)
+	response := rec.Result()
 
 	/* check */
 	assert.Equal(t, 200, response.StatusCode)
@@ -524,11 +512,10 @@ func TestDoubleCookiemaskTopMasking(t *testing.T) {
 		handler1,
 		&innerFilter,
 	}
-	_, response := falcore.TestWithRequest(
-		request,
-		&outerFilter,
-		nil,
-	)
+
+	rec := httptest.NewRecorder()
+	outerFilter.ServeHTTP(rec, request)
+	response := rec.Result()
 
 	/* check */
 	assert.Equal(t, 200, response.StatusCode)
@@ -617,11 +604,10 @@ func TestDoubleCookiemaskBottomMasking(t *testing.T) {
 		NewMinSessionHandler("test1", "/", "example.com"),
 		&innerFilter,
 	}
-	_, response := falcore.TestWithRequest(
-		request,
-		&outerFilter,
-		nil,
-	)
+
+	rec := httptest.NewRecorder()
+	outerFilter.ServeHTTP(rec, request)
+	response := rec.Result()
 
 	/* check */
 	assert.Equal(t, 200, response.StatusCode)
@@ -714,11 +700,10 @@ func TestDoubleCookiemaskBothMasking(t *testing.T) {
 		handler1,
 		&innerFilter,
 	}
-	_, response := falcore.TestWithRequest(
-		request,
-		&outerFilter,
-		nil,
-	)
+
+	rec := httptest.NewRecorder()
+	outerFilter.ServeHTTP(rec, request)
+	response := rec.Result()
 
 	/* check */
 	assert.Equal(t, 200, response.StatusCode)
@@ -800,11 +785,10 @@ func TestDoubleCookiemaskBottomErrorTopNoMasking(t *testing.T) {
 		NewMinSessionHandler("test1", "/", "example.com"),
 		&innerFilter,
 	}
-	_, response := falcore.TestWithRequest(
-		request,
-		&outerFilter,
-		nil,
-	)
+
+	rec := httptest.NewRecorder()
+	outerFilter.ServeHTTP(rec, request)
+	response := rec.Result()
 
 	/* check */
 	assert.Equal(t, 500, response.StatusCode)
@@ -891,11 +875,10 @@ func TestDoubleCookiemaskBottomErrorTopMasking(t *testing.T) {
 		handler1,
 		&innerFilter,
 	}
-	_, response := falcore.TestWithRequest(
-		request,
-		&outerFilter,
-		nil,
-	)
+
+	rec := httptest.NewRecorder()
+	outerFilter.ServeHTTP(rec, request)
+	response := rec.Result()
 
 	/* check */
 	assert.Equal(t, 500, response.StatusCode)
@@ -981,11 +964,10 @@ func TestDoubleCookiemaskTopErrorBottomNoMasking(t *testing.T) {
 		handlerSessionsAlwaysError,
 		&innerFilter,
 	}
-	_, response := falcore.TestWithRequest(
-		request,
-		&outerFilter,
-		nil,
-	)
+
+	rec := httptest.NewRecorder()
+	outerFilter.ServeHTTP(rec, request)
+	response := rec.Result()
 
 	/* check */
 	assert.Equal(t, 500, response.StatusCode)

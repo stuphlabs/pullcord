@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/fitstar/falcore"
 	"github.com/stuphlabs/pullcord/config"
 )
 
@@ -90,9 +89,7 @@ var responseStringFormat = `<!DOCTYPE html>
 
 var responseContactString = "Please contact your system administrator."
 
-func (s StandardResponse) FilterRequest(
-	request *falcore.Request,
-) *http.Response {
+func (s StandardResponse) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var title, text, contact string
 
 	rs := s
@@ -112,15 +109,12 @@ func (s StandardResponse) FilterRequest(
 		text = v
 	}
 
-	return falcore.StringResponse(
-		request.HttpRequest,
-		int(rs),
-		nil,
-		fmt.Sprintf(
-			responseStringFormat,
-			title,
-			text,
-			contact,
-		),
+	w.WriteHeader(int(rs))
+	fmt.Fprintf(
+		w,
+		responseStringFormat,
+		title,
+		text,
+		contact,
 	)
 }

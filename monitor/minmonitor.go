@@ -4,15 +4,14 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-
-	"github.com/fitstar/falcore"
-	"github.com/proidiot/gone/errors"
-	"github.com/proidiot/gone/log"
-	// "github.com/stuphlabs/pullcord"
 	"net"
 	"net/http"
-	"strconv"
+	"net/url"
+	"strings"
 	"time"
+
+	"github.com/proidiot/gone/errors"
+	"github.com/proidiot/gone/log"
 
 	"github.com/stuphlabs/pullcord/config"
 	"github.com/stuphlabs/pullcord/proxy"
@@ -33,16 +32,14 @@ const UnknownServiceError = errors.New(
 
 // MonitorredService holds the information for a single service definition.
 type MinMonitorredService struct {
-	Address     string
-	Port        int
-	Protocol    string
+	URL         *url.URL
 	GracePeriod time.Duration
 	OnDown      trigger.TriggerHandler
 	OnUp        trigger.TriggerHandler
 	Always      trigger.TriggerHandler
 	lastChecked time.Time
 	up          bool
-	passthru    falcore.RequestFilter
+	passthru    http.Handler
 }
 
 func init() {
@@ -56,9 +53,7 @@ func init() {
 
 func (s *MinMonitorredService) UnmarshalJSON(data []byte) error {
 	var t struct {
-		Address     string
-		Port        int
-		Protocol    string
+		URL         string
 		GracePeriod string
 		OnDown      *config.Resource
 		OnUp        *config.Resource
@@ -113,33 +108,32 @@ func (s *MinMonitorredService) UnmarshalJSON(data []byte) error {
 		s.Always = nil
 	}
 
-	s.Address = t.Address
-	s.Port = t.Port
-	s.Protocol = t.Protocol
+	u, e := url.Parse(t.URL)
+	if e != nil {
+		return e
+	}
+
+	s.URL = u
 
 	return nil
 }
 
 func NewMinMonitorredService(
-	address string,
-	port int,
-	protocol string,
+	u *url.URL,
 	gracePeriod time.Duration,
 	onDown trigger.TriggerHandler,
 	onUp trigger.TriggerHandler,
 	always trigger.TriggerHandler,
 ) (service *MinMonitorredService, err error) {
 	result := MinMonitorredService{
-		address,
-		port,
-		protocol,
+		u,
 		gracePeriod,
 		onDown,
 		onUp,
 		always,
 		time.Time{},
 		false,
-		proxy.NewPassthruFilter(address, port),
+		proxy.NewPassthruFilter(u),
 	}
 
 	return &result, nil
@@ -181,16 +175,10 @@ func (monitor *MinMonitor) Add(
 			fmt.Sprintf(
 				"minmonitor cannot add service: name \"%s\""+
 					" previously used for service at"+
-					" protocol \"%s\" address \"%s\" port"+
-					" \"%d\", new service at protocol"+
-					" \"%s\" address \"%s\" port \"%d\"",
+					" \"%s\", new service at \"%s\"",
 				name,
-				osvc.Protocol,
-				osvc.Address,
-				osvc.Port,
-				service.Protocol,
-				service.Address,
-				service.Port,
+				osvc.URL.String(),
+				service.URL.String(),
 			),
 		)
 
@@ -233,10 +221,19 @@ func (monitor *MinMonitor) Reprobe(name string) (up bool, err error) {
 }
 
 func (svc *MinMonitorredService) Reprobe() (up bool, err error) {
-	conn, err := net.Dial(
-		svc.Protocol,
-		svc.Address+":"+strconv.Itoa(int(svc.Port)),
-	)
+	hostname := svc.URL.Hostname()
+	socktypefam := "tcp"
+	if strings.Index(hostname, ":") > 0 {
+		hostname = fmt.Sprintf("//[%s]", hostname)
+		socktypefam = "tcp6"
+	}
+	port := svc.URL.Port()
+	if port == "" {
+		port = svc.URL.Scheme
+	}
+
+	addr := fmt.Sprintf("%s:%s", hostname, port)
+	conn, err := net.Dial(socktypefam, addr)
 	svc.lastChecked = time.Now()
 	if err != nil {
 		svc.up = false
@@ -251,9 +248,8 @@ func (svc *MinMonitorredService) Reprobe() (up bool, err error) {
 							" connection refused"+
 							" (interpereted as a"+
 							" down status) from"+
-							" \"%s:%d\"",
-						svc.Address,
-						svc.Port,
+							" \"%s\"",
+						svc.URL.String(),
 					),
 				)
 
@@ -263,9 +259,8 @@ func (svc *MinMonitorredService) Reprobe() (up bool, err error) {
 					fmt.Sprintf(
 						"minmonitor encountered an"+
 							" error while probing"+
-							" \"%s:%d\": %v",
-						svc.Address,
-						svc.Port,
+							" \"%s\": %v",
+						svc.URL.String(),
 						err,
 					),
 				)
@@ -277,9 +272,8 @@ func (svc *MinMonitorredService) Reprobe() (up bool, err error) {
 				fmt.Sprintf(
 					"minmonitor encountered an unknown"+
 						" error while probing"+
-						" \"%s:%d\": %v",
-					svc.Address,
-					svc.Port,
+						" \"%s\": %v",
+					svc.URL.String(),
 					err,
 				),
 			)
@@ -292,9 +286,8 @@ func (svc *MinMonitorredService) Reprobe() (up bool, err error) {
 
 		log.Info(
 			fmt.Sprintf(
-				"minmonitor successfully probed: \"%s:%d\"",
-				svc.Address,
-				svc.Port,
+				"minmonitor successfully probed: \"%s\"",
+				svc.URL.String(),
 			),
 		)
 
@@ -339,9 +332,8 @@ func (svc *MinMonitorredService) Status() (up bool, err error) {
 				"minmonitor must reprobe as either the grace"+
 					" period has lapsed or the previous"+
 					" probe indicated a down status for:"+
-					" \"%s:%d\"",
-				svc.Address,
-				svc.Port,
+					" \"%s\"",
+				svc.URL.String(),
 			),
 		)
 
@@ -352,9 +344,8 @@ func (svc *MinMonitorredService) Status() (up bool, err error) {
 				"minmonitor is skipping the reprobe as the"+
 					" current time is still within the"+
 					" grace period of the last successfull"+
-					" probe of: \"%s:%d\"",
-				svc.Address,
-				svc.Port,
+					" probe of: \"%s\"",
+				svc.URL.String(),
 			),
 		)
 
@@ -385,9 +376,8 @@ func (svc *MinMonitorredService) SetStatusUp() error {
 	log.Info(
 		fmt.Sprintf(
 			"minmonitor has been explicitly informed of the up"+
-				" status of: \"%s:%d\"",
-			svc.Address,
-			svc.Port,
+				" status of: \"%s\"",
+			svc.URL.String(),
 		),
 	)
 	svc.lastChecked = time.Now()
@@ -403,7 +393,7 @@ func (svc *MinMonitorredService) SetStatusUp() error {
 // the service is already up, or in either case, respectively.
 func (monitor *MinMonitor) NewMinMonitorFilter(
 	name string,
-) (falcore.RequestFilter, error) {
+) (http.Handler, error) {
 	svc, serviceExists := monitor.table[name]
 	if !serviceExists {
 		log.Err(
@@ -420,9 +410,10 @@ func (monitor *MinMonitor) NewMinMonitorFilter(
 	return svc, nil
 }
 
-func (svc *MinMonitorredService) FilterRequest(
-	req *falcore.Request,
-) *http.Response {
+func (svc *MinMonitorredService) ServeHTTP(
+	w http.ResponseWriter,
+	req *http.Request,
+) {
 	log.Debug("running minmonitor filter")
 
 	up, err := svc.Status()
@@ -431,16 +422,14 @@ func (svc *MinMonitorredService) FilterRequest(
 			fmt.Sprintf(
 				"minmonitor filter received an error"+
 					" while requesting the status for"+
-					" \"%s:%d\": %v",
-				svc.Address,
-				svc.Port,
+					" \"%s\": %v",
+				svc.URL.String(),
 				err,
 			),
 		)
-		return falcore.StringResponse(
-			req.HttpRequest,
-			500,
-			nil,
+		w.WriteHeader(500)
+		fmt.Fprint(
+			w,
 			"<html><head><title>Pullcord - Internal"+
 				" Server Error</title></head><body><h1>"+
 				"Pullcord - Internal Server Error</h1><p>An"+
@@ -449,6 +438,7 @@ func (svc *MinMonitorredService) FilterRequest(
 				" problem persists, the site administrator"+
 				" should be contacted.</p></body></html>",
 		)
+		return
 	}
 
 	if svc.Always != nil {
@@ -458,17 +448,15 @@ func (svc *MinMonitorredService) FilterRequest(
 				fmt.Sprintf(
 					"minmonitor filter received"+
 						" an error while running the"+
-						" always trigger on \"%s:%d\":"+
+						" always trigger on \"%s\":"+
 						" %v",
-					svc.Address,
-					svc.Port,
+					svc.URL.String(),
 					err,
 				),
 			)
-			return falcore.StringResponse(
-				req.HttpRequest,
-				500,
-				nil,
+			w.WriteHeader(500)
+			fmt.Fprint(
+				w,
 				"<html><head><title>Pullcord -"+
 					" Internal Server Error</title>"+
 					"</head><body><h1>Pullcord -"+
@@ -480,6 +468,7 @@ func (svc *MinMonitorredService) FilterRequest(
 					" should be contacted.</p></body>"+
 					"</html>",
 			)
+			return
 		}
 	}
 
@@ -493,16 +482,14 @@ func (svc *MinMonitorredService) FilterRequest(
 							" received an error"+
 							" while running the"+
 							" onDown trigger on"+
-							" \"%s:%d\": %v",
-						svc.Address,
-						svc.Port,
+							" \"%s\": %v",
+						svc.URL.String(),
 						err,
 					),
 				)
-				return falcore.StringResponse(
-					req.HttpRequest,
-					500,
-					nil,
+				w.WriteHeader(500)
+				fmt.Fprint(
+					w,
 					"<html><head><title>Pullcord"+
 						" - Internal Server Error"+
 						"</title></head><body><h1>"+
@@ -515,11 +502,13 @@ func (svc *MinMonitorredService) FilterRequest(
 						" administrator should be"+
 						" contacted.</p></body></html>",
 				)
+				return
 			}
 		}
 
 		log.Debug("minmonitor filter passthru")
-		return svc.passthru.FilterRequest(req)
+		svc.passthru.ServeHTTP(w, req)
+		return
 	}
 
 	if svc.OnDown != nil {
@@ -529,17 +518,14 @@ func (svc *MinMonitorredService) FilterRequest(
 				fmt.Sprintf(
 					"minmonitor filter received"+
 						" an error while running the"+
-						" onDown trigger on \"%s:%d\":"+
-						" %v",
-					svc.Address,
-					svc.Port,
+						" onDown trigger on \"%s\": %v",
+					svc.URL.String(),
 					err,
 				),
 			)
-			return falcore.StringResponse(
-				req.HttpRequest,
-				500,
-				nil,
+			w.WriteHeader(500)
+			fmt.Fprint(
+				w,
 				"<html><head><title>Pullcord -"+
 					" Internal Server Error</title>"+
 					"</head><body><h1>Pullcord -"+
@@ -551,22 +537,21 @@ func (svc *MinMonitorredService) FilterRequest(
 					" should be contacted.</p></body>"+
 					"</html>",
 			)
+			return
 		}
 	}
 
 	log.Info(
 		fmt.Sprintf(
 			"minmonitor filter has reached a down"+
-				" service (\"%s:%d\"), but any triggers have"+
+				" service (\"%s\"), but any triggers have"+
 				" fired successfully",
-			svc.Address,
-			svc.Port,
+			svc.URL.String(),
 		),
 	)
-	return falcore.StringResponse(
-		req.HttpRequest,
-		503,
-		nil,
+	w.WriteHeader(503)
+	fmt.Fprint(
+		w,
 		"<html><head><title>Pullcord - Service Not Ready"+
 			"</title></head><body><h1>Pullcord - Service Not"+
 			" Ready</h1><p>The requested service is not yet"+
@@ -576,6 +561,7 @@ func (svc *MinMonitorredService) FilterRequest(
 			" would like further information, please contact the"+
 			" site administrator.</p></body></html>",
 	)
+	return
 }
 
 // NewMinMonitor constructs a new MinMonitor.

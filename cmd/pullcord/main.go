@@ -4,9 +4,9 @@ import (
 	"flag"
 	"fmt"
 	"net"
+	"net/http"
 	"os"
 
-	"github.com/fitstar/falcore"
 	"github.com/proidiot/gone/log"
 	"github.com/stuphlabs/pullcord/config"
 	pcnet "github.com/stuphlabs/pullcord/net"
@@ -84,17 +84,12 @@ func main() {
 			panic(critErr)
 		}
 
-		handler := &config.ConfigPipeline{
-			Server: falcore.NewServer(0, falcore.NewPipeline()),
-		}
-		landingFilter := falcore.RequestFilter(new(util.LandingFilter))
-		handler.Server.Pipeline.Upstream.PushBack(
-			&util.ExactPathRouter{
-				Routes: map[string]*falcore.RequestFilter{
-					"/": &landingFilter,
-				},
+		landingFilter := new(util.LandingFilter)
+		handler := &util.ExactPathRouter{
+			Routes: map[string]http.Handler{
+				"/": landingFilter,
 			},
-		)
+		}
 		server = &config.Server{
 			Handler: handler,
 			Listener: &pcnet.BasicListener{

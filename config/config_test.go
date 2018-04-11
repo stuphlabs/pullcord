@@ -8,7 +8,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fitstar/falcore"
 	"github.com/proidiot/gone/errors"
 	"github.com/stretchr/testify/assert"
 )
@@ -23,8 +22,7 @@ func (s *dummyType) UnmarshalJSON(i []byte) error {
 		return nil
 	}
 }
-func (s *dummyType) FilterRequest(*falcore.Request) *http.Response {
-	return nil
+func (s *dummyType) ServeHTTP(http.ResponseWriter, *http.Request) {
 }
 func newDummy() json.Unmarshaler {
 	return new(dummyType)
@@ -38,18 +36,6 @@ func (s *randomType) UnmarshalJSON([]byte) error {
 func newRandom() json.Unmarshaler {
 	var r randomType = 4
 	return &r
-}
-
-type dummyRouter struct{}
-
-func (r *dummyRouter) UnmarshalJSON([]byte) error {
-	return nil
-}
-func (r *dummyRouter) SelectPipeline(*falcore.Request) falcore.RequestFilter {
-	return new(dummyType)
-}
-func newDummyRouter() json.Unmarshaler {
-	return new(dummyRouter)
 }
 
 func TestRegisterResourceType(t *testing.T) {
@@ -488,7 +474,7 @@ func TestServerFromReader(t *testing.T) {
 			config: `{
 				"resources": {
 					"handler": {
-						"type": "dummyType",
+						"type": "randomType",
 						"data": null
 					},
 					"listener": {
@@ -526,13 +512,8 @@ func TestServerFromReader(t *testing.T) {
 						"data": null
 					},
 					"handler": {
-						"type": "pipeline",
-						"data": {
-							"upstream": [{
-								"type": "ref",
-								"data": "testResource"
-							}]
-						}
+						"type": "ref",
+						"data": "testResource"
 					},
 					"listener": {
 						"type": "internaltestlistener",
@@ -553,13 +534,8 @@ func TestServerFromReader(t *testing.T) {
 						"data": null
 					},
 					"handler": {
-						"type": "pipeline",
-						"data": {
-							"downstream": [{
-								"type": "ref",
-								"data": "testResource"
-							}]
-						}
+						"type": "ref",
+						"data": "testResource"
 					},
 					"listener": {
 						"type": "internaltestlistener",
@@ -580,13 +556,8 @@ func TestServerFromReader(t *testing.T) {
 						"data": null
 					},
 					"handler": {
-						"type": "pipeline",
-						"data": {
-							"upstream": [{
-								"type": "ref",
-								"data": "testResource"
-							}]
-						}
+						"type": "ref",
+						"data": "testResource"
 					},
 					"listener": {
 						"type": "internaltestlistener",
@@ -607,13 +578,8 @@ func TestServerFromReader(t *testing.T) {
 						"data": "error"
 					},
 					"handler": {
-						"type": "pipeline",
-						"data": {
-							"upstream": [{
-								"type": "ref",
-								"data": "testResource"
-							}]
-						}
+						"type": "ref",
+						"data": "testResource"
 					},
 					"listener": {
 						"type": "internaltestlistener",
@@ -630,13 +596,8 @@ func TestServerFromReader(t *testing.T) {
 				"resources": {
 					"testResource": null,
 					"handler": {
-						"type": "pipeline",
-						"data": {
-							"upstream": [{
-								"type": "ref",
-								"data": "testResource"
-							}]
-						}
+						"type": "ref",
+						"data": "testResource"
 					},
 					"listener": {
 						"type": "internaltestlistener",
@@ -657,13 +618,8 @@ func TestServerFromReader(t *testing.T) {
 						"data": "testResource"
 					},
 					"handler": {
-						"type": "pipeline",
-						"data": {
-							"upstream": [{
-								"type": "ref",
-								"data": "testResource"
-							}]
-						}
+						"type": "ref",
+						"data": "testResource"
 					},
 					"listener": {
 						"type": "internaltestlistener",
@@ -675,6 +631,23 @@ func TestServerFromReader(t *testing.T) {
 			}`,
 			reason: "self-referential Resource specified as an" +
 				" upstream for a Pipeline",
+		},
+		{
+			config: `{
+				"resources": {
+					"handler": {
+						"type": "internaltesthandler",
+						"data": null
+					},
+					"listener": {
+						"type": "internaltestlistener",
+						"data": null
+					}
+				},
+				"handler": "handlerr",
+				"listener": "listener"
+			}`,
+			reason: "typo in handler specifier",
 		},
 	}
 
@@ -700,13 +673,8 @@ func TestServerFromReader(t *testing.T) {
 			config: `{
 				"resources": {
 					"handler": {
-						"type": "pipeline",
-						"data": {
-							"upstream": [{
-								"type": "ref",
-								"data": "testResource"
-							}]
-						}
+						"type": "ref",
+						"data": "testResource"
 					},
 					"testResource": {
 						"type": "dummyType",
@@ -726,13 +694,8 @@ func TestServerFromReader(t *testing.T) {
 			config: `{
 				"resources": {
 					"handler": {
-						"type": "pipeline",
-						"data": {
-							"upstream": [{
-								"type": "ref",
-								"data": "testResource"
-							}]
-						}
+						"type": "ref",
+						"data": "testResource"
 					},
 					"testResource2": {
 						"type": "dummyType",
@@ -752,36 +715,9 @@ func TestServerFromReader(t *testing.T) {
 			}`,
 			reason: "double reference",
 		},
-		{
-			config: `{
-				"resources": {
-					"handler": {
-						"type": "pipeline",
-						"data": {
-							"upstream": [{
-								"type": "ref",
-								"data": "testResource"
-							}]
-						}
-					},
-					"testResource": {
-						"type": "dummyRouter",
-						"data": null
-					},
-					"listener": {
-						"type": "internaltestlistener",
-						"data": null
-					}
-				},
-				"handler": "handler",
-				"listener": "listener"
-			}`,
-			reason: "router in pipeline",
-		},
 	}
 
 	RegisterResourceType("dummyType", newDummy)
-	RegisterResourceType("dummyRouter", newDummyRouter)
 
 	for _, d := range syntacticallyBad {
 		d := d

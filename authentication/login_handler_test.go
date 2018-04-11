@@ -3,13 +3,14 @@ package authentication
 import (
 	"bytes"
 	"errors"
+	"io"
 	"io/ioutil"
 	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"strings"
 	"testing"
 
-	"github.com/fitstar/falcore"
 	"github.com/stretchr/testify/assert"
 	configutil "github.com/stuphlabs/pullcord/config/util"
 
@@ -69,16 +70,12 @@ func TestInitialLoginPage(t *testing.T) {
 	testUser := "testUser"
 	testPassword := "P@ssword1"
 
-	downstreamFilter := falcore.NewRequestFilter(
-		func(request *falcore.Request) *http.Response {
-			return falcore.StringResponse(
-				request.HttpRequest,
-				200,
-				nil,
-				"<html><body><p>logged in</p></body></html>",
-			)
-		},
-	)
+	downstreamFilter := http.HandlerFunc(func(
+		w http.ResponseWriter,
+		r *http.Request,
+	) {
+		io.WriteString(w, "<html><body><p>logged in</p></body></html>")
+	})
 	sessionHandler := NewMinSessionHandler(
 		"testSessionHandler",
 		"/",
@@ -103,7 +100,9 @@ func TestInitialLoginPage(t *testing.T) {
 		sessionHandler,
 		handler,
 	}
-	_, response := falcore.TestWithRequest(request, filter, nil)
+	rec := httptest.NewRecorder()
+	filter.ServeHTTP(rec, request)
+	response := rec.Result()
 
 	/* check */
 	assert.Equal(t, 200, response.StatusCode)
@@ -129,16 +128,12 @@ func TestNoXsrfLoginPage(t *testing.T) {
 	testUser := "testUser"
 	testPassword := "P@ssword1"
 
-	downstreamFilter := falcore.NewRequestFilter(
-		func(request *falcore.Request) *http.Response {
-			return falcore.StringResponse(
-				request.HttpRequest,
-				200,
-				nil,
-				"<html><body><p>logged in</p></body></html>",
-			)
-		},
-	)
+	downstreamFilter := http.HandlerFunc(func(
+		w http.ResponseWriter,
+		r *http.Request,
+	) {
+		io.WriteString(w, "<html><body><p>logged in</p></body></html>")
+	})
 	sessionHandler := NewMinSessionHandler(
 		"testSessionHandler",
 		"/",
@@ -176,14 +171,18 @@ func TestNoXsrfLoginPage(t *testing.T) {
 		handler,
 	}
 
-	_, response1 := falcore.TestWithRequest(request1, filter, nil)
+	rec1 := httptest.NewRecorder()
+	filter.ServeHTTP(rec1, request1)
+	response1 := rec1.Result()
 	assert.Equal(t, 200, response1.StatusCode)
 	assert.NotEmpty(t, response1.Header["Set-Cookie"])
 	for _, cke := range response1.Cookies() {
 		request2.AddCookie(cke)
 	}
 
-	_, response2 := falcore.TestWithRequest(request2, filter, nil)
+	rec2 := httptest.NewRecorder()
+	filter.ServeHTTP(rec2, request2)
+	response2 := rec2.Result()
 
 	/* check */
 	assert.Equal(t, 200, response2.StatusCode)
@@ -202,16 +201,12 @@ func TestBadXsrfLoginPage(t *testing.T) {
 	testUser := "testUser"
 	testPassword := "P@ssword1"
 
-	downstreamFilter := falcore.NewRequestFilter(
-		func(request *falcore.Request) *http.Response {
-			return falcore.StringResponse(
-				request.HttpRequest,
-				200,
-				nil,
-				"<html><body><p>logged in</p></body></html>",
-			)
-		},
-	)
+	downstreamFilter := http.HandlerFunc(func(
+		w http.ResponseWriter,
+		r *http.Request,
+	) {
+		io.WriteString(w, "<html><body><p>logged in</p></body></html>")
+	})
 	sessionHandler := NewMinSessionHandler(
 		"testSessionHandler",
 		"/",
@@ -250,14 +245,18 @@ func TestBadXsrfLoginPage(t *testing.T) {
 		handler,
 	}
 
-	_, response1 := falcore.TestWithRequest(request1, filter, nil)
+	rec1 := httptest.NewRecorder()
+	filter.ServeHTTP(rec1, request1)
+	response1 := rec1.Result()
 	assert.Equal(t, 200, response1.StatusCode)
 	assert.NotEmpty(t, response1.Header["Set-Cookie"])
 	for _, cke := range response1.Cookies() {
 		request2.AddCookie(cke)
 	}
 
-	_, response2 := falcore.TestWithRequest(request2, filter, nil)
+	rec2 := httptest.NewRecorder()
+	filter.ServeHTTP(rec2, request2)
+	response2 := rec2.Result()
 
 	/* check */
 	assert.Equal(t, 200, response2.StatusCode)
@@ -276,16 +275,12 @@ func TestNoUsernameLoginPage(t *testing.T) {
 	testUser := "testUser"
 	testPassword := "P@ssword1"
 
-	downstreamFilter := falcore.NewRequestFilter(
-		func(request *falcore.Request) *http.Response {
-			return falcore.StringResponse(
-				request.HttpRequest,
-				200,
-				nil,
-				"<html><body><p>logged in</p></body></html>",
-			)
-		},
-	)
+	downstreamFilter := http.HandlerFunc(func(
+		w http.ResponseWriter,
+		r *http.Request,
+	) {
+		io.WriteString(w, "<html><body><p>logged in</p></body></html>")
+	})
 	sessionHandler := NewMinSessionHandler(
 		"testSessionHandler",
 		"/",
@@ -311,7 +306,9 @@ func TestNoUsernameLoginPage(t *testing.T) {
 		handler,
 	}
 
-	_, response1 := falcore.TestWithRequest(request1, filter, nil)
+	rec1 := httptest.NewRecorder()
+	filter.ServeHTTP(rec1, request1)
+	response1 := rec1.Result()
 	assert.Equal(t, 200, response1.StatusCode)
 	assert.NotEmpty(t, response1.Header["Set-Cookie"])
 
@@ -338,7 +335,9 @@ func TestNoUsernameLoginPage(t *testing.T) {
 		request2.AddCookie(cke)
 	}
 
-	_, response2 := falcore.TestWithRequest(request2, filter, nil)
+	rec2 := httptest.NewRecorder()
+	filter.ServeHTTP(rec2, request2)
+	response2 := rec2.Result()
 
 	/* check */
 	assert.Equal(t, 200, response2.StatusCode)
@@ -357,16 +356,12 @@ func TestNoPasswordLoginPage(t *testing.T) {
 	testUser := "testUser"
 	testPassword := "P@ssword1"
 
-	downstreamFilter := falcore.NewRequestFilter(
-		func(request *falcore.Request) *http.Response {
-			return falcore.StringResponse(
-				request.HttpRequest,
-				200,
-				nil,
-				"<html><body><p>logged in</p></body></html>",
-			)
-		},
-	)
+	downstreamFilter := http.HandlerFunc(func(
+		w http.ResponseWriter,
+		r *http.Request,
+	) {
+		io.WriteString(w, "<html><body><p>logged in</p></body></html>")
+	})
 	sessionHandler := NewMinSessionHandler(
 		"testSessionHandler",
 		"/",
@@ -392,7 +387,9 @@ func TestNoPasswordLoginPage(t *testing.T) {
 		handler,
 	}
 
-	_, response1 := falcore.TestWithRequest(request1, filter, nil)
+	rec1 := httptest.NewRecorder()
+	filter.ServeHTTP(rec1, request1)
+	response1 := rec1.Result()
 	assert.Equal(t, 200, response1.StatusCode)
 	assert.NotEmpty(t, response1.Header["Set-Cookie"])
 
@@ -420,7 +417,9 @@ func TestNoPasswordLoginPage(t *testing.T) {
 		request2.AddCookie(cke)
 	}
 
-	_, response2 := falcore.TestWithRequest(request2, filter, nil)
+	rec2 := httptest.NewRecorder()
+	filter.ServeHTTP(rec2, request2)
+	response2 := rec2.Result()
 
 	/* check */
 	assert.Equal(t, 200, response2.StatusCode)
@@ -439,16 +438,12 @@ func TestUsernameArrayLoginPage(t *testing.T) {
 	testUser := "testUser"
 	testPassword := "P@ssword1"
 
-	downstreamFilter := falcore.NewRequestFilter(
-		func(request *falcore.Request) *http.Response {
-			return falcore.StringResponse(
-				request.HttpRequest,
-				200,
-				nil,
-				"<html><body><p>logged in</p></body></html>",
-			)
-		},
-	)
+	downstreamFilter := http.HandlerFunc(func(
+		w http.ResponseWriter,
+		r *http.Request,
+	) {
+		io.WriteString(w, "<html><body><p>logged in</p></body></html>")
+	})
 	sessionHandler := NewMinSessionHandler(
 		"testSessionHandler",
 		"/",
@@ -474,7 +469,9 @@ func TestUsernameArrayLoginPage(t *testing.T) {
 		handler,
 	}
 
-	_, response1 := falcore.TestWithRequest(request1, filter, nil)
+	rec1 := httptest.NewRecorder()
+	filter.ServeHTTP(rec1, request1)
+	response1 := rec1.Result()
 	assert.Equal(t, 200, response1.StatusCode)
 	assert.NotEmpty(t, response1.Header["Set-Cookie"])
 
@@ -506,7 +503,9 @@ func TestUsernameArrayLoginPage(t *testing.T) {
 		request2.AddCookie(cke)
 	}
 
-	_, response2 := falcore.TestWithRequest(request2, filter, nil)
+	rec2 := httptest.NewRecorder()
+	filter.ServeHTTP(rec2, request2)
+	response2 := rec2.Result()
 
 	/* check */
 	assert.Equal(t, 200, response2.StatusCode)
@@ -525,16 +524,12 @@ func TestBadUsernameLoginPage(t *testing.T) {
 	testUser := "testUser"
 	testPassword := "P@ssword1"
 
-	downstreamFilter := falcore.NewRequestFilter(
-		func(request *falcore.Request) *http.Response {
-			return falcore.StringResponse(
-				request.HttpRequest,
-				200,
-				nil,
-				"<html><body><p>logged in</p></body></html>",
-			)
-		},
-	)
+	downstreamFilter := http.HandlerFunc(func(
+		w http.ResponseWriter,
+		r *http.Request,
+	) {
+		io.WriteString(w, "<html><body><p>logged in</p></body></html>")
+	})
 	sessionHandler := NewMinSessionHandler(
 		"testSessionHandler",
 		"/",
@@ -560,7 +555,9 @@ func TestBadUsernameLoginPage(t *testing.T) {
 		handler,
 	}
 
-	_, response1 := falcore.TestWithRequest(request1, filter, nil)
+	rec1 := httptest.NewRecorder()
+	filter.ServeHTTP(rec1, request1)
+	response1 := rec1.Result()
 	assert.Equal(t, 200, response1.StatusCode)
 	assert.NotEmpty(t, response1.Header["Set-Cookie"])
 
@@ -591,7 +588,9 @@ func TestBadUsernameLoginPage(t *testing.T) {
 		request2.AddCookie(cke)
 	}
 
-	_, response2 := falcore.TestWithRequest(request2, filter, nil)
+	rec2 := httptest.NewRecorder()
+	filter.ServeHTTP(rec2, request2)
+	response2 := rec2.Result()
 
 	/* check */
 	assert.Equal(t, 200, response2.StatusCode)
@@ -610,16 +609,12 @@ func TestBadPasswordLoginPage(t *testing.T) {
 	testUser := "testUser"
 	testPassword := "P@ssword1"
 
-	downstreamFilter := falcore.NewRequestFilter(
-		func(request *falcore.Request) *http.Response {
-			return falcore.StringResponse(
-				request.HttpRequest,
-				200,
-				nil,
-				"<html><body><p>logged in</p></body></html>",
-			)
-		},
-	)
+	downstreamFilter := http.HandlerFunc(func(
+		w http.ResponseWriter,
+		r *http.Request,
+	) {
+		io.WriteString(w, "<html><body><p>logged in</p></body></html>")
+	})
 	sessionHandler := NewMinSessionHandler(
 		"testSessionHandler",
 		"/",
@@ -645,7 +640,9 @@ func TestBadPasswordLoginPage(t *testing.T) {
 		handler,
 	}
 
-	_, response1 := falcore.TestWithRequest(request1, filter, nil)
+	rec1 := httptest.NewRecorder()
+	filter.ServeHTTP(rec1, request1)
+	response1 := rec1.Result()
 	assert.Equal(t, 200, response1.StatusCode)
 	assert.NotEmpty(t, response1.Header["Set-Cookie"])
 
@@ -676,7 +673,9 @@ func TestBadPasswordLoginPage(t *testing.T) {
 		request2.AddCookie(cke)
 	}
 
-	_, response2 := falcore.TestWithRequest(request2, filter, nil)
+	rec2 := httptest.NewRecorder()
+	filter.ServeHTTP(rec2, request2)
+	response2 := rec2.Result()
 
 	/* check */
 	assert.Equal(t, 200, response2.StatusCode)
@@ -695,16 +694,12 @@ func TestGoodLoginPage(t *testing.T) {
 	testUser := "testUser"
 	testPassword := "P@ssword1"
 
-	downstreamFilter := falcore.NewRequestFilter(
-		func(request *falcore.Request) *http.Response {
-			return falcore.StringResponse(
-				request.HttpRequest,
-				200,
-				nil,
-				"<html><body><p>logged in</p></body></html>",
-			)
-		},
-	)
+	downstreamFilter := http.HandlerFunc(func(
+		w http.ResponseWriter,
+		r *http.Request,
+	) {
+		io.WriteString(w, "<html><body><p>logged in</p></body></html>")
+	})
 	sessionHandler := NewMinSessionHandler(
 		"testSessionHandler",
 		"/",
@@ -730,7 +725,9 @@ func TestGoodLoginPage(t *testing.T) {
 		handler,
 	}
 
-	_, response1 := falcore.TestWithRequest(request1, filter, nil)
+	rec1 := httptest.NewRecorder()
+	filter.ServeHTTP(rec1, request1)
+	response1 := rec1.Result()
 	assert.Equal(t, 200, response1.StatusCode)
 	assert.NotEmpty(t, response1.Header["Set-Cookie"])
 
@@ -761,7 +758,9 @@ func TestGoodLoginPage(t *testing.T) {
 		request2.AddCookie(cke)
 	}
 
-	_, response2 := falcore.TestWithRequest(request2, filter, nil)
+	rec2 := httptest.NewRecorder()
+	filter.ServeHTTP(rec2, request2)
+	response2 := rec2.Result()
 
 	/* check */
 	assert.Equal(t, 200, response2.StatusCode)
@@ -780,16 +779,12 @@ func TestPassthruLoginPage(t *testing.T) {
 	testUser := "testUser"
 	testPassword := "P@ssword1"
 
-	downstreamFilter := falcore.NewRequestFilter(
-		func(request *falcore.Request) *http.Response {
-			return falcore.StringResponse(
-				request.HttpRequest,
-				200,
-				nil,
-				"<html><body><p>logged in</p></body></html>",
-			)
-		},
-	)
+	downstreamFilter := http.HandlerFunc(func(
+		w http.ResponseWriter,
+		r *http.Request,
+	) {
+		io.WriteString(w, "<html><body><p>logged in</p></body></html>")
+	})
 	sessionHandler := NewMinSessionHandler(
 		"testSessionHandler",
 		"/",
@@ -815,7 +810,9 @@ func TestPassthruLoginPage(t *testing.T) {
 		handler,
 	}
 
-	_, response1 := falcore.TestWithRequest(request1, filter, nil)
+	rec1 := httptest.NewRecorder()
+	filter.ServeHTTP(rec1, request1)
+	response1 := rec1.Result()
 	assert.Equal(t, 200, response1.StatusCode)
 	assert.NotEmpty(t, response1.Header["Set-Cookie"])
 
@@ -846,7 +843,9 @@ func TestPassthruLoginPage(t *testing.T) {
 		request2.AddCookie(cke)
 	}
 
-	_, response2 := falcore.TestWithRequest(request2, filter, nil)
+	rec2 := httptest.NewRecorder()
+	filter.ServeHTTP(rec2, request2)
+	response2 := rec2.Result()
 
 	assert.Equal(t, 200, response2.StatusCode)
 
@@ -864,7 +863,9 @@ func TestPassthruLoginPage(t *testing.T) {
 		request3.AddCookie(cke)
 	}
 
-	_, response3 := falcore.TestWithRequest(request3, filter, nil)
+	rec3 := httptest.NewRecorder()
+	filter.ServeHTTP(rec3, request3)
+	response3 := rec3.Result()
 
 	/* check */
 	assert.Equal(t, 200, response3.StatusCode)
