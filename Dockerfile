@@ -7,4 +7,5 @@ VOLUME /etc
 EXPOSE 80
 EXPOSE 443
 
-CMD ["/usr/bin/pullcord","--config","/example/basic.json"]
+ENTRYPOINT ["/usr/bin/pullcord"]
+CMD ["--config","/example/basic.json"]
