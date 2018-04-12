@@ -8,8 +8,12 @@ import (
 	"os"
 
 	"github.com/proidiot/gone/log"
+	"github.com/stuphlabs/pullcord/authentication"
 	"github.com/stuphlabs/pullcord/config"
+	"github.com/stuphlabs/pullcord/monitor"
 	pcnet "github.com/stuphlabs/pullcord/net"
+	"github.com/stuphlabs/pullcord/proxy"
+	"github.com/stuphlabs/pullcord/trigger"
 	"github.com/stuphlabs/pullcord/util"
 )
 
@@ -47,6 +51,15 @@ func main() {
 		cfgFallbackVal := true
 		cfgFallback = &cfgFallbackVal
 	}
+
+	authentication.LoadPlugin()
+	monitor.LoadPlugin()
+	pcnet.LoadPlugin()
+	proxy.LoadPlugin()
+	trigger.LoadPlugin()
+	util.LoadPlugin()
+
+	log.Debug("Plugins loaded")
 
 	var server *config.Server
 	cfgReader, err := os.Open(*cfgPath)
@@ -97,6 +110,7 @@ func main() {
 			},
 		}
 	} else {
+		log.Info(fmt.Sprintf("Reading config from file: %s", *cfgPath))
 		server, err = config.ServerFromReader(cfgReader)
 		if err != nil {
 			log.Debug(err)
@@ -109,6 +123,12 @@ func main() {
 		}
 	}
 
+	log.Notice(
+		fmt.Sprintf(
+			"Starting server at %s...",
+			server.Listener.Addr(),
+		),
+	)
 	err = server.Serve()
 	if err != nil {
 		log.Debug(err)

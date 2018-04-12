@@ -1,0 +1,24 @@
+{
+	"resources": {
+		"handler": {
+			"type": "exactpathrouter",
+			"data": {
+				"routes": {
+					"/": {
+						"type": "landingfilter",
+						"data": {}
+					}
+				}
+			}
+		},
+		"listener": {
+			"type": "basiclistener",
+			"data": {
+				"proto": "tcp",
+				"laddr": ":8080"
+			}
+		}
+	},
+	"listener": "listener",
+	"handler": "handler"
+}

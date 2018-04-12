@@ -59,7 +59,7 @@ func (h *LoginHandler) UnmarshalJSON(input []byte) error {
 			log.Err(
 				fmt.Sprintf(
 					"Registry value is not a"+
-						" PasswordChecker: %v",
+						" PasswordChecker: %#v",
 					t.PasswordChecker,
 				),
 			)
@@ -72,7 +72,7 @@ func (h *LoginHandler) UnmarshalJSON(input []byte) error {
 			log.Err(
 				fmt.Sprintf(
 					"Registry value is not a"+
-						" RequestFilter: %v",
+						" RequestFilter: %#v",
 					t.Downstream,
 				),
 			)
@@ -139,7 +139,7 @@ func (handler *LoginHandler) ServeHTTP(
 	} else if err = request.ParseForm(); err != nil {
 		log.Warning(
 			fmt.Sprintf(
-				"login handler error during ParseForm: %v",
+				"login handler error during ParseForm: %#v",
 				err,
 			),
 		)
@@ -180,7 +180,7 @@ func (handler *LoginHandler) ServeHTTP(
 	} else if err != nil {
 		log.Err(
 			fmt.Sprintf(
-				"login handler error during CheckPassword: %v",
+				"login handler error during CheckPassword: %#v",
 				err,
 			),
 		)
@@ -189,7 +189,7 @@ func (handler *LoginHandler) ServeHTTP(
 	} else if err = sesh.SetValue(authSeshKey, true); err != nil {
 		log.Err(
 			fmt.Sprintf(
-				"login handler error during auth set: %v",
+				"login handler error during auth set: %#v",
 				err,
 			),
 		)
@@ -214,7 +214,7 @@ func (handler *LoginHandler) ServeHTTP(
 			fmt.Sprintf(
 				"login handler error during xsrf generation:"+
 					" len expected: %d, actual: %d,"+
-					" err: %v",
+					" err: %#v",
 				XsrfTokenLength,
 				rsize,
 				err,
@@ -228,7 +228,7 @@ func (handler *LoginHandler) ServeHTTP(
 	if err = sesh.SetValue(xsrfKey, nextXsrfToken); err != nil {
 		log.Err(
 			fmt.Sprintf(
-				"login handler error during xsrf set: %v",
+				"login handler error during xsrf set: %#v",
 				err,
 			),
 		)

@@ -158,6 +158,13 @@ type Server struct {
 }
 
 func (s *Server) Serve() error {
+	log.Debug(
+		fmt.Sprintf(
+			"Serving with listener %#v and handler %#v",
+			s.Listener,
+			s.Handler,
+		),
+	)
 	return http.Serve(s.Listener, s.Handler)
 }
 
@@ -177,7 +184,7 @@ func ServerFromReader(r io.Reader) (*Server, error) {
 	if e := dec.Decode(&config); e != nil {
 		log.Crit(
 			fmt.Sprintf(
-				"Unable to decode server config: %v",
+				"Unable to decode server config: %#v",
 				e,
 			),
 		)
@@ -218,7 +225,7 @@ func ServerFromReader(r io.Reader) (*Server, error) {
 				log.Debug(
 					fmt.Sprintf(
 						"Saved resource to"+
-							" registry: %s: %v",
+							" registry: %s: %#v",
 						name,
 						r.Unmarshaled,
 					),
@@ -245,13 +252,19 @@ func ServerFromReader(r io.Reader) (*Server, error) {
 		log.Debug(
 			errors.New(
 				fmt.Sprintf(
-					"got: %v",
+					"not a listener: %#v",
 					l,
 				),
 			).Error(),
 		)
 		return nil, e
 	}
+	log.Debug(
+		fmt.Sprintf(
+			"Processed listener: %#v",
+			l,
+		),
+	)
 
 	h := registry[config.Handler].Unmarshaled
 	switch h := h.(type) {
@@ -276,6 +289,12 @@ func ServerFromReader(r io.Reader) (*Server, error) {
 		)
 		return nil, e
 	}
+	log.Debug(
+		fmt.Sprintf(
+			"Processed handler: %#v",
+			h,
+		),
+	)
 
 	return server, nil
 }

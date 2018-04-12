@@ -24,9 +24,76 @@ spin up multiple servers if there are dependencies between the web apps).
 
 For more information, email [Charlie](mailto://charlie@stuphlabs.com).
 
-## Testing
+## Acceptance Testing
+To aide in acceptance testing, first run the tests and build the container from
+a clean copy of the codebase:
 ```
-go test -v ./...
+make clean container
+```
+
+Then run the pullcord container with the default config:
+```
+docker run \
+	-d \
+	--name pullcord-acceptance \
+	-p 127.0.0.1:8080:8080 \
+	-e LOG_UPTO="LOG_DEBUG" \
+	pullcord
+```
+
+Now visit [your local pullcord instance](http://127.0.0.1:8080/).
+
+To follow along with the logs:
+```
+docker logs -f pullcord-acceptance
+```
+
+To clean up and collect logs when finished:
+```
+docker kill pullcord-acceptance || echo "Container already killed, continuing."
+
+docker logs pullcord-acceptance > pullcord-acceptance-`date +%s`.log
+
+docker rm pullcord-acceptance
+```
+
+To try a different config, you could set a different `${PULLCORD_CONFIG_PATH}`
+in this command (be sure it evaluates to a full path):
+```
+PULLCORD_CONFIG_PATH="${PWD}/example/basic.json"
+docker run \
+	-d \
+	--name pullcord-acceptance \
+	-p 127.0.0.1:8080:8080 \
+	-e LOG_UPTO="LOG_DEBUG" \
+	-v `dirname ${PULLCORD_CONFIG_PATH}`:/config \
+	pullcord --config /config/`basename ${PULLCORD_CONFIG_PATH}`
+```
+
+
+## Common make targets
+Just clean up any lingering out-of-date artifacts:
+```
+make clean
+```
+
+Just run tests:
+```
+make test
+```
+
+Just build binary (will run tests if they have not yet been run):
+```
+make
+```
+or:
+```
+make all
+```
+
+Just build container (will build binary if needed):
+```
+make container
 ```
 
 ## The Main Problem
