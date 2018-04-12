@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"text/template"
 
 	"github.com/stuphlabs/pullcord/config"
 )
@@ -69,28 +70,34 @@ var responseContact = map[StandardResponse]bool{
 	NotImplemented:      true,
 }
 
-var responseStringFormat = `<!DOCTYPE html>
+var responseStringTemplate = template.Must(
+	template.New("standardResponse").Parse(
+`<!DOCTYPE html>
 <html>
  <head>
   <title>
-   %1$s
+   {{.Title}}
   </title>
  </head>
  <body>
   <h1>
-   %1$s
+   {{.Title}}
   </h1>
   <p>
-   %2$s
-   %3$s
+   {{.Message}}
+   {{if .ShouldContact}}Please contact your system administrator.{{end}}
   </p>
  </body>
-</html>`
+</html>`))
 
 var responseContactString = "Please contact your system administrator."
 
 func (s StandardResponse) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	var title, text, contact string
+	values := struct{
+		Title string
+		Message string
+		ShouldContact bool
+	}{}
 
 	rs := s
 	if rs < MinimumStandardResponse {
@@ -98,23 +105,17 @@ func (s StandardResponse) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if v, present := responseContact[rs]; present && v {
-		contact = responseContactString
+		values.ShouldContact = v
 	}
 
 	if v, present := responseTitle[rs]; present {
-		title = v
+		values.Title = v
 	}
 
 	if v, present := responseText[rs]; present {
-		text = v
+		values.Message = v
 	}
 
 	w.WriteHeader(int(rs))
-	fmt.Fprintf(
-		w,
-		responseStringFormat,
-		title,
-		text,
-		contact,
-	)
+	responseStringTemplate.Execute(w, values)
 }
