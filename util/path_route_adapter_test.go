@@ -5,33 +5,26 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 
-	"github.com/fitstar/falcore"
 	"github.com/stretchr/testify/assert"
 	configutil "github.com/stuphlabs/pullcord/config/util"
 	"github.com/stuphlabs/pullcord/trigger"
 )
 
-func TestExactPathRouterWithinPipeline(t *testing.T) {
+type stringFilter string
+
+func (s stringFilter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(200)
+	w.Write([]byte(s))
+}
+
+func TestExactPathRouterHandler(t *testing.T) {
 	type testCase struct {
 		p     *ExactPathRouter
 		req   *http.Request
 		check func(*testing.T, *http.Response)
-	}
-
-	stringFilter := func(s string) falcore.RequestFilter {
-		f := falcore.NewRequestFilter(
-			func(req *falcore.Request) *http.Response {
-				return falcore.StringResponse(
-					req.HttpRequest,
-					200,
-					nil,
-					s,
-				)
-			},
-		)
-		return f
 	}
 
 	genReq := func(method, path string, body io.Reader) *http.Request {
@@ -52,7 +45,7 @@ func TestExactPathRouterWithinPipeline(t *testing.T) {
 	testCases := []testCase{
 		{
 			p: &ExactPathRouter{
-				Routes: map[string]falcore.RequestFilter{
+				Routes: map[string]http.Handler{
 					"/foo": stringFilter("foo"),
 					"/bar": stringFilter("bar"),
 				},
@@ -99,7 +92,7 @@ func TestExactPathRouterWithinPipeline(t *testing.T) {
 		},
 		{
 			p: &ExactPathRouter{
-				Routes: map[string]falcore.RequestFilter{
+				Routes: map[string]http.Handler{
 					"/foo": stringFilter("foo"),
 					"/bar": stringFilter("bar"),
 				},
@@ -146,7 +139,7 @@ func TestExactPathRouterWithinPipeline(t *testing.T) {
 		},
 		{
 			p: &ExactPathRouter{
-				Routes: map[string]falcore.RequestFilter{
+				Routes: map[string]http.Handler{
 					"/foo": stringFilter("foo"),
 					"/bar": stringFilter("bar"),
 				},
@@ -170,10 +163,9 @@ func TestExactPathRouterWithinPipeline(t *testing.T) {
 	}
 
 	for _, c := range testCases {
-		pipeline := falcore.NewPipeline()
-		_ = pipeline.Upstream.PushBack(falcore.RequestFilter(c.p))
-		_ = pipeline.Upstream.PushBack(NotFound)
-		_, r := falcore.TestWithRequest(c.req, pipeline, nil)
+		w := httptest.NewRecorder()
+		c.p.ServeHTTP(w, c.req)
+		r := w.Result()
 		c.check(t, r)
 	}
 }

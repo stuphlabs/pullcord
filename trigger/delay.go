@@ -96,7 +96,7 @@ func delaytrigger(
 				log.Err(
 					fmt.Sprintf(
 						"delaytrigger received an"+
-						" error: %v",
+							" error: %#v",
 						err,
 					),
 				)

@@ -2,12 +2,12 @@ package authentication
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
 
-	"github.com/fitstar/falcore"
 	"github.com/proidiot/gone/log"
 	"github.com/stuphlabs/pullcord/config"
 	"github.com/stuphlabs/pullcord/util"
@@ -39,7 +39,7 @@ import (
 // receive no cookies as part of the request).
 type CookiemaskFilter struct {
 	Handler SessionHandler
-	Masked  falcore.RequestFilter
+	Masked  http.Handler
 }
 
 func init() {
@@ -75,12 +75,12 @@ func (f *CookiemaskFilter) UnmarshalJSON(input []byte) error {
 
 		m := t.Masked.Unmarshaled
 		switch m := m.(type) {
-		case falcore.RequestFilter:
+		case http.Handler:
 			f.Masked = m
 		default:
 			log.Err(
 				"Resource described by \"Masked\" is not a" +
-					" RequestFilter",
+					" net/http.Handler",
 			)
 			return config.UnexpectedResourceType
 		}
@@ -89,11 +89,69 @@ func (f *CookiemaskFilter) UnmarshalJSON(input []byte) error {
 	}
 }
 
+type cookieAppender struct {
+	ckes    []*http.Cookie
+	w       http.ResponseWriter
+	hdrs    http.Header
+	started bool
+}
+
+func (ca cookieAppender) writeHeaders() {
+	for key, vals := range ca.hdrs {
+		for _, val := range vals {
+			ca.w.Header().Add(key, val)
+		}
+	}
+
+	for _, cke := range ca.ckes {
+		ca.w.Header().Add("Set-Cookie", cke.String())
+	}
+}
+
+func (ca cookieAppender) writeTrailers() {
+	for key, vals := range ca.hdrs {
+		if strings.HasPrefix(key, http.TrailerPrefix) {
+			for _, val := range vals {
+				ca.w.Header().Add(key, val)
+			}
+		}
+	}
+
+	if keys, present := ca.hdrs["Trailer"]; present {
+		for _, key := range keys {
+			for _, val := range ca.hdrs[key] {
+				ca.w.Header().Add(key, val)
+			}
+		}
+	}
+}
+
+func (ca cookieAppender) Header() http.Header {
+	return ca.hdrs
+}
+
+func (ca cookieAppender) Write(d []byte) (int, error) {
+	if !ca.started {
+		ca.started = true
+		ca.writeHeaders()
+	}
+	return ca.w.Write(d)
+}
+
+func (ca cookieAppender) WriteHeader(statusCode int) {
+	if !ca.started {
+		ca.started = true
+		ca.writeHeaders()
+	}
+	ca.w.WriteHeader(statusCode)
+}
+
 // FilterRequest implements the required function to allow CookiemaskFilter to
 // be a falcore.RequestFilter.
-func (filter *CookiemaskFilter) FilterRequest(
-	req *falcore.Request,
-) *http.Response {
+func (filter *CookiemaskFilter) ServeHTTP(
+	w http.ResponseWriter,
+	req *http.Request,
+) {
 	log.Debug("running cookiemask filter")
 
 	//TODO remove
@@ -110,19 +168,31 @@ func (filter *CookiemaskFilter) FilterRequest(
 			),
 		)
 
-		return util.InternalServerError.FilterRequest(req)
+		util.InternalServerError.ServeHTTP(w, req)
+		return
 	}
 
 	// TODO remove
 	log.Debug(fmt.Sprintf("sesh is: %v", sesh))
 
-	req.Context["session"] = sesh
+	req = req.WithContext(context.WithValue(req.Context(), "session", sesh))
 
-	passthru_ckes, set_ckes, err := sesh.CookieMask(
-		req.HttpRequest.Cookies(),
+	fwd_ckes, set_ckes, err := sesh.CookieMask(
+		req.Cookies(),
 	)
+	req.Header.Del("Cookie")
+	for _, cke := range fwd_ckes {
+		req.AddCookie(cke)
+	}
 
-	var resp *http.Response
+	ca := cookieAppender{
+		ckes:    set_ckes,
+		w:       w,
+		hdrs:    make(map[string][]string),
+		started: false,
+	}
+	defer ca.writeTrailers()
+
 	if err != nil {
 		log.Err(
 			fmt.Sprintf(
@@ -133,50 +203,14 @@ func (filter *CookiemaskFilter) FilterRequest(
 			),
 		)
 
-		resp = util.InternalServerError.FilterRequest(req)
+		util.InternalServerError.ServeHTTP(ca, req)
+		return
 	} else {
-		cke_keys_buffer := new(bytes.Buffer)
-		ckes_str := make([]string, len(passthru_ckes))
-		for n, cke := range passthru_ckes {
-			cke_keys_buffer.WriteString(
-				"\"" + cke.Name + "\",",
-			)
-			ckes_str[n] = cke.String()
-		}
-		log.Debug(
-			fmt.Sprintf(
-				"cookiemask forwarding  cookies with"+
-					" these keys: [%s]",
-				cke_keys_buffer.String(),
-			),
-		)
-
-		req.HttpRequest.Header.Set(
-			"Cookie",
-			strings.Join(ckes_str, "; "),
-		)
-
 		log.Info(
 			"request has run through cookiemask, now" +
 				" forwarding to next filter",
 		)
-		resp = filter.Masked.FilterRequest(req)
+		filter.Masked.ServeHTTP(ca, req)
+		return
 	}
-
-	set_cke_keys_buffer := new(bytes.Buffer)
-	for _, cke := range set_ckes {
-		set_cke_keys_buffer.WriteString(
-			"\"" + cke.Name + "\",",
-		)
-		resp.Header.Add("Set-Cookie", cke.String())
-	}
-	log.Debug(
-		fmt.Sprintf(
-			"cookiemask sending back with the response"+
-				" new cookies with these keys: [%s]",
-			set_cke_keys_buffer.String(),
-		),
-	)
-
-	return resp
 }

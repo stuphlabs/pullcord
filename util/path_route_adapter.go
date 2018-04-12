@@ -6,13 +6,12 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/fitstar/falcore"
 	"github.com/proidiot/gone/log"
 	"github.com/stuphlabs/pullcord/config"
 )
 
 type ExactPathRouter struct {
-	Routes map[string]falcore.RequestFilter
+	Routes map[string]http.Handler
 }
 
 func init() {
@@ -35,24 +34,16 @@ func (r *ExactPathRouter) UnmarshalJSON(input []byte) error {
 		return e
 	}
 
-	r.Routes = make(map[string]falcore.RequestFilter)
+	r.Routes = make(map[string]http.Handler)
 	for path, rsc := range t.Routes {
 		switch f := rsc.Unmarshaled.(type) {
-		case falcore.RequestFilter:
-			log.Debug(
-				fmt.Sprintf(
-					"ExactPathRouter registration for %s:"+
-						" %#v",
-					path,
-					f,
-				),
-			)
+		case http.Handler:
 			r.Routes[path] = f
 		default:
 			log.Err(
 				fmt.Sprintf(
 					"Registry value is not a"+
-						" RequestFilter: %s",
+						" http.Handler: %s",
 					f,
 				),
 			)
@@ -63,33 +54,10 @@ func (r *ExactPathRouter) UnmarshalJSON(input []byte) error {
 	return nil
 }
 
-func (r *ExactPathRouter) FilterRequest(
-	req *falcore.Request,
-) *http.Response {
-	log.Debug(
-		fmt.Sprintf(
-			"ExactPathRouter has received request: %#v",
-			req,
-		),
-	)
-	log.Info(
-		fmt.Sprintf(
-			"ExactPathRouter has received request for path: %s",
-			req.HttpRequest.URL.Path,
-		),
-	)
-	if f, present := r.Routes[req.HttpRequest.URL.Path]; present {
-		log.Debug(
-			fmt.Sprintf(
-				"ExactPathRouter found filter: %#v",
-				f,
-			),
-		)
-		return f.FilterRequest(req)
+func (r *ExactPathRouter) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	if f, present := r.Routes[req.URL.Path]; present {
+		f.ServeHTTP(w, req)
 	} else {
-		log.Debug(
-			"ExactPathRouter did not find a filter",
-		)
-		return StandardResponse(404).FilterRequest(req)
+		StandardResponse(404).ServeHTTP(w, req)
 	}
 }

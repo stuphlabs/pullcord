@@ -13,7 +13,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fitstar/falcore"
 	"github.com/stretchr/testify/assert"
 	"github.com/stuphlabs/pullcord/config"
 )
@@ -53,15 +52,6 @@ var responseString = `<!DOCTYPE html>
  </body>
 </html>
 `
-
-func (v *validation) FilterRequest(req *falcore.Request) *http.Response {
-	return falcore.StringResponse(
-		req.HttpRequest,
-		200,
-		nil,
-		responseString,
-	)
-}
 
 func (v *validation) Accept() (net.Conn, error) {
 	return nil, errors.New(
@@ -107,6 +97,7 @@ func GenerateValidator(
 			}
 		},
 	)
+
 }
 
 type ConfigTestData struct {
@@ -151,15 +142,10 @@ func constructConfigReader(
 				`{
 					"resources": {
 						"handler": {
-							"type": "pipeline",
+							"type": "%s",
 							"data": {
-								"upstream": [{
-									"type": "%s",
-									"data": {
-										"type": "%s",
-										"data": %s
-									}
-								}]
+								"type": "%s",
+								"data": %s
 							}
 						},
 						"listener": {

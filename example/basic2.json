@@ -1,12 +1,12 @@
 {
 	"resources": {
 		"handler": {
-			"type": "exactpathrouter",
+			"type": "pipeline",
 			"data": {
-				"/": {
+				"upstream": [{
 					"type": "landingfilter",
 					"data": {}
-				}
+				}]
 			}
 		},
 		"listener": {

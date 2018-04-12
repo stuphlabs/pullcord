@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/fitstar/falcore"
 	"github.com/proidiot/gone/log"
 	"github.com/stuphlabs/pullcord/config"
 	"github.com/stuphlabs/pullcord/util"
@@ -28,7 +27,7 @@ const XsrfTokenLength = 64
 type LoginHandler struct {
 	Identifier      string
 	PasswordChecker PasswordChecker
-	Downstream      falcore.RequestFilter
+	Downstream      http.Handler
 }
 
 func init() {
@@ -67,11 +66,9 @@ func (h *LoginHandler) UnmarshalJSON(input []byte) error {
 			return config.UnexpectedResourceType
 		}
 
-		d := t.Downstream.Unmarshaled
-		switch d := d.(type) {
-		case falcore.RequestFilter:
+		if d, ok := t.Downstream.Unmarshaled.(http.Handler); ok {
 			h.Downstream = d
-		default:
+		} else {
 			log.Err(
 				fmt.Sprintf(
 					"Registry value is not a"+
@@ -88,17 +85,19 @@ func (h *LoginHandler) UnmarshalJSON(input []byte) error {
 	}
 }
 
-func (handler *LoginHandler) FilterRequest(
-	request *falcore.Request,
-) *http.Response {
+func (handler *LoginHandler) ServeHTTP(
+	w http.ResponseWriter,
+	request *http.Request,
+) {
 	errString := ""
-	rawsesh, present := request.Context["session"]
-	if !present {
+	rawsesh := request.Context().Value("session")
+	if rawsesh == nil {
 		log.Crit(
 			"login handler was unable to retrieve session from" +
 				" context",
 		)
-		return util.InternalServerError.FilterRequest(request)
+		util.InternalServerError.ServeHTTP(w, request)
+		return
 	}
 	sesh := rawsesh.(Session)
 
@@ -110,16 +109,18 @@ func (handler *LoginHandler) FilterRequest(
 	authd, err := sesh.GetValue(authSeshKey)
 	if err == nil && authd == true {
 		log.Debug("login handler passing request along")
-		return handler.Downstream.FilterRequest(request)
+		handler.Downstream.ServeHTTP(w, request)
+		return
 	} else if err != NoSuchSessionValueError {
 		log.Err(
 			fmt.Sprintf(
 				"login handler error during auth status"+
-					" retrieval: %#v",
+					" retrieval: %v",
 				err,
 			),
 		)
-		return util.InternalServerError.FilterRequest(request)
+		util.InternalServerError.ServeHTTP(w, request)
+		return
 	}
 
 	xsrfStored, err := sesh.GetValue(xsrfKey)
@@ -127,14 +128,15 @@ func (handler *LoginHandler) FilterRequest(
 		log.Err(
 			fmt.Sprintf(
 				"login handler error during xsrf token"+
-					" retrieval: %#v",
+					" retrieval: %v",
 				err,
 			),
 		)
-		return util.InternalServerError.FilterRequest(request)
+		util.InternalServerError.ServeHTTP(w, request)
+		return
 	} else if err == NoSuchSessionValueError {
 		log.Info("login handler received new request")
-	} else if err = request.HttpRequest.ParseForm(); err != nil {
+	} else if err = request.ParseForm(); err != nil {
 		log.Warning(
 			fmt.Sprintf(
 				"login handler error during ParseForm: %#v",
@@ -143,7 +145,7 @@ func (handler *LoginHandler) FilterRequest(
 		)
 		errString = "Bad request"
 	} else if xsrfRcvd, present :=
-		request.HttpRequest.PostForm[xsrfKey]; !present {
+		request.PostForm[xsrfKey]; !present {
 		log.Info("login handler did not receive xsrf token")
 		errString = "Invalid credentials"
 	} else if len(xsrfRcvd) != 1 || 1 != subtle.ConstantTimeCompare(
@@ -153,11 +155,11 @@ func (handler *LoginHandler) FilterRequest(
 		log.Info("login handler received bad xsrf token")
 		errString = "Invalid credentials"
 	} else if uVals, present :=
-		request.HttpRequest.PostForm[usernameKey]; !present {
+		request.PostForm[usernameKey]; !present {
 		log.Info("login handler did not receive username")
 		errString = "Invalid credentials"
 	} else if pVals, present :=
-		request.HttpRequest.PostForm[passwordKey]; !present {
+		request.PostForm[passwordKey]; !present {
 		log.Info("login handler did not receive password")
 		errString = "Invalid credentials"
 	} else if len(uVals) != 1 || len(pVals) != 1 {
@@ -182,7 +184,8 @@ func (handler *LoginHandler) FilterRequest(
 				err,
 			),
 		)
-		return util.InternalServerError.FilterRequest(request)
+		util.InternalServerError.ServeHTTP(w, request)
+		return
 	} else if err = sesh.SetValue(authSeshKey, true); err != nil {
 		log.Err(
 			fmt.Sprintf(
@@ -190,7 +193,8 @@ func (handler *LoginHandler) FilterRequest(
 				err,
 			),
 		)
-		return util.InternalServerError.FilterRequest(request)
+		util.InternalServerError.ServeHTTP(w, request)
+		return
 	} else {
 		log.Notice(
 			fmt.Sprintf(
@@ -198,7 +202,8 @@ func (handler *LoginHandler) FilterRequest(
 				uVals[0],
 			),
 		)
-		return handler.Downstream.FilterRequest(request)
+		handler.Downstream.ServeHTTP(w, request)
+		return
 	}
 
 	rawXsrfToken := make([]byte, XsrfTokenLength)
@@ -215,7 +220,8 @@ func (handler *LoginHandler) FilterRequest(
 				err,
 			),
 		)
-		return util.InternalServerError.FilterRequest(request)
+		util.InternalServerError.ServeHTTP(w, request)
+		return
 	}
 	nextXsrfToken := hex.EncodeToString(rawXsrfToken)
 
@@ -226,7 +232,8 @@ func (handler *LoginHandler) FilterRequest(
 				err,
 			),
 		)
-		return util.InternalServerError.FilterRequest(request)
+		util.InternalServerError.ServeHTTP(w, request)
+		return
 	}
 
 	errMarkup := ""
@@ -237,28 +244,24 @@ func (handler *LoginHandler) FilterRequest(
 		)
 	}
 
-	return falcore.StringResponse(
-		request.HttpRequest,
-		200,
-		nil,
-		fmt.Sprintf(
-			"<html><head><title>Pullcord Login</title></head>"+
-				"<body><form method=\"POST\" action=\"%s\">"+
-				"<fieldset><legend>Pullcord Login</legend>"+
-				"%s<label for=\"username\">Username:</label>"+
-				"<input type=\"text\" name=\"%s\""+
-				" id=\"username\" /><label for=\"password\">"+
-				"Password:</label><input type=\"password\""+
-				" name=\"%s\" id=\"password\" /><input"+
-				" type=\"hidden\" name=\"%s\" value=\"%s\" />"+
-				"<input type=\"submit\" value=\"Login\"/>"+
-				"</fieldset></form></body></html>",
-			request.HttpRequest.URL.Path,
-			errMarkup,
-			usernameKey,
-			passwordKey,
-			xsrfKey,
-			nextXsrfToken,
-		),
+	fmt.Fprintf(
+		w,
+		"<html><head><title>Pullcord Login</title></head><body>"+
+			"<form method=\"POST\" action=\"%s\"><fieldset>"+
+			"<legend>Pullcord Login</legend>%s"+
+			"<label for=\"username\">Username:</label>"+
+			"<input type=\"text\" name=\"%s\" id=\"username\" />"+
+			"<label for=\"password\">Password:</label>"+
+			"<input type=\"password\" name=\"%s\""+
+			"id=\"password\" /><input type=\"hidden\" name=\"%s\""+
+			" value=\"%s\" /><input type=\"submit\""+
+			" value=\"Login\"/></fieldset></form></body></html>",
+		request.URL.Path,
+		errMarkup,
+		usernameKey,
+		passwordKey,
+		xsrfKey,
+		nextXsrfToken,
 	)
+	return
 }

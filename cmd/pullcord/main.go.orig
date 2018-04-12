@@ -97,10 +97,22 @@ func main() {
 			panic(critErr)
 		}
 
+<<<<<<< HEAD
+		handler := &config.ConfigPipeline{
+			Server: falcore.NewServer(0, falcore.NewPipeline()),
+		}
+		landingFilter := falcore.RequestFilter(new(util.LandingFilter))
+		handler.Server.Pipeline.Upstream.PushBack(
+			&util.ExactPathRouter{
+				Routes: map[string]falcore.RequestFilter{
+					"/": landingFilter,
+				},
+=======
 		landingFilter := new(util.LandingFilter)
 		handler := &util.ExactPathRouter{
 			Routes: map[string]http.Handler{
 				"/": landingFilter,
+>>>>>>> master
 			},
 		}
 		server = &config.Server{
