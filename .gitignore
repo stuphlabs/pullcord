@@ -10,4 +10,5 @@
 # don't include coverage files
 /all.cov
 /cover.html
+/cover.out
 pkg.cov
