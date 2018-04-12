@@ -5,6 +5,7 @@
 *~
 *.swp
 *.bak
+*.orig
 
 # don't include coverage files
 /all.cov
