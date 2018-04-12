@@ -85,7 +85,7 @@ var responseStringTemplate = template.Must(
   </h1>
   <p>
    {{.Message}}
-   {{if .ShouldContact}}Please contact your system administrator.{{end}}
+   {{- if .ShouldContact}}Please contact your system administrator.{{end}}
   </p>
  </body>
 </html>`))

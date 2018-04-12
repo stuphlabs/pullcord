@@ -55,6 +55,8 @@ func (r *ExactPathRouter) UnmarshalJSON(input []byte) error {
 }
 
 func (r *ExactPathRouter) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	log.Info(fmt.Sprintf("Request received for path: %s", req.URL.Path))
+	log.Debug(fmt.Sprintf("Path router: %#v", r))
 	if f, present := r.Routes[req.URL.Path]; present {
 		f.ServeHTTP(w, req)
 	} else {

@@ -3,9 +3,11 @@
 		"handler": {
 			"type": "exactpathrouter",
 			"data": {
-				"/": {
-					"type": "landingfilter",
-					"data": {}
+				"routes": {
+					"/": {
+						"type": "landingfilter",
+						"data": {}
+					}
 				}
 			}
 		},
