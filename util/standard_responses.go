@@ -71,8 +71,7 @@ var responseContact = map[StandardResponse]bool{
 }
 
 var responseStringTemplate = template.Must(
-	template.New("standardResponse").Parse(
-`<!DOCTYPE html>
+	template.New("standardResponse").Parse(`<!DOCTYPE html>
 <html>
  <head>
   <title>
@@ -93,9 +92,9 @@ var responseStringTemplate = template.Must(
 var responseContactString = "Please contact your system administrator."
 
 func (s StandardResponse) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	values := struct{
-		Title string
-		Message string
+	values := struct {
+		Title         string
+		Message       string
 		ShouldContact bool
 	}{}
 

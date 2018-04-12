@@ -296,6 +296,5 @@ func ServerFromReader(r io.Reader) (*Server, error) {
 		),
 	)
 
-
 	return server, nil
 }
