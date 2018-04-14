@@ -1,0 +1,52 @@
+{
+	"resources": {
+		"passwordmanager": {
+			"type": "inmempwdstore",
+			"data": {
+				"admin": {
+					"Hash": "1TCzHS8QeCJUFhZL2rD91p6qmma0Ki5xHxa/4fYmhykX8qu3IXqaeRR4F3N5aRT9wl6ntHjbOTATlai131Gccg==",
+					"Salt": "b7w83GPYb5oOvgWPMJ0H2afRzqglkdWUOifMYnRQ0FZEQbBtibwdOW6sfr8NZO2HJKzn3O3gkXDeCQ0cDxrNpQ==",
+					"Iterations": 4096
+				}
+			}
+		},
+		"loginhandler": {
+			"type": "loginhandler",
+			"data": {
+				"identifier": "loginpage",
+				"passwordchecker": {
+					"type": "ref",
+					"data": "passwordmanager"
+				},
+				"downstream": {
+					"type": "landingfilter",
+					"data": {}
+				}
+			}
+		},
+		"unauthpathrouter": {
+			"type": "exactpathrouter",
+			"data": {
+				"routes": {
+					"/": {
+						"type": "ref",
+						"data": "loginhandler"
+					}
+				}
+			}
+		},
+		"handler": {
+			"type": "ref",
+			"data": "unauthpathrouter"
+		},
+		"listener": {
+			"type": "basiclistenet",
+			"data": {
+				"proto": "tcp",
+				"laddr": ":8080"
+			}
+		}
+	},
+	"listener": "listener",
+	"handler": "handler"
+}
