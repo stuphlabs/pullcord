@@ -11,7 +11,8 @@ import (
 )
 
 type ExactPathRouter struct {
-	Routes map[string]http.Handler
+	Routes  map[string]http.Handler
+	Default http.Handler
 }
 
 func init() {
@@ -25,9 +26,10 @@ func init() {
 
 func (r *ExactPathRouter) UnmarshalJSON(input []byte) error {
 	var t struct {
-		Routes map[string]config.Resource
+		Routes  map[string]*config.Resource
+		Default *config.Resource
 	}
-	t.Routes = make(map[string]config.Resource)
+	t.Routes = make(map[string]*config.Resource)
 
 	dec := json.NewDecoder(bytes.NewReader(input))
 	if e := dec.Decode(&t); e != nil {
@@ -50,6 +52,21 @@ func (r *ExactPathRouter) UnmarshalJSON(input []byte) error {
 			return config.UnexpectedResourceType
 		}
 	}
+	if t.Default != nil {
+		switch f := t.Default.Unmarshaled.(type) {
+		case http.Handler:
+			r.Default = f
+		default:
+			log.Err(
+				fmt.Sprintf(
+					"Registry value is not a"+
+						" http.Handler: %s",
+					f,
+				),
+			)
+			return config.UnexpectedResourceType
+		}
+	}
 
 	return nil
 }
@@ -59,6 +76,8 @@ func (r *ExactPathRouter) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	log.Debug(fmt.Sprintf("Path router: %#v", r))
 	if f, present := r.Routes[req.URL.Path]; present {
 		f.ServeHTTP(w, req)
+	} else if r.Default != nil {
+		r.Default.ServeHTTP(w, req)
 	} else {
 		StandardResponse(404).ServeHTTP(w, req)
 	}

@@ -1,0 +1,77 @@
+{
+	"resources": {
+		"pwdmgr": {
+			"type": "inmempwdstore",
+			"data": {
+				"admin": {
+					"Hash": "1TCzHS8QeCJUFhZL2rD91p6qmma0Ki5xHxa/4fYmhykX8qu3IXqaeRR4F3N5aRT9wl6ntHjbOTATlai131Gccg==",
+					"Salt": "b7w83GPYb5oOvgWPMJ0H2afRzqglkdWUOifMYnRQ0FZEQbBtibwdOW6sfr8NZO2HJKzn3O3gkXDeCQ0cDxrNpQ==",
+					"Iterations": 4096
+				}
+			}
+		},
+		"seshhdlr": {
+			"type": "minsessionhandler",
+			"data": {
+				"name": "loginseshhdlr",
+				"path": "/",
+				"domain": "127.0.0.1"
+			}
+		},
+		"lgnhdlr": {
+			"type": "loginhandler",
+			"data": {
+				"identifier": "loginpage",
+				"passwordchecker": {
+					"type": "ref",
+					"data": "pwdmgr"
+				},
+				"downstream": {
+					"type": "landingfilter",
+					"data": {}
+				}
+			}
+		},
+		"uapathrtr": {
+			"type": "exactpathrouter",
+			"data": {
+				"routes": {
+					"/favicon.ico": {
+						"type": "standardresponse",
+						"data": 404
+					}
+				},
+				"default": {
+					"type": "ref",
+					"data": "lgnhdlr"
+				}
+			}
+		},
+		"ckefltr": {
+			"type": "cookiemaskfilter",
+			"data": {
+				"handler": {
+					"type": "ref",
+					"data": "seshhdlr"
+				},
+				"masked": {
+					"type": "ref",
+					"data": "uapathrtr"
+				}
+			}
+		},
+		"handler": {
+			"type": "ref",
+			"data": "ckefltr"
+		},
+		"listener": {
+			"type": "basiclistener",
+			"data": {
+				"proto": "tcp",
+				"laddr": ":8080"
+			}
+		}
+	},
+	"listener": "listener",
+	"handler": "handler"
+}

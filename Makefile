@@ -3,7 +3,7 @@
 ROOTPKG = github.com/stuphlabs/pullcord
 CONTAINERNAME = pullcord
 
-binfiles = bin/pullcord
+binfiles = bin/pullcord bin/genhash
 
 # Most things below here won't need to change
 

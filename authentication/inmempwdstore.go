@@ -118,6 +118,20 @@ func (hashStruct *Pbkdf2Hash) UnmarshalJSON(input []byte) error {
 	}
 }
 
+func (hashStruct *Pbkdf2Hash) MarshalJSON() ([]byte, error) {
+	var t struct {
+		Hash       string
+		Salt       string
+		Iterations uint16
+	}
+
+	t.Hash = base64.StdEncoding.EncodeToString(hashStruct.Hash[:])
+	t.Salt = base64.StdEncoding.EncodeToString(hashStruct.Salt[:])
+	t.Iterations = hashStruct.Iterations
+
+	return json.Marshal(t)
+}
+
 // InMemPwdStore is a basic password store where all the identifiers and hash
 // information are stored in memory. This would likely not be a useful password
 // store implementation in a production environment, but it can be useful in
