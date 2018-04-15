@@ -32,6 +32,21 @@
 				}
 			}
 		},
+		"uapathrtr": {
+			"type": "exactpathrouter",
+			"data": {
+				"routes": {
+					"/favicon.ico": {
+						"type": "standardresponse",
+						"data": 404
+					}
+				},
+				"default": {
+					"type": "ref",
+					"data": "lgnhdlr"
+				}
+			}
+		},
 		"ckefltr": {
 			"type": "cookiemaskfilter",
 			"data": {
@@ -41,24 +56,13 @@
 				},
 				"masked": {
 					"type": "ref",
-					"data": "lgnhdlr"
-				}
-			}
-		},
-		"uapathrtr": {
-			"type": "exactpathrouter",
-			"data": {
-				"routes": {
-					"/": {
-						"type": "ref",
-						"data": "ckefltr"
-					}
+					"data": "uapathrtr"
 				}
 			}
 		},
 		"handler": {
 			"type": "ref",
-			"data": "uapathrtr"
+			"data": "ckefltr"
 		},
 		"listener": {
 			"type": "basiclistener",
