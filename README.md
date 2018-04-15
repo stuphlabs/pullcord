@@ -41,6 +41,17 @@ docker run \
 	pullcord
 ```
 
+If you would like to try the example login config instead (the user/password is
+`admin`):
+```
+docker run \
+	-d \
+	--name pullcord-acceptance \
+	-p 127.0.0.1:8080:8080 \
+	-e LOG_UPTO="LOG_DEBUG" \
+	pullcord --config example/login.json
+```
+
 Now visit [your local pullcord instance](http://127.0.0.1:8080/).
 
 To follow along with the logs:
