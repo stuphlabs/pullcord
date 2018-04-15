@@ -239,7 +239,7 @@ func (handler *LoginHandler) ServeHTTP(
 	errMarkup := ""
 	if errString != "" {
 		errMarkup = fmt.Sprintf(
-			"<label class=\"error\">%s</label>",
+			"<label class=\"error\">%s</label><br />",
 			errString,
 		)
 	}
