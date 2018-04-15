@@ -1,6 +1,6 @@
 {
 	"resources": {
-		"passwordmanager": {
+		"pwdmgr": {
 			"type": "inmempwdstore",
 			"data": {
 				"admin": {
@@ -10,13 +10,21 @@
 				}
 			}
 		},
-		"loginhandler": {
+		"seshhdlr": {
+			"type": "minsessionhandler",
+			"data": {
+				"name": "loginseshhdlr",
+				"path": "/",
+				"domain": "127.0.0.1"
+			}
+		},
+		"lgnhdlr": {
 			"type": "loginhandler",
 			"data": {
 				"identifier": "loginpage",
 				"passwordchecker": {
 					"type": "ref",
-					"data": "passwordmanager"
+					"data": "pwdmgr"
 				},
 				"downstream": {
 					"type": "landingfilter",
@@ -24,23 +32,36 @@
 				}
 			}
 		},
-		"unauthpathrouter": {
+		"ckefltr": {
+			"type": "cookiemaskfilter",
+			"data": {
+				"handler": {
+					"type": "ref",
+					"data": "seshhdlr"
+				},
+				"masked": {
+					"type": "ref",
+					"data": "lgnhdlr"
+				}
+			}
+		},
+		"uapathrtr": {
 			"type": "exactpathrouter",
 			"data": {
 				"routes": {
 					"/": {
 						"type": "ref",
-						"data": "loginhandler"
+						"data": "ckefltr"
 					}
 				}
 			}
 		},
 		"handler": {
 			"type": "ref",
-			"data": "unauthpathrouter"
+			"data": "uapathrtr"
 		},
 		"listener": {
-			"type": "basiclistenet",
+			"type": "basiclistener",
 			"data": {
 				"proto": "tcp",
 				"laddr": ":8080"
