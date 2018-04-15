@@ -11,7 +11,7 @@ import (
 )
 
 type ExactPathRouter struct {
-	Routes map[string]http.Handler
+	Routes  map[string]http.Handler
 	Default http.Handler
 }
 
@@ -26,7 +26,7 @@ func init() {
 
 func (r *ExactPathRouter) UnmarshalJSON(input []byte) error {
 	var t struct {
-		Routes map[string]*config.Resource
+		Routes  map[string]*config.Resource
 		Default *config.Resource
 	}
 	t.Routes = make(map[string]*config.Resource)
