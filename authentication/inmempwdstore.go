@@ -120,8 +120,8 @@ func (hashStruct *Pbkdf2Hash) UnmarshalJSON(input []byte) error {
 
 func (hashStruct *Pbkdf2Hash) MarshalJSON() ([]byte, error) {
 	var t struct {
-		Hash string
-		Salt string
+		Hash       string
+		Salt       string
 		Iterations uint16
 	}
 
