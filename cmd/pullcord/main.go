@@ -105,7 +105,7 @@ func main() {
 	if cfgReader == nil {
 		if !cfgFallback {
 			log.Crit(
-				"No config defined and not falling back to"+
+				"No config defined and not falling back to" +
 					" default, aborting.",
 			)
 			os.Exit(1)
