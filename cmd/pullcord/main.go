@@ -3,9 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
-	"net"
-	"net/http"
+	"io"
 	"os"
+	"strings"
 
 	"github.com/proidiot/gone/log"
 	"github.com/stuphlabs/pullcord/authentication"
@@ -17,39 +17,101 @@ import (
 	"github.com/stuphlabs/pullcord/util"
 )
 
-const DefaultConfigFilePath = "/etc/pullcord.json"
+const defaultConfigFilePath = "/etc/pullcord.json"
+const defaultConfig = `{
+	"resources": {
+		"hresource": {
+			"type": "exactpathrouter",
+			"data": {
+				"routes": {
+					"/favicon.ico": {
+						"type": "standardresponse",
+						"data": 404
+					}
+				},
+				"default": {
+					"type": "landingfaulter",
+					"data": {}
+				}
+			}
+		},
+		"lresource": {
+			"type": "basiclistener",
+			"data": {
+				"proto": "tcp",
+				"laddr": ":8080"
+			}
+		}
+	},
+	"listener": "lresource",
+	"handler": "hresource"
+}`
 
 func main() {
-	cfgPath := flag.String(
+	var inlineCfg string
+	var cfgPath string
+	var cfgFallback bool
+
+	flag.StringVar(
+		&inlineCfg,
+		"inline-config",
+		"",
+		"Inline pullcord config instead of using a config file",
+	)
+
+	flag.StringVar(
+		&cfgPath,
 		"config",
-		DefaultConfigFilePath,
+		defaultConfigFilePath,
 		"Path to pullcord config file",
 	)
 
-	cfgFallback := flag.Bool(
+	flag.BoolVar(
+		&cfgFallback,
 		"config-fallback",
-		false,
+		true,
 		"Fallback to basic config if unable to find the config file",
 	)
 
 	flag.Parse()
 
-	if cfgPath == nil {
-		log.Warning(
-			"Command line flag for the config file did not parse" +
-				" as expected.",
-		)
-		cfgPathVal := DefaultConfigFilePath
-		cfgPath = &cfgPathVal
+	var err error
+	var cfgReader io.Reader
+	if inlineCfg != "" {
+		cfgReader = strings.NewReader(inlineCfg)
 	}
 
-	if cfgFallback == nil {
-		log.Warning(
-			"Command line flag for the config fallback did not" +
-				" parse as expected.",
-		)
-		cfgFallbackVal := true
-		cfgFallback = &cfgFallbackVal
+	if cfgReader == nil {
+		cfgReader, err = os.Open(cfgPath)
+		if err != nil {
+			log.Error(
+				fmt.Sprintf(
+					"Unable to open specified config file"+
+						" %s: %s",
+					cfgPath,
+					err.Error(),
+				),
+			)
+		} else {
+			log.Info(
+				fmt.Sprintf(
+					"Reading config from file: %s",
+					cfgPath,
+				),
+			)
+		}
+	}
+
+	if cfgReader == nil {
+		if !cfgFallback {
+			log.Crit(
+				"No config defined and not falling back to" +
+					" default, aborting.",
+			)
+			os.Exit(1)
+		} else {
+			cfgReader = strings.NewReader(defaultConfig)
+		}
 	}
 
 	authentication.LoadPlugin()
@@ -61,66 +123,15 @@ func main() {
 
 	log.Debug("Plugins loaded")
 
-	var server *config.Server
-	cfgReader, err := os.Open(*cfgPath)
+	server, err := config.ServerFromReader(cfgReader)
 	if err != nil {
 		log.Debug(err)
-
-		if !*cfgFallback {
-			critErr := fmt.Errorf(
-				"Unable to open config file: %s\nConsider"+
-					" using --config-fallback.",
-				err.Error(),
-			)
-			log.Crit(critErr)
-			panic(critErr)
-		}
-
-		log.Notice(
-			fmt.Sprintf(
-				"Falling back to a basic config since config"+
-					" file could not be opened: %s",
-				err.Error(),
-			),
+		critErr := fmt.Errorf(
+			"Error while parsing server config: %s",
+			err.Error(),
 		)
-
-		var nl net.Listener
-		nl, err = net.Listen("tcp", ":80")
-		if err != nil {
-			log.Debug(err)
-			critErr := fmt.Errorf(
-				"Unable to open port 80 for the fallback"+
-					" config: %s",
-				err.Error(),
-			)
-			log.Crit(critErr)
-			panic(critErr)
-		}
-
-		landingFilter := new(util.LandingFilter)
-		handler := &util.ExactPathRouter{
-			Routes: map[string]http.Handler{
-				"/": landingFilter,
-			},
-		}
-		server = &config.Server{
-			Handler: handler,
-			Listener: &pcnet.BasicListener{
-				Listener: nl,
-			},
-		}
-	} else {
-		log.Info(fmt.Sprintf("Reading config from file: %s", *cfgPath))
-		server, err = config.ServerFromReader(cfgReader)
-		if err != nil {
-			log.Debug(err)
-			critErr := fmt.Errorf(
-				"Error while parsing server config: %s",
-				err.Error(),
-			)
-			log.Crit(critErr)
-			panic(critErr)
-		}
+		log.Crit(critErr)
+		panic(critErr)
 	}
 
 	log.Notice(
@@ -129,6 +140,7 @@ func main() {
 			server.Listener.Addr(),
 		),
 	)
+
 	err = server.Serve()
 	if err != nil {
 		log.Debug(err)
