@@ -4,7 +4,10 @@ import (
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
+	"fmt"
 	"net"
+
+	"github.com/proidiot/gone/log"
 
 	"github.com/stuphlabs/pullcord/config"
 )
@@ -15,7 +18,7 @@ type TlsCertificateGetter interface {
 
 type BasicTlsListener struct {
 	Listener       net.Listener
-	TlsConfig      TlsCertificateGetter
+	CertGetter     TlsCertificateGetter
 	actualListener net.Listener
 }
 
@@ -46,11 +49,23 @@ func (b *BasicTlsListener) UnmarshalJSON(d []byte) error {
 	var ok bool
 	b.Listener, ok = t.Listener.Unmarshaled.(net.Listener)
 	if !ok {
+		log.Debug(
+			fmt.Sprintf(
+				"Resource is not a net.Listener: %#v",
+				t.Listener.Unmarshaled,
+			),
+		)
 		return config.UnexpectedResourceType
 	}
 
-	b.TlsConfig, ok = t.CertGetter.Unmarshaled.(TlsCertificateGetter)
+	b.CertGetter, ok = t.CertGetter.Unmarshaled.(TlsCertificateGetter)
 	if !ok {
+		log.Debug(
+			fmt.Sprintf(
+				"Resource is not a TlsCertificateGetter: %#v",
+				t.CertGetter.Unmarshaled,
+			),
+		)
 		return config.UnexpectedResourceType
 	}
 
@@ -64,7 +79,7 @@ func (b *BasicTlsListener) assureActualListenerCreated() {
 		b.actualListener = tls.NewListener(
 			b.Listener,
 			&tls.Config{
-				GetCertificate: b.TlsConfig.GetCertificate,
+				GetCertificate: b.CertGetter.GetCertificate,
 			},
 		)
 	}
