@@ -126,8 +126,8 @@ func TestBasicTlsListenerBehavior(t *testing.T) {
 	}
 
 	l := &BasicTlsListener{
-		Listener:  bel,
-		TlsConfig: &TestCertificateGetter{Cert: tlsCert},
+		Listener:   bel,
+		CertGetter: &TestCertificateGetter{Cert: tlsCert},
 	}
 
 	if l == nil {
