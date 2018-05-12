@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"io"
@@ -20,7 +21,7 @@ import (
 const defaultConfigFilePath = "/etc/pullcord.json"
 const defaultConfig = `{
 	"resources": {
-		"hresource": {
+		"handler": {
 			"type": "exactpathrouter",
 			"data": {
 				"routes": {
@@ -30,12 +31,12 @@ const defaultConfig = `{
 					}
 				},
 				"default": {
-					"type": "landingfaulter",
+					"type": "landingfilter",
 					"data": {}
 				}
 			}
 		},
-		"lresource": {
+		"listener": {
 			"type": "basiclistener",
 			"data": {
 				"proto": "tcp",
@@ -43,14 +44,16 @@ const defaultConfig = `{
 			}
 		}
 	},
-	"listener": "lresource",
-	"handler": "hresource"
-}`
+	"listener": "listener",
+	"handler": "handler"
+}
+`
 
 func main() {
 	var inlineCfg string
 	var cfgPath string
 	var cfgFallback bool
+	var cfgPrint bool
 
 	flag.StringVar(
 		&inlineCfg,
@@ -73,10 +76,17 @@ func main() {
 		"Fallback to basic config if unable to find the config file",
 	)
 
+	flag.BoolVar(
+		&cfgPrint,
+		"print-config",
+		false,
+		"Write the entire config to the logs at debug level",
+	)
+
 	flag.Parse()
 
 	var err error
-	var cfgReader io.Reader
+	var cfgReader io.ReadSeeker
 	if inlineCfg != "" {
 		cfgReader = strings.NewReader(inlineCfg)
 	}
@@ -92,6 +102,7 @@ func main() {
 					err.Error(),
 				),
 			)
+			cfgReader = nil
 		} else {
 			log.Info(
 				fmt.Sprintf(
@@ -122,6 +133,22 @@ func main() {
 	util.LoadPlugin()
 
 	log.Debug("Plugins loaded")
+
+	if cfgPrint {
+		b := new(bytes.Buffer)
+		b.ReadFrom(cfgReader)
+		log.Debug(fmt.Sprintf("Config is: %s", b.String()))
+		_, err2 := cfgReader.Seek(0, io.SeekStart)
+		if err2 != nil {
+			critErr := fmt.Errorf(
+				"Error while rewinding config reader after"+
+					" printing to debug logs: %s",
+				err.Error(),
+			)
+			log.Crit(critErr)
+			panic(critErr)
+		}
+	}
 
 	server, err := config.ServerFromReader(cfgReader)
 	if err != nil {

@@ -215,7 +215,15 @@ func ServerFromReader(r io.Reader) (*Server, error) {
 
 	unregisterredResources = config.Resources
 	for name := range config.Resources {
+		log.Debug(fmt.Sprintf("Assessing resource: %s", name))
 		if _, present := registry[name]; !present {
+			log.Debug(
+				fmt.Sprintf(
+					"Resource does not already exist in"+
+						" the registry: %s",
+					name,
+				),
+			)
 			r := new(Resource)
 			registry[name] = r
 			if e := r.unmarshalByName(name); e != nil {
@@ -231,6 +239,14 @@ func ServerFromReader(r io.Reader) (*Server, error) {
 					),
 				)
 			}
+		} else {
+			log.Debug(
+				fmt.Sprintf(
+					"Resource already exists in the"+
+						" registry: %s",
+					name,
+				),
+			)
 		}
 	}
 
