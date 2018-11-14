@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	//"net"
-	//"net/http"
 	"sync"
 
 	"github.com/proidiot/gone/errors"
