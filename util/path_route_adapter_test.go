@@ -244,7 +244,7 @@ func TestPathRouteAdapterFromConfig(t *testing.T) {
 				Data: `{
 					"routes": {
 						"/index.html": {
-							"type": "landingfilter",
+							"type": "landinghandler",
 							"data": {}
 						}
 					}

@@ -1,0 +1,29 @@
+{
+	"resources": {
+		"handler": {
+			"type": "exactpathrouter",
+			"data": {
+				"routes": {
+					"/": {
+						"type": "landingfilter",
+						"data": {}
+					}
+				}
+			}
+		},
+		"rawlistener": {
+			"type": "basiclistener",
+			"data": {
+				"proto": "tcp",
+				"laddr": ":8443"
+			}
+		},
+		"acmecert": {
+			"type": "acme",
+			"data": {
+			}
+		}
+	},
+	"listener": "listener",
+	"handler": "handler"
+}

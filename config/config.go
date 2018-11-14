@@ -5,12 +5,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"net"
-	"net/http"
+	//"net"
+	//"net/http"
 	"sync"
 
 	"github.com/proidiot/gone/errors"
 	"github.com/proidiot/gone/log"
+
+	"github.com/stuphlabs/pullcord"
 )
 
 const UnexpectedResourceType = errors.New(
@@ -152,30 +154,13 @@ func (r *Resource) unmarshalByName(name string) error {
 	}
 }
 
-type Server struct {
-	Listener net.Listener
-	Handler  http.Handler
-}
-
-func (s *Server) Serve() error {
-	log.Debug(
-		fmt.Sprintf(
-			"Serving with listener %#v and handler %#v",
-			s.Listener,
-			s.Handler,
-		),
-	)
-	return http.Serve(s.Listener, s.Handler)
-}
-
-func ServerFromReader(r io.Reader) (*Server, error) {
+func ServerFromReader(r io.Reader) (pullcord.Server, error) {
 	registrationMutex.Lock()
 	defer registrationMutex.Unlock()
 
 	var config struct {
 		Resources map[string]json.RawMessage
-		Listener  string
-		Handler   string
+		Server    json.RawMessage
 	}
 
 	dec := json.NewDecoder(r)
@@ -184,32 +169,10 @@ func ServerFromReader(r io.Reader) (*Server, error) {
 	if e := dec.Decode(&config); e != nil {
 		log.Crit(
 			fmt.Sprintf(
-				"Unable to decode server config: %#v",
+				"Unable to decode resource: %#v",
 				e,
 			),
 		)
-		return nil, e
-	}
-
-	if _, present := config.Resources[config.Listener]; !present {
-		e := errors.New(
-			fmt.Sprintf(
-				"A config must specify the name of a" +
-					" network listener resource.",
-			),
-		)
-		log.Crit(e.Error())
-		return nil, e
-	}
-
-	if _, present := config.Resources[config.Handler]; !present {
-		e := errors.New(
-			fmt.Sprintf(
-				"A config must specify the name of an" +
-					" HTTP handler resource.",
-			),
-		)
-		log.Crit(e.Error())
 		return nil, e
 	}
 
@@ -250,67 +213,24 @@ func ServerFromReader(r io.Reader) (*Server, error) {
 		}
 	}
 
-	server := new(Server)
-
-	l := registry[config.Listener].Unmarshaled
-	switch l := l.(type) {
-	case net.Listener:
-		server.Listener = l
-	default:
-		e := errors.New(
-			fmt.Sprintf(
-				"The specified resource is not a"+
-					" net.Listener: %s",
-				config.Listener,
-			),
-		)
-		log.Crit(e.Error())
-		log.Debug(
-			errors.New(
-				fmt.Sprintf(
-					"not a listener: %#v",
-					l,
-				),
-			).Error(),
-		)
+	rserver := new(Resource)
+	if e := json.Unmarshal(config.Server, rserver); e != nil {
 		return nil, e
 	}
-	log.Debug(
-		fmt.Sprintf(
-			"Processed listener: %#v",
-			l,
-		),
-	)
 
-	h := registry[config.Handler].Unmarshaled
-	switch h := h.(type) {
-	case http.Handler:
-		server.Handler = h
-	default:
-		e := errors.New(
-			fmt.Sprintf(
-				"The specified resource is not an"+
-					" http.Handler: %s",
-				config.Handler,
-			),
-		)
-		log.Crit(e.Error())
-		// TODO remove
-		log.Debug(
-			fmt.Sprintf(
-				"handler %s has type %s",
-				config.Handler,
-				h,
-			),
-		)
-		return nil, e
+	if server, ok := rserver.Unmarshaled.(pullcord.Server); ok {
+		return server, nil
 	}
-	log.Debug(
+
+	//err := errors.New("The given server has the wrong type")
+	err := errors.New(
 		fmt.Sprintf(
-			"Processed handler: %#v",
-			h,
+			"not a server: %s - %#v",
+			config.Server,
+			rserver.Unmarshaled,
 		),
 	)
+	log.Crit(err.Error())
 
-	return server, nil
+	return nil, err
 }

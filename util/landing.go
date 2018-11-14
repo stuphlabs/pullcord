@@ -8,26 +8,29 @@ import (
 	"github.com/stuphlabs/pullcord/config"
 )
 
-type LandingFilter struct {
+type LandingHandler struct {
 }
 
 func init() {
 	config.RegisterResourceType(
-		"landingfilter",
+		"landinghandler",
 		func() json.Unmarshaler {
-			return new(LandingFilter)
+			return new(LandingHandler)
 		},
 	)
 }
 
-func (l *LandingFilter) UnmarshalJSON(data []byte) error {
+func (l *LandingHandler) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// NewLandingFilter generates a Falcore RequestFilter that produces a simple
-// landing page.
-func (filter *LandingFilter) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	log.Info("running landing filter")
+// NewLandingHandler generates an http.Handler that produces a simple landing
+// page.
+func (handler *LandingHandler) ServeHTTP(
+	w http.ResponseWriter,
+	req *http.Request,
+) {
+	log.Info("running landing handler")
 
 	w.WriteHeader(200)
 	w.Write(

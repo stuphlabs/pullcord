@@ -934,11 +934,11 @@ func TestLoginHandlerFromConfig(t *testing.T) {
 			{
 				Data: `{
 					"passwordchecker": {
-						"type": "landingfilter",
+						"type": "landinghandler",
 						"data": {}
 					},
 					"downstream": {
-						"type": "landingfilter",
+						"type": "landinghandler",
 						"data": {}
 					}
 				}`,
@@ -959,7 +959,7 @@ func TestLoginHandlerFromConfig(t *testing.T) {
 						}
 					},
 					"downstream": {
-						"type": "landingfilter",
+						"type": "landinghandler",
 						"data": {}
 					}
 				}`,
