@@ -4,10 +4,14 @@
 			"type": "exactpathrouter",
 			"data": {
 				"routes": {
-					"/": {
-						"type": "landinghandler",
-						"data": {}
+					"/favicon.ico": {
+						"type": "standardresponse",
+						"data": 404
 					}
+				},
+				"default": {
+					"type": "landinghandler",
+					"data": {}
 				}
 			}
 		},
