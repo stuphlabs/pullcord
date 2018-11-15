@@ -91,7 +91,7 @@ func (s *HttpMultiServer) Serve() error {
 		for ; eat > 0; eat-- {
 			_ = <-gErrChan
 		}
-	}(errChan, len(s.Listeners) - 1)
+	}(errChan, len(s.Listeners)-1)
 
 	return err
 }
