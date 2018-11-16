@@ -1,4 +1,7 @@
-FROM ubuntu
+FROM ubuntu:latest
+
+RUN apt-get update -y && apt-get install -y \
+	ca-certificates
 
 COPY bin/pullcord /usr/bin/pullcord
 COPY example /example

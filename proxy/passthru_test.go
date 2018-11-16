@@ -31,7 +31,7 @@ func getLandingResponder(t *testing.T) (*url.URL, *http.Server, error) {
 	}
 
 	s := &http.Server{
-		Handler: new(util.LandingFilter),
+		Handler: new(util.LandingHandler),
 	}
 
 	go func(t *testing.T, s *http.Server, l net.Listener) {

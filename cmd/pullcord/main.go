@@ -31,7 +31,7 @@ const defaultConfig = `{
 					}
 				},
 				"default": {
-					"type": "landingfilter",
+					"type": "landinghandler",
 					"data": {}
 				}
 			}
@@ -44,8 +44,19 @@ const defaultConfig = `{
 			}
 		}
 	},
-	"listener": "listener",
-	"handler": "handler"
+	"server": {
+		"type": "httpserver",
+		"data": {
+			"listener": {
+				"type": "ref",
+				"data": "listener"
+			},
+			"handler": {
+				"type": "ref",
+				"data": "handler"
+			}
+		}
+	}
 }
 `
 
@@ -161,13 +172,11 @@ func main() {
 		panic(critErr)
 	}
 
-	log.Notice(
-		fmt.Sprintf(
-			"Starting server at %s...",
-			server.Listener.Addr(),
-		),
-	)
-
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("Failed", r)
+		}
+	}()
 	err = server.Serve()
 	if err != nil {
 		log.Debug(err)

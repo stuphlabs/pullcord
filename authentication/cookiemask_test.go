@@ -1055,14 +1055,14 @@ func TestCookiemaskFromConfig(t *testing.T) {
 			}
 
 			switch m := c.Masked.(type) {
-			case *util.LandingFilter:
+			case *util.LandingHandler:
 				// do nothing
 			default:
 				return errors.New(
 					fmt.Sprintf(
 						"Expecting"+
 							" masked to be a"+
-							" landingfilter,"+
+							" landinghandler,"+
 							" but instead got: %v",
 						m,
 					),
@@ -1116,11 +1116,11 @@ func TestCookiemaskFromConfig(t *testing.T) {
 			{
 				Data: `{
 					"handler": {
-						"type": "landingfilter",
+						"type": "landinghandler",
 						"data": {}
 					},
 					"masked": {
-						"type": "landingfilter",
+						"type": "landinghandler",
 						"data": {}
 					}
 				}`,
@@ -1149,7 +1149,7 @@ func TestCookiemaskFromConfig(t *testing.T) {
 						}
 					},
 					"masked": {
-						"type": "landingfilter",
+						"type": "landinghandler",
 						"data": {}
 					}
 				}`,

@@ -482,8 +482,19 @@ func TestServerFromReader(t *testing.T) {
 						"data": null
 					}
 				},
-				"handler": "handler",
-				"listener": "listener"
+				"server": {
+					"type": "httpserver",
+					"data": {
+						"handler": {
+							"type": "ref",
+							"data": "handler"
+						},
+						"listener": {
+							"type": "ref",
+							"data": "listener"
+						}
+					}
+				}
 			}`,
 			reason: "invalid handler type",
 		},
@@ -499,8 +510,19 @@ func TestServerFromReader(t *testing.T) {
 						"data": null
 					}
 				},
-				"handler": "handler",
-				"listener": "listener"
+				"server": {
+					"type": "httpserver",
+					"data": {
+						"handler": {
+							"type": "ref",
+							"data": "handler"
+						},
+						"listener": {
+							"type": "ref",
+							"data": "listener"
+						}
+					}
+				}
 			}`,
 			reason: "invalid listener type",
 		},
@@ -520,8 +542,19 @@ func TestServerFromReader(t *testing.T) {
 						"data": null
 					}
 				},
-				"handler": "handler",
-				"listener": "listener"
+				"server": {
+					"type": "httpserver",
+					"data": {
+						"handler": {
+							"type": "ref",
+							"data": "handler"
+						},
+						"listener": {
+							"type": "ref",
+							"data": "listener"
+						}
+					}
+				}
 			}`,
 			reason: "non-filter Resource specified as an" +
 				" upstream for a Pipeline",
@@ -542,8 +575,19 @@ func TestServerFromReader(t *testing.T) {
 						"data": null
 					}
 				},
-				"handler": "handler",
-				"listener": "listener"
+				"server": {
+					"type": "httpserver",
+					"data": {
+						"handler": {
+							"type": "ref",
+							"data": "handler"
+						},
+						"listener": {
+							"type": "ref",
+							"data": "listener"
+						}
+					}
+				}
 			}`,
 			reason: "non-filter Resource specified as a" +
 				" downstream for a Pipeline",
@@ -564,8 +608,19 @@ func TestServerFromReader(t *testing.T) {
 						"data": null
 					}
 				},
-				"handler": "handler",
-				"listener": "listener"
+				"server": {
+					"type": "httpserver",
+					"data": {
+						"handler": {
+							"type": "ref",
+							"data": "handler"
+						},
+						"listener": {
+							"type": "ref",
+							"data": "listener"
+						}
+					}
+				}
 			}`,
 			reason: "non-existant Resource specified as an" +
 				" upstream for a Pipeline",
@@ -586,8 +641,19 @@ func TestServerFromReader(t *testing.T) {
 						"data": null
 					}
 				},
-				"handler": "handler",
-				"listener": "listener"
+				"server": {
+					"type": "httpserver",
+					"data": {
+						"handler": {
+							"type": "ref",
+							"data": "handler"
+						},
+						"listener": {
+							"type": "ref",
+							"data": "listener"
+						}
+					}
+				}
 			}`,
 			reason: "error during Resource creation",
 		},
@@ -604,8 +670,19 @@ func TestServerFromReader(t *testing.T) {
 						"data": null
 					}
 				},
-				"handler": "handler",
-				"listener": "listener"
+				"server": {
+					"type": "httpserver",
+					"data": {
+						"handler": {
+							"type": "ref",
+							"data": "handler"
+						},
+						"listener": {
+							"type": "ref",
+							"data": "listener"
+						}
+					}
+				}
 			}`,
 			reason: "null Resource specified as an upstream for" +
 				" a Pipeline",
@@ -626,8 +703,19 @@ func TestServerFromReader(t *testing.T) {
 						"data": null
 					}
 				},
-				"handler": "handler",
-				"listener": "listener"
+				"server": {
+					"type": "httpserver",
+					"data": {
+						"handler": {
+							"type": "ref",
+							"data": "handler"
+						},
+						"listener": {
+							"type": "ref",
+							"data": "listener"
+						}
+					}
+				}
 			}`,
 			reason: "self-referential Resource specified as an" +
 				" upstream for a Pipeline",
@@ -644,8 +732,19 @@ func TestServerFromReader(t *testing.T) {
 						"data": null
 					}
 				},
-				"handler": "handlerr",
-				"listener": "listener"
+				"server": {
+					"type": "httpserver",
+					"data": {
+						"handler": {
+							"type": "ref",
+							"data": "handlerr"
+						},
+						"listener": {
+							"type": "ref",
+							"data": "listener"
+						}
+					}
+				}
 			}`,
 			reason: "typo in handler specifier",
 		},
@@ -664,8 +763,19 @@ func TestServerFromReader(t *testing.T) {
 						"data": null
 					}
 				},
-				"handler": "handler",
-				"listener": "listener"
+				"server": {
+					"type": "httpserver",
+					"data": {
+						"handler": {
+							"type": "ref",
+							"data": "handler"
+						},
+						"listener": {
+							"type": "ref",
+							"data": "listener"
+						}
+					}
+				}
 			}`,
 			reason: "test resources",
 		},
@@ -685,8 +795,19 @@ func TestServerFromReader(t *testing.T) {
 						"data": null
 					}
 				},
-				"handler": "handler",
-				"listener": "listener"
+				"server": {
+					"type": "httpserver",
+					"data": {
+						"handler": {
+							"type": "ref",
+							"data": "handler"
+						},
+						"listener": {
+							"type": "ref",
+							"data": "listener"
+						}
+					}
+				}
 			}`,
 			reason: "valid config",
 		},
@@ -710,8 +831,19 @@ func TestServerFromReader(t *testing.T) {
 						"data": null
 					}
 				},
-				"handler": "handler",
-				"listener": "listener"
+				"server": {
+					"type": "httpserver",
+					"data": {
+						"handler": {
+							"type": "ref",
+							"data": "handler"
+						},
+						"listener": {
+							"type": "ref",
+							"data": "listener"
+						}
+					}
+				}
 			}`,
 			reason: "double reference",
 		},

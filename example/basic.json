@@ -10,7 +10,7 @@
 					}
 				},
 				"default": {
-					"type": "landingfilter",
+					"type": "landinghandler",
 					"data": {}
 				}
 			}
@@ -23,6 +23,17 @@
 			}
 		}
 	},
-	"listener": "listener",
-	"handler": "handler"
+	"server": {
+		"type": "httpserver",
+		"data": {
+			"listener": {
+				"type": "ref",
+				"data": "listener"
+			},
+			"handler": {
+				"type": "ref",
+				"data": "handler"
+			}
+		}
+	}
 }

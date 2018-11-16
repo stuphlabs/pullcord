@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"errors"
+	"net"
 
 	"github.com/stuphlabs/pullcord/config"
 
@@ -22,6 +23,8 @@ func init() {
 type AcmeConfig struct {
 	AcceptTOS bool
 	Domains   []string
+	mgr       *autocert.Manager
+	lsr       net.Listener
 }
 
 func (a *AcmeConfig) UnmarshalJSON(d []byte) error {
@@ -48,6 +51,10 @@ func (a *AcmeConfig) UnmarshalJSON(d []byte) error {
 }
 
 func (a *AcmeConfig) GetManager() (*autocert.Manager, error) {
+	if a.mgr != nil {
+		return a.mgr, nil
+	}
+
 	if !a.AcceptTOS {
 		return nil, errors.New(
 			"The terms of service must be accepted in order to" +
@@ -55,10 +62,27 @@ func (a *AcmeConfig) GetManager() (*autocert.Manager, error) {
 		)
 	}
 
-	return &autocert.Manager{
+	a.mgr = &autocert.Manager{
 		Prompt:     autocert.AcceptTOS,
 		HostPolicy: autocert.HostWhitelist(a.Domains...),
-	}, nil
+	}
+
+	return a.mgr, nil
+}
+
+func (a *AcmeConfig) Listener() (net.Listener, error) {
+	if a.lsr != nil {
+		return a.lsr, nil
+	}
+
+	mgr, e := a.GetManager()
+	if e != nil {
+		return nil, e
+	}
+
+	a.lsr = mgr.Listener()
+
+	return a.lsr, nil
 }
 
 func (a *AcmeConfig) GetCertificate(
@@ -70,4 +94,31 @@ func (a *AcmeConfig) GetCertificate(
 	}
 
 	return mgr.GetCertificate(hello)
+}
+
+func (a *AcmeConfig) Accept() (net.Conn, error) {
+	lsr, e := a.Listener()
+	if e != nil {
+		return nil, e
+	}
+
+	return lsr.Accept()
+}
+
+func (a *AcmeConfig) Close() error {
+	lsr, e := a.Listener()
+	if e != nil {
+		return e
+	}
+
+	return lsr.Close()
+}
+
+func (a *AcmeConfig) Addr() net.Addr {
+	lsr, e := a.Listener()
+	if e != nil {
+		return nil
+	}
+
+	return lsr.Addr()
 }

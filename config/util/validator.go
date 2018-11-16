@@ -128,8 +128,19 @@ func constructConfigReader(
 							}
 						}
 					},
-					"handler": "handler",
-					"listener": "listener"
+					"server": {
+						"type": "httpserver",
+						"data": {
+							"handler": {
+								"type": "ref",
+								"data": "handler"
+							},
+							"listener": {
+								"type": "ref",
+								"data": "listener"
+							}
+						}
+					}
 				}`,
 				validatorName,
 				resourceType,
@@ -153,8 +164,19 @@ func constructConfigReader(
 							"data": null
 						}
 					},
-					"handler": "handler",
-					"listener": "listener"
+					"server": {
+						"type": "httpserver",
+						"data": {
+							"handler": {
+								"type": "ref",
+								"data": "handler"
+							},
+							"listener": {
+								"type": "ref",
+								"data": "listener"
+							}
+						}
+					}
 				}`,
 				validatorName,
 				resourceType,
