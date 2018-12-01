@@ -6,11 +6,8 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"fmt"
-	"io"
 	"net"
 	"net/http"
-	"strings"
 
 	"github.com/stuphlabs/pullcord/config"
 )
@@ -98,88 +95,3 @@ func GenerateValidator(
 
 }
 
-type ConfigTestData struct {
-	Data        string
-	Explanation string
-}
-
-func constructConfigReader(
-	listenerTest bool,
-	validatorName,
-	resourceType,
-	data string,
-) io.Reader {
-	if listenerTest {
-		return strings.NewReader(
-			fmt.Sprintf(
-				`{
-					"resources": {
-						"handler": {
-							"type": "testhandler",
-							"data": null
-						},
-						"listener": {
-							"type": "%s",
-							"data": {
-								"type": "%s",
-								"data": %s
-							}
-						}
-					},
-					"server": {
-						"type": "httpserver",
-						"data": {
-							"handler": {
-								"type": "ref",
-								"data": "handler"
-							},
-							"listener": {
-								"type": "ref",
-								"data": "listener"
-							}
-						}
-					}
-				}`,
-				validatorName,
-				resourceType,
-				data,
-			),
-		)
-	} else {
-		return strings.NewReader(
-			fmt.Sprintf(
-				`{
-					"resources": {
-						"handler": {
-							"type": "%s",
-							"data": {
-								"type": "%s",
-								"data": %s
-							}
-						},
-						"listener": {
-							"type": "testlistener",
-							"data": null
-						}
-					},
-					"server": {
-						"type": "httpserver",
-						"data": {
-							"handler": {
-								"type": "ref",
-								"data": "handler"
-							},
-							"listener": {
-								"type": "ref",
-								"data": "listener"
-							}
-						}
-					}
-				}`,
-				validatorName,
-				resourceType,
-				data,
-			),
-		)
-	}
-}

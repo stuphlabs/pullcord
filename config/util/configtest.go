@@ -3,12 +3,19 @@ package util
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
 	"github.com/stuphlabs/pullcord/config"
 )
+
+type ConfigTestData struct {
+	Data        string
+	Explanation string
+}
 
 type ConfigTest struct {
 	ResourceType     string
@@ -188,6 +195,87 @@ func (c *ConfigTest) Run(t *testing.T) {
 					" but a nil server was generated for a"+
 					" config with explanation: %s",
 				d.Explanation,
+			),
+		)
+	}
+}
+
+func constructConfigReader(
+	listenerTest bool,
+	validatorName,
+	resourceType,
+	data string,
+) io.Reader {
+	if listenerTest {
+		return strings.NewReader(
+			fmt.Sprintf(
+				`{
+					"resources": {
+						"handler": {
+							"type": "testhandler",
+							"data": null
+						},
+						"listener": {
+							"type": "%s",
+							"data": {
+								"type": "%s",
+								"data": %s
+							}
+						}
+					},
+					"server": {
+						"type": "httpserver",
+						"data": {
+							"handler": {
+								"type": "ref",
+								"data": "handler"
+							},
+							"listener": {
+								"type": "ref",
+								"data": "listener"
+							}
+						}
+					}
+				}`,
+				validatorName,
+				resourceType,
+				data,
+			),
+		)
+	} else {
+		return strings.NewReader(
+			fmt.Sprintf(
+				`{
+					"resources": {
+						"handler": {
+							"type": "%s",
+							"data": {
+								"type": "%s",
+								"data": %s
+							}
+						},
+						"listener": {
+							"type": "testlistener",
+							"data": null
+						}
+					},
+					"server": {
+						"type": "httpserver",
+						"data": {
+							"handler": {
+								"type": "ref",
+								"data": "handler"
+							},
+							"listener": {
+								"type": "ref",
+								"data": "listener"
+							}
+						}
+					}
+				}`,
+				validatorName,
+				resourceType,
+				data,
 			),
 		)
 	}
