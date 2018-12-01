@@ -11,11 +11,11 @@ import (
 	"github.com/stuphlabs/pullcord"
 )
 
-type Reader struct {
+type Parser struct {
 	r io.Reader
 }
 
-func (c Reader) Server() (pullcord.Server, error) {
+func (p Parser) Server() (pullcord.Server, error) {
 	registrationMutex.Lock()
 	defer registrationMutex.Unlock()
 
@@ -24,7 +24,7 @@ func (c Reader) Server() (pullcord.Server, error) {
 		Server    json.RawMessage
 	}
 
-	dec := json.NewDecoder(c.r)
+	dec := json.NewDecoder(p.r)
 	registry = make(map[string]*Resource)
 
 	if e := dec.Decode(&config); e != nil {
