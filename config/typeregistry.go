@@ -37,4 +37,3 @@ func MustRegisterResourceType(
 		panic(e)
 	}
 }
-
