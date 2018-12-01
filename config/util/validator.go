@@ -225,14 +225,15 @@ func (c *ConfigTest) Run(t *testing.T) {
 	for _, d := range c.SyntacticallyBad {
 		isValidWasRun = false
 
-		s, e := config.ServerFromReader(
+		parser := config.Parser{
 			constructConfigReader(
 				c.ListenerTest,
 				validatorName,
 				c.ResourceType,
 				d.Data,
 			),
-		)
+		}
+		s, e := parser.Server()
 
 		assert.Error(
 			t,
@@ -274,14 +275,15 @@ func (c *ConfigTest) Run(t *testing.T) {
 	for _, d := range c.SemanticallyBad {
 		isValidWasRun = false
 
-		s, e := config.ServerFromReader(
+		parser := config.Parser{
 			constructConfigReader(
 				c.ListenerTest,
 				validatorName,
 				c.ResourceType,
 				d.Data,
 			),
-		)
+		}
+		s, e := parser.Server()
 
 		assert.Error(
 			t,
@@ -323,14 +325,15 @@ func (c *ConfigTest) Run(t *testing.T) {
 	for _, d := range c.Good {
 		isValidWasRun = false
 
-		s, e := config.ServerFromReader(
+		parser := config.Parser{
 			constructConfigReader(
 				c.ListenerTest,
 				validatorName,
 				c.ResourceType,
 				d.Data,
 			),
-		)
+		}
+		s, e := parser.Server()
 
 		assert.NoError(
 			t,
