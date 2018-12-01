@@ -12,7 +12,7 @@ import (
 )
 
 type Parser struct {
-	r io.Reader
+	Reader io.Reader
 }
 
 func (p Parser) Server() (pullcord.Server, error) {
@@ -24,7 +24,7 @@ func (p Parser) Server() (pullcord.Server, error) {
 		Server    json.RawMessage
 	}
 
-	dec := json.NewDecoder(p.r)
+	dec := json.NewDecoder(p.Reader)
 	registry = make(map[string]*Resource)
 
 	if e := dec.Decode(&config); e != nil {
