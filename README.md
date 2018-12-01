@@ -1,12 +1,11 @@
 Pullcord
 ========
 
-[![Build Status](https://img.shields.io/travis/stuphlabs/pullcord/master.svg)](https://travis-ci.org/stuphlabs/pullcord)
-[![Coverage](https://img.shields.io/coveralls/stuphlabs/pullcord/master.svg)](https://coveralls.io/github/stuphlabs/pullcord?branch=master)
+[![Build Status](https://travis-ci.org/stuphlabs/pullcord.svg?branch=master)](https://travis-ci.org/stuphlabs/pullcord)
+[![Coverage](https://coveralls.io/repos/github/stuphlabs/pullcord/badge.svg?branch=master)](https://coveralls.io/github/stuphlabs/pullcord?branch=master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/stuphlabs/pullcord)](https://goreportcard.com/report/github.com/stuphlabs/pullcord)
-[![Code Climate](https://img.shields.io/codeclimate/github/stuphlabs/pullcord.svg)](https://codeclimate.com/github/stuphlabs/pullcord)
-[![Open Issues](https://img.shields.io/github/issues-raw/stuphlabs/pullcord.svg)](https://waffle.io/stuphlabs/pullcord)
-[![Godoc](http://img.shields.io/badge/godoc-reference-5272B4.svg)](http://godoc.org/github.com/stuphlabs/pullcord)
+[![Active Dev](https://badge.waffle.io/stuphlabs/pullcord.svg?columns=Ready,In%20Progress,In%20Review)](https://waffle.io/stuphlabs/pullcord)
+[![Godoc](https://godoc.org/github.com/stuphlabs/pullcord?status.svg)](http://godoc.org/github.com/stuphlabs/pullcord)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/982/badge)](https://bestpractices.coreinfrastructure.org/projects/982)
 
 
