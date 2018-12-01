@@ -1,29 +1,16 @@
-# Basic config to be filled in
-
 ROOTPKG = github.com/stuphlabs/pullcord
 CONTAINERNAME = pullcord
 
 binfiles = bin/pullcord bin/genhash
 
-# Most things below here won't need to change
-
 PKG = ./...
 COVERMODE = set
 
-cleanfiles = all.cov cover.html bin ${binfiles}
+cleanfiles = cover.html cover.out bin ${binfiles}
 recursivecleanfiles = pkg.cov
 
 .PHONY: all
 all: test ${binfiles}
-
-.PHONY: all.cov
-all.cov:
-	echo "mode: ${COVERMODE}" > $@
-	$(MAKE) `go list ${PKG} | sed 's#^${ROOTPKG}\(/\?.*\)$$#\.\1/pkg.cov#'`
-	go list ${PKG} | sed 's#^${ROOTPKG}\(/\?.*\)$$#\.\1/pkg.cov#' \
-	| while read pkgcov; do \
-		tail -n +2 $${pkgcov} >> $@; \
-	done
 
 bin/%: cmd/%/*.go
 	$(MAKE) get
@@ -39,21 +26,16 @@ clean:
 container: test Dockerfile ${binfiles}
 	docker build -t ${CONTAINERNAME} .
 
-cover.html: all.cov
+cover.html: cover.out
 	go tool cover -html $< -o $@
+
+cover.out: *.go */*.go
+	go test -v -coverprofile $@ -covermode ${COVERMODE} ${PKG}
 
 .PHONY: get
 get:
-	go get -t -v ./...
-
-pkg.cov: *.go
-	$(MAKE) get
-	go test -v -coverprofile $@ -covermode ${COVERMODE} .
-
-%/pkg.cov: %/*.go
-	$(MAKE) get
-	go test -v -coverprofile $@ -covermode ${COVERMODE} ./$*
+	go get -t -u -v ${PKG}
 
 .PHONY: test
-test: all.cov cover.html
+test: cover.out cover.html
 
