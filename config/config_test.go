@@ -855,7 +855,8 @@ func TestServerFromReader(t *testing.T) {
 		d := d
 		t.Run(d.reason, func(t *testing.T) {
 			t.Parallel()
-			s, e := ServerFromReader(strings.NewReader(d.config))
+			parser := Parser{strings.NewReader(d.config)}
+			s, e := parser.Server()
 			assert.Nil(
 				t,
 				s,
@@ -886,7 +887,8 @@ func TestServerFromReader(t *testing.T) {
 		d := d
 		t.Run(d.reason, func(t *testing.T) {
 			t.Parallel()
-			s, e := ServerFromReader(strings.NewReader(d.config))
+			parser := Parser{strings.NewReader(d.config)}
+			s, e := parser.Server()
 			assert.NotNil(
 				t,
 				s,
