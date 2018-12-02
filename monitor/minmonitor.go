@@ -30,7 +30,7 @@ const UnknownServiceError = errors.New(
 	"No service has been registered with the requested name",
 )
 
-// MonitorredService holds the information for a single service definition.
+// MinMonitorredService holds the information for a single service definition.
 type MinMonitorredService struct {
 	URL         *url.URL
 	GracePeriod time.Duration
@@ -386,11 +386,11 @@ func (svc *MinMonitorredService) SetStatusUp() error {
 	return nil
 }
 
-// NewMonitorFilter produces a Falcore RequestFilter for a given named service.
-// This filter will forward to the service if it is up, otherwise it will
-// display an error page to the requester. There are also optional triggers
-// which would be run if the service is down (presumably to bring it up), or if
-// the service is already up, or in either case, respectively.
+// NewMinMonitorFilter produces an http.Handler for a given named service. This
+// handler will forward to the service if it is up, otherwise it will display an
+// error page to the requester. There are also optional triggers which would be
+// run if the service is down (presumably to bring it up), or if the service is
+// already up, or in either case, respectively.
 func (monitor *MinMonitor) NewMinMonitorFilter(
 	name string,
 ) (http.Handler, error) {

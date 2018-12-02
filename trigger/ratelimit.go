@@ -85,10 +85,10 @@ func NewRateLimitTrigger(
 	}
 }
 
-// TriggerString implements the required string-based triggering function to
-// make RateLimitTrigger a valid TriggerHandler implementation. If the rate
-// limit is exceeded, RateLimitExceededError will be returned, and the guarded
-// trigger will not be called.
+// Trigger executes its guarded trigger if and only if it has not be called more
+// than the allowed number of times within the specified rolling window of time.
+// If the rate limit is exceeded, RateLimitExceededError will be returned, and
+// the guarded trigger will not be called.
 func (rlt *RateLimitTrigger) Trigger() error {
 	now := time.Now()
 
