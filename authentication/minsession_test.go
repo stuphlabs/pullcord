@@ -411,10 +411,10 @@ func TestMinSessionHandlerMultiSession(t *testing.T) {
 func TestMinSessionHandlerBadCookieDestroysSession(t *testing.T) {
 	/* setup */
 	var (
-		goodCookies             []*http.Cookie
-		badCookies              []*http.Cookie
-		badCookie               http.Cookie
-		seshKey                 = "test key"
+		goodCookies            []*http.Cookie
+		badCookies             []*http.Cookie
+		badCookie              http.Cookie
+		seshKey                = "test key"
 		expectedSeshPresent1   = NoSuchSessionValueError
 		actualSeshPresent1     error
 		expectedSeshPresent2   = NoSuchSessionValueError
@@ -425,7 +425,7 @@ func TestMinSessionHandlerBadCookieDestroysSession(t *testing.T) {
 		actualCookiePresent2   bool
 		expectedCookiePresent3 = true
 		actualCookiePresent3   bool
-		saveValue               = "foo"
+		saveValue              = "foo"
 	)
 
 	/* run */
