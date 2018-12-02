@@ -12,6 +12,8 @@ import (
 
 type StandardResponse int
 
+// MinimumStandardResponse is the lower limit of acceptable HTTP response codes
+// for which a StandardResponse can be created.
 const MinimumStandardResponse = 100
 
 func init() {
@@ -46,8 +48,11 @@ func (s *StandardResponse) UnmarshalJSON(data []byte) error {
 }
 
 const (
+	// NotFound is a canned StandardResponse for an HTTP 404
 	NotFound            = StandardResponse(404)
+	// InternalServerError is a canned StandardResponse for an HTTP 500
 	InternalServerError = StandardResponse(500)
+	// NotImplemented is a canned StandardResponse for an HTTP 501
 	NotImplemented      = StandardResponse(501)
 )
 
