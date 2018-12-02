@@ -23,10 +23,10 @@ func (v *validation) UnmarshalJSON(input []byte) error {
 	dec := json.NewDecoder(bytes.NewReader(input))
 	if e := dec.Decode(&r); e != nil {
 		return e
-	} else {
-		v.unmarshaled = r.Unmarshaled
-		return v.validate(v.unmarshaled)
 	}
+
+	v.unmarshaled = r.Unmarshaled
+	return v.validate(v.unmarshaled)
 }
 
 var responseString = `<!DOCTYPE html>
@@ -75,6 +75,9 @@ func (v *validation) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	)
 }
 
+// GenerateValidator registers a specialty resource type that can be used to
+// test config behavior of another resource type as part of resource
+// unmarshaling.
 func GenerateValidator(
 	validate func(json.Unmarshaler) error,
 ) (string, error) {
