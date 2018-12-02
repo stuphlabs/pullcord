@@ -151,15 +151,15 @@ func TestCookiemaskCookieless(t *testing.T) {
 		"contents are "+string(contents),
 	)
 
-	new_cookie_set := false
-	for _, cke_str := range response.Header["Set-Cookie"] {
-		if cookieRegex.MatchString(cke_str) {
-			new_cookie_set = true
+	newCookieSet := false
+	for _, ckeStr := range response.Header["Set-Cookie"] {
+		if cookieRegex.MatchString(ckeStr) {
+			newCookieSet = true
 		}
 	}
 	assert.True(
 		t,
-		new_cookie_set,
+		newCookieSet,
 		"regex didn't match any of "+
 			gostring(response.Header["Set-Cookie"]),
 	)
@@ -217,15 +217,15 @@ func TestCookiemaskNoMasking(t *testing.T) {
 		"contents are "+string(contents),
 	)
 
-	new_cookie_set := false
-	for _, cke_str := range response.Header["Set-Cookie"] {
-		if cookieRegex.MatchString(cke_str) {
-			new_cookie_set = true
+	newCookieSet := false
+	for _, ckeStr := range response.Header["Set-Cookie"] {
+		if cookieRegex.MatchString(ckeStr) {
+			newCookieSet = true
 		}
 	}
 	assert.True(
 		t,
-		new_cookie_set,
+		newCookieSet,
 		"regex didn't match any of "+
 			gostring(response.Header["Set-Cookie"]),
 	)
@@ -258,15 +258,15 @@ func TestCookiemaskHandlerError(t *testing.T) {
 	/* check */
 	assert.Equal(t, 500, response.StatusCode)
 
-	new_cookie_set := false
-	for _, cke_str := range response.Header["Set-Cookie"] {
-		if cookieRegex.MatchString(cke_str) {
-			new_cookie_set = true
+	newCookieSet := false
+	for _, ckeStr := range response.Header["Set-Cookie"] {
+		if cookieRegex.MatchString(ckeStr) {
+			newCookieSet = true
 		}
 	}
 	assert.False(
 		t,
-		new_cookie_set,
+		newCookieSet,
 		"regex matched one of "+
 			gostring(response.Header["Set-Cookie"]),
 	)
@@ -299,15 +299,15 @@ func TestCookiemaskError(t *testing.T) {
 	/* check */
 	assert.Equal(t, 500, response.StatusCode)
 
-	new_cookie_set := false
-	for _, cke_str := range response.Header["Set-Cookie"] {
-		if cookieRegex.MatchString(cke_str) {
-			new_cookie_set = true
+	newCookieSet := false
+	for _, ckeStr := range response.Header["Set-Cookie"] {
+		if cookieRegex.MatchString(ckeStr) {
+			newCookieSet = true
 		}
 	}
 	assert.False(
 		t,
-		new_cookie_set,
+		newCookieSet,
 		"regex matched one of "+
 			gostring(response.Header["Set-Cookie"]),
 	)
@@ -365,15 +365,15 @@ func TestCookiemaskMasking(t *testing.T) {
 		"contents are "+string(contents),
 	)
 
-	new_cookie_set := false
-	for _, cke_str := range response.Header["Set-Cookie"] {
-		if cookieRegex.MatchString(cke_str) {
-			new_cookie_set = true
+	newCookieSet := false
+	for _, ckeStr := range response.Header["Set-Cookie"] {
+		if cookieRegex.MatchString(ckeStr) {
+			newCookieSet = true
 		}
 	}
 	assert.False(
 		t,
-		new_cookie_set,
+		newCookieSet,
 		"regex matched one of "+
 			gostring(response.Header["Set-Cookie"]),
 	)
@@ -445,24 +445,24 @@ func TestDoubleCookiemaskNoMasking(t *testing.T) {
 		"contents are "+string(contents),
 	)
 
-	new_cookie1_set := false
-	new_cookie2_set := false
-	for _, cke_str := range response.Header["Set-Cookie"] {
-		if cookieRegex1.MatchString(cke_str) {
-			new_cookie1_set = true
-		} else if cookieRegex2.MatchString(cke_str) {
-			new_cookie2_set = true
+	newCookie1Set := false
+	newCookie2Set := false
+	for _, ckeStr := range response.Header["Set-Cookie"] {
+		if cookieRegex1.MatchString(ckeStr) {
+			newCookie1Set = true
+		} else if cookieRegex2.MatchString(ckeStr) {
+			newCookie2Set = true
 		}
 	}
 	assert.True(
 		t,
-		new_cookie1_set,
+		newCookie1Set,
 		"regex1 didn't match any of "+
 			gostring(response.Header["Set-Cookie"]),
 	)
 	assert.True(
 		t,
-		new_cookie2_set,
+		newCookie2Set,
 		"regex2 didn't match any of "+
 			gostring(response.Header["Set-Cookie"]),
 	)
@@ -541,24 +541,24 @@ func TestDoubleCookiemaskTopMasking(t *testing.T) {
 		"contents are "+string(contents),
 	)
 
-	new_cookie1_set := false
-	new_cookie2_set := false
-	for _, cke_str := range response.Header["Set-Cookie"] {
-		if cookieRegex1.MatchString(cke_str) {
-			new_cookie1_set = true
-		} else if cookieRegex2.MatchString(cke_str) {
-			new_cookie2_set = true
+	newCookie1Set := false
+	newCookie2Set := false
+	for _, ckeStr := range response.Header["Set-Cookie"] {
+		if cookieRegex1.MatchString(ckeStr) {
+			newCookie1Set = true
+		} else if cookieRegex2.MatchString(ckeStr) {
+			newCookie2Set = true
 		}
 	}
 	assert.False(
 		t,
-		new_cookie1_set,
+		newCookie1Set,
 		"regex1 matched one of "+
 			gostring(response.Header["Set-Cookie"]),
 	)
 	assert.True(
 		t,
-		new_cookie2_set,
+		newCookie2Set,
 		"regex2 didn't match any of "+
 			gostring(response.Header["Set-Cookie"]),
 	)
@@ -633,24 +633,24 @@ func TestDoubleCookiemaskBottomMasking(t *testing.T) {
 		"contents are "+string(contents),
 	)
 
-	new_cookie1_set := false
-	new_cookie2_set := false
-	for _, cke_str := range response.Header["Set-Cookie"] {
-		if cookieRegex1.MatchString(cke_str) {
-			new_cookie1_set = true
-		} else if cookieRegex2.MatchString(cke_str) {
-			new_cookie2_set = true
+	newCookie1Set := false
+	newCookie2Set := false
+	for _, ckeStr := range response.Header["Set-Cookie"] {
+		if cookieRegex1.MatchString(ckeStr) {
+			newCookie1Set = true
+		} else if cookieRegex2.MatchString(ckeStr) {
+			newCookie2Set = true
 		}
 	}
 	assert.True(
 		t,
-		new_cookie1_set,
+		newCookie1Set,
 		"regex1 didn't match any of "+
 			gostring(response.Header["Set-Cookie"]),
 	)
 	assert.False(
 		t,
-		new_cookie2_set,
+		newCookie2Set,
 		"regex2 matched one of "+
 			gostring(response.Header["Set-Cookie"]),
 	)
@@ -729,24 +729,24 @@ func TestDoubleCookiemaskBothMasking(t *testing.T) {
 		"contents are "+string(contents),
 	)
 
-	new_cookie1_set := false
-	new_cookie2_set := false
-	for _, cke_str := range response.Header["Set-Cookie"] {
-		if cookieRegex1.MatchString(cke_str) {
-			new_cookie1_set = true
-		} else if cookieRegex2.MatchString(cke_str) {
-			new_cookie2_set = true
+	newCookie1Set := false
+	newCookie2Set := false
+	for _, ckeStr := range response.Header["Set-Cookie"] {
+		if cookieRegex1.MatchString(ckeStr) {
+			newCookie1Set = true
+		} else if cookieRegex2.MatchString(ckeStr) {
+			newCookie2Set = true
 		}
 	}
 	assert.False(
 		t,
-		new_cookie1_set,
+		newCookie1Set,
 		"regex1 matched one of "+
 			gostring(response.Header["Set-Cookie"]),
 	)
 	assert.False(
 		t,
-		new_cookie2_set,
+		newCookie2Set,
 		"regex2 matched one of "+
 			gostring(response.Header["Set-Cookie"]),
 	)
@@ -814,24 +814,24 @@ func TestDoubleCookiemaskBottomErrorTopNoMasking(t *testing.T) {
 		"contents are "+string(contents),
 	)
 
-	new_cookie1_set := false
-	new_cookie2_set := false
-	for _, cke_str := range response.Header["Set-Cookie"] {
-		if cookieRegex1.MatchString(cke_str) {
-			new_cookie1_set = true
-		} else if cookieRegex2.MatchString(cke_str) {
-			new_cookie2_set = true
+	newCookie1Set := false
+	newCookie2Set := false
+	for _, ckeStr := range response.Header["Set-Cookie"] {
+		if cookieRegex1.MatchString(ckeStr) {
+			newCookie1Set = true
+		} else if cookieRegex2.MatchString(ckeStr) {
+			newCookie2Set = true
 		}
 	}
 	assert.True(
 		t,
-		new_cookie1_set,
+		newCookie1Set,
 		"regex1 didn't match any of "+
 			gostring(response.Header["Set-Cookie"]),
 	)
 	assert.False(
 		t,
-		new_cookie2_set,
+		newCookie2Set,
 		"regex2 matched one of "+
 			gostring(response.Header["Set-Cookie"]),
 	)
@@ -905,24 +905,24 @@ func TestDoubleCookiemaskBottomErrorTopMasking(t *testing.T) {
 		"contents are "+string(contents),
 	)
 
-	new_cookie1_set := false
-	new_cookie2_set := false
-	for _, cke_str := range response.Header["Set-Cookie"] {
-		if cookieRegex1.MatchString(cke_str) {
-			new_cookie1_set = true
-		} else if cookieRegex2.MatchString(cke_str) {
-			new_cookie2_set = true
+	newCookie1Set := false
+	newCookie2Set := false
+	for _, ckeStr := range response.Header["Set-Cookie"] {
+		if cookieRegex1.MatchString(ckeStr) {
+			newCookie1Set = true
+		} else if cookieRegex2.MatchString(ckeStr) {
+			newCookie2Set = true
 		}
 	}
 	assert.False(
 		t,
-		new_cookie1_set,
+		newCookie1Set,
 		"regex1 matched one of "+
 			gostring(response.Header["Set-Cookie"]),
 	)
 	assert.False(
 		t,
-		new_cookie2_set,
+		newCookie2Set,
 		"regex2 matched one of "+
 			gostring(response.Header["Set-Cookie"]),
 	)
@@ -993,24 +993,24 @@ func TestDoubleCookiemaskTopErrorBottomNoMasking(t *testing.T) {
 		"contents are "+string(contents),
 	)
 
-	new_cookie1_set := false
-	new_cookie2_set := false
-	for _, cke_str := range response.Header["Set-Cookie"] {
-		if cookieRegex1.MatchString(cke_str) {
-			new_cookie1_set = true
-		} else if cookieRegex2.MatchString(cke_str) {
-			new_cookie2_set = true
+	newCookie1Set := false
+	newCookie2Set := false
+	for _, ckeStr := range response.Header["Set-Cookie"] {
+		if cookieRegex1.MatchString(ckeStr) {
+			newCookie1Set = true
+		} else if cookieRegex2.MatchString(ckeStr) {
+			newCookie2Set = true
 		}
 	}
 	assert.False(
 		t,
-		new_cookie1_set,
+		newCookie1Set,
 		"regex1 matched one of "+
 			gostring(response.Header["Set-Cookie"]),
 	)
 	assert.False(
 		t,
-		new_cookie2_set,
+		newCookie2Set,
 		"regex2 matched one of "+
 			gostring(response.Header["Set-Cookie"]),
 	)

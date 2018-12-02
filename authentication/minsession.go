@@ -106,9 +106,9 @@ func (handler *MinSessionHandler) genCookie() (*http.Cookie, error) {
 	nbytes := make([]byte, minSessionCookieNameRandSize)
 	vbytes := make([]byte, minSessionCookieValueRandSize)
 
-	cookie_name := ""
-	name_gen_needed := true
-	for name_gen_needed {
+	cookieName := ""
+	nameGenNeeded := true
+	for nameGenNeeded {
 		_, randReadErr = rand.Read(nbytes)
 		if randReadErr != nil {
 			log.Err(
@@ -118,11 +118,11 @@ func (handler *MinSessionHandler) genCookie() (*http.Cookie, error) {
 			return nil, randReadErr
 		}
 
-		cookie_name = handler.Name + "-" + hex.EncodeToString(nbytes)
+		cookieName = handler.Name + "-" + hex.EncodeToString(nbytes)
 		// Slower than adding an else on the next if, but clearer.
-		name_gen_needed = false
+		nameGenNeeded = false
 
-		_, collision := handler.table[cookie_name]
+		_, collision := handler.table[cookieName]
 		if collision {
 			// We had a collision with an existing legit cookie?
 			// Is the random number generator broken?
@@ -134,10 +134,10 @@ func (handler *MinSessionHandler) genCookie() (*http.Cookie, error) {
 						" already existing cookie from"+
 						" the cookie table which"+
 						" shares the name: %s",
-					cookie_name,
+					cookieName,
 				),
 			)
-			name_gen_needed = true
+			nameGenNeeded = true
 			otherErr = rngCollisionError
 		}
 	}
@@ -152,7 +152,7 @@ func (handler *MinSessionHandler) genCookie() (*http.Cookie, error) {
 	}
 
 	var cke http.Cookie
-	cke.Name = cookie_name
+	cke.Name = cookieName
 	cke.Value = hex.EncodeToString(vbytes)
 	cke.Path = handler.Path
 	cke.Domain = handler.Domain
@@ -207,7 +207,7 @@ func (sesh *MinSession) CookieMask(incomingCookies []*http.Cookie) (
 ) {
 	log.Debug("running minsession cookiemask")
 
-	new_cookie_needed := true
+	newCookieNeeded := true
 	cookieNameRegex := regexp.MustCompile(
 		"^" +
 			sesh.handler.Name +
@@ -216,9 +216,9 @@ func (sesh *MinSession) CookieMask(incomingCookies []*http.Cookie) (
 			"}$",
 	)
 
-	in_ckes_buffer := new(bytes.Buffer)
+	inCkesBuffer := new(bytes.Buffer)
 	for _, cookie := range incomingCookies {
-		in_ckes_buffer.WriteString("\"" + cookie.Name + "\",")
+		inCkesBuffer.WriteString("\"" + cookie.Name + "\",")
 
 		if cookieNameRegex.MatchString(cookie.Name) {
 			sesh2, present := sesh.handler.table[cookie.Name]
@@ -234,7 +234,7 @@ func (sesh *MinSession) CookieMask(incomingCookies []*http.Cookie) (
 					),
 				)
 
-				new_cookie_needed = false
+				newCookieNeeded = false
 
 				// In the more common scenario where a new
 				// empty session was created, it would probably
@@ -287,11 +287,11 @@ func (sesh *MinSession) CookieMask(incomingCookies []*http.Cookie) (
 					)
 				}
 
-				var bad_cookie http.Cookie
-				bad_cookie.Name = cookie.Name
-				bad_cookie.Value = cookie.Value
-				bad_cookie.MaxAge = -1
-				setCookies = append(setCookies, &bad_cookie)
+				var badCookie http.Cookie
+				badCookie.Name = cookie.Name
+				badCookie.Value = cookie.Value
+				badCookie.MaxAge = -1
+				setCookies = append(setCookies, &badCookie)
 			}
 		} else {
 			forwardedCookies = append(forwardedCookies, cookie)
@@ -301,17 +301,17 @@ func (sesh *MinSession) CookieMask(incomingCookies []*http.Cookie) (
 		fmt.Sprintf(
 			"minsession cookiemask received cookies with these"+
 				" cookie names: [%s]",
-			in_ckes_buffer.String(),
+			inCkesBuffer.String(),
 		),
 	)
 
-	if new_cookie_needed {
+	if newCookieNeeded {
 		log.Debug(
 			"minsession cookiemask needs to generate a new cookie",
 		)
 
-		new_cookie, err := sesh.handler.genCookie()
-		if new_cookie == nil {
+		newCookie, err := sesh.handler.genCookie()
+		if newCookie == nil {
 			log.Err(
 				fmt.Sprintf(
 					"minsession cookiemask ran into"+
@@ -333,23 +333,23 @@ func (sesh *MinSession) CookieMask(incomingCookies []*http.Cookie) (
 			)
 		}
 
-		setCookies = append(setCookies, new_cookie)
+		setCookies = append(setCookies, newCookie)
 		log.Info(
 			fmt.Sprintf(
 				"minsession cookiemask has added a new cookie"+
 					" with name: %s",
-				new_cookie.Name,
+				newCookie.Name,
 			),
 		)
 
-		sesh.core.cvalue = new_cookie.Value
-		sesh.handler.table[new_cookie.Name] = sesh
+		sesh.core.cvalue = newCookie.Value
+		sesh.handler.table[newCookie.Name] = sesh
 		log.Debug(
 			fmt.Sprintf(
 				"minsession cookiemask has created a new"+
 					" session to go with the new cookie"+
 					" with name: %s",
-				new_cookie.Name,
+				newCookie.Name,
 			),
 		)
 	}

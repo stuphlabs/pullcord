@@ -177,16 +177,16 @@ func (filter *CookiemaskFilter) ServeHTTP(
 
 	req = req.WithContext(context.WithValue(req.Context(), "session", sesh))
 
-	fwd_ckes, set_ckes, err := sesh.CookieMask(
+	fwdCkes, setCkes, err := sesh.CookieMask(
 		req.Cookies(),
 	)
 	req.Header.Del("Cookie")
-	for _, cke := range fwd_ckes {
+	for _, cke := range fwdCkes {
 		req.AddCookie(cke)
 	}
 
 	ca := cookieAppender{
-		ckes:    set_ckes,
+		ckes:    setCkes,
 		w:       w,
 		hdrs:    make(map[string][]string),
 		started: false,
