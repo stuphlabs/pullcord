@@ -1,2 +1,2 @@
-// Remote service proxying code for Pullcord
+// Package proxy contains a mechanism for proxying requests to a remote service
 package proxy
