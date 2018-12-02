@@ -10,8 +10,8 @@ import (
 	"github.com/proidiot/gone/log"
 )
 
-// HttpServer implements the Pullcord server interface with an HTTP handler.
-type HttpServer struct {
+// HTTPServer implements the Pullcord server interface with an HTTP handler.
+type HTTPServer struct {
 	Listener net.Listener
 	Handler  http.Handler
 }
@@ -20,7 +20,7 @@ func init() {
 	e := RegisterResourceType(
 		"httpserver",
 		func() json.Unmarshaler {
-			return new(HttpServer)
+			return new(HTTPServer)
 		},
 	)
 
@@ -29,7 +29,8 @@ func init() {
 	}
 }
 
-func (s *HttpServer) UnmarshalJSON(d []byte) error {
+// UnmarshalJSON implements encoding/json.Unmarshaler.
+func (s *HTTPServer) UnmarshalJSON(d []byte) error {
 	var t struct {
 		Listener Resource
 		Handler  Resource
@@ -54,7 +55,8 @@ func (s *HttpServer) UnmarshalJSON(d []byte) error {
 	return nil
 }
 
-func (s *HttpServer) Serve() error {
+// Serve implements .../pullcord.Server.
+func (s *HTTPServer) Serve() error {
 	log.Debug(
 		fmt.Sprintf(
 			"Serving with listener %#v and handler %#v",
@@ -67,7 +69,8 @@ func (s *HttpServer) Serve() error {
 	return http.Serve(s.Listener, s.Handler)
 }
 
-func (s *HttpServer) Close() error {
+// Close implements .../pullcord.Server.
+func (s *HTTPServer) Close() error {
 	log.Info(fmt.Sprintf("Closing server at %s...", s.Listener.Addr()))
 	return s.Listener.Close()
 }

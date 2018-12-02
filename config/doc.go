@@ -1,2 +1,2 @@
-// Configuration-related code for Pullcord
+// Package config contains configuration-related code for Pullcord
 package config

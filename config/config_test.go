@@ -18,9 +18,9 @@ type dummyType struct{}
 func (s *dummyType) UnmarshalJSON(i []byte) error {
 	if string(i) == "\"error\"" {
 		return errors.New(`*dummyType.UnmarshalJSON("error")`)
-	} else {
-		return nil
 	}
+
+	return nil
 }
 func (s *dummyType) ServeHTTP(http.ResponseWriter, *http.Request) {
 }
