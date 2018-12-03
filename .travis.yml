@@ -3,6 +3,7 @@ language: go
 before_install:
         - .travis/gofmt.sh
         - .travis/goimports.sh
+        - .travis/gometalinter.sh
         - go get github.com/mattn/goveralls
 
 install: .travis/install.sh
