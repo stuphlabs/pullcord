@@ -72,6 +72,8 @@ func (r *RateLimitTrigger) UnmarshalJSON(input []byte) error {
 	return nil
 }
 
+// NewRateLimitTrigger initializes a RateLimitTrigger. It may no longer be
+// strictly necessary.
 func NewRateLimitTrigger(
 	guardedTrigger TriggerHandler,
 	maxAllowed uint,

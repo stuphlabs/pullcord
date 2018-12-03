@@ -25,6 +25,8 @@ func init() {
 	)
 }
 
+// NewPassthruFilter creates a PassthruFilter using a single host reverse proxy
+// pointing at the given url.URL.
 func NewPassthruFilter(u *url.URL) *PassthruFilter {
 	return (*PassthruFilter)(httputil.NewSingleHostReverseProxy(u))
 }

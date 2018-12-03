@@ -118,6 +118,7 @@ func (s *MinMonitorredService) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// NewMinMonitorredService creates an initialized MinMonitorredService.
 func NewMinMonitorredService(
 	u *url.URL,
 	gracePeriod time.Duration,

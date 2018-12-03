@@ -63,6 +63,8 @@ func (d *DelayTrigger) UnmarshalJSON(input []byte) error {
 	return nil
 }
 
+// NewDelayTrigger initializes a DelayTrigger. It might not be strictly
+// necessary anymore.
 func NewDelayTrigger(
 	delayedTrigger TriggerHandler,
 	delay time.Duration,

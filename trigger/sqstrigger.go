@@ -15,6 +15,8 @@ func (handler *SqsTriggerHandler) Trigger(message string) (err error) {
 	return errors.New("Not yet implemented")
 }
 
+// NewSqsTriggerHandler initializes a SqsTriggerHandler. It may no longer be
+// strictly necessary.
 func NewSqsTriggerHandler(url string) *SqsTriggerHandler {
 	var handler SqsTriggerHandler
 	handler.url = url

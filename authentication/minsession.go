@@ -61,6 +61,8 @@ func (h *MinSessionHandler) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// NewMinSessionHandler creates an initialized session handler. Unfortunately a
+// nil MinSessionHandler does not currently provide the desired behavior.
 func NewMinSessionHandler(name, path, domain string) *MinSessionHandler {
 	return &MinSessionHandler{
 		name,
