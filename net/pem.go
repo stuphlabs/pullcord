@@ -20,6 +20,8 @@ func init() {
 	}
 }
 
+// PemConfig implements a TlsCertificateGetter using a single PEM encoded key
+// and certificate pair.
 type PemConfig struct {
 	Cert []byte
 	Key  []byte

@@ -11,6 +11,9 @@ import (
 	"github.com/stuphlabs/pullcord/config"
 )
 
+// PassthruFilter provides a mechanism by which a net/http/httputil.ReverseProxy
+// can be configured. This reverse proxy allows requests received by Pullcord to
+// be sent to a remote service.
 type PassthruFilter httputil.ReverseProxy
 
 func init() {

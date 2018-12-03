@@ -7,6 +7,8 @@ import (
 	"github.com/stuphlabs/pullcord/config"
 )
 
+// BasicListener augments the functionality of a net.Listen call by wrapping it
+// in an encoding/json.Unmarshaler (and thereby making it be configurable).
 type BasicListener struct {
 	Listener net.Listener
 }

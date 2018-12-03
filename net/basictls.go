@@ -12,10 +12,17 @@ import (
 	"github.com/stuphlabs/pullcord/config"
 )
 
+// TlsCertificateGetter provides a mechanism by which the assignment of the
+// crypto/tls.Config.GetCertificate method can be abstracted independently from
+// other aspects of the creation of the net.Listener returned from a call to
+// crypto/tls.NewListener.
 type TlsCertificateGetter interface {
 	GetCertificate(*tls.ClientHelloInfo) (*tls.Certificate, error)
 }
 
+// BasicTlsListener combines the certificate retrieval process abstracted by a
+// TlsCertificateGetter with a supplied net.Listener to give a simple
+// configurable wrapper around a call to crypto/tls.NewListener.
 type BasicTlsListener struct {
 	Listener       net.Listener
 	CertGetter     TlsCertificateGetter

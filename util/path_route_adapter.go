@@ -10,6 +10,8 @@ import (
 	"github.com/stuphlabs/pullcord/config"
 )
 
+// ExactPathRouter is a net/http.Handler that routes to other handlers based on
+// an exactly matching path, or an optional default handler.
 type ExactPathRouter struct {
 	Routes  map[string]http.Handler
 	Default http.Handler

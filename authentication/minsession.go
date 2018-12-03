@@ -169,6 +169,8 @@ type minSessionCore struct {
 	data   map[string]interface{}
 }
 
+// MinSession represents a particular user session, and is intrinsically linked
+// with the MinSessionHandler that created it.
 type MinSession struct {
 	core    *minSessionCore
 	handler *MinSessionHandler

@@ -20,6 +20,9 @@ func init() {
 	)
 }
 
+// AcmeConfig represents the configuration details to be used with
+// x/crypto/acme/autocert. It can also act as a wrapper around the
+// autocert.Manager and net.Listener it generates.
 type AcmeConfig struct {
 	AcceptTOS bool
 	Domains   []string

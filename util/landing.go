@@ -8,6 +8,8 @@ import (
 	"github.com/stuphlabs/pullcord/config"
 )
 
+// LandingHandler is a net/http.Handler that acts as a default landing page for
+// a (presumably not-yet-production) Pullcord instance.
 type LandingHandler struct {
 }
 

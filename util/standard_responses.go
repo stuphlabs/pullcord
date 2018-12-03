@@ -10,6 +10,12 @@ import (
 	"github.com/stuphlabs/pullcord/config"
 )
 
+// StandardResponse implements a net/http.Handler that gives a canned version of
+// the appropriate response for some HTTP code. For example, rather than going
+// to the trouble of creating another net/http.Handler to deal with a request
+// for a non-existant page, you could instead cast the literal integer 404 as a
+// StandardResponse and the appropriate action will be taken (so long as the
+// canned response this implementation provides will suffice).
 type StandardResponse int
 
 // MinimumStandardResponse is the lower limit of acceptable HTTP response codes

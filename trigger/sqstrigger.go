@@ -5,6 +5,8 @@ import (
 	// "github.com/stuphlabs/pullcord"
 )
 
+// SqsTriggerHandler is a work-in-progress that is intended to eventually send
+// SQS messages as the result of a triggering event.
 type SqsTriggerHandler struct {
 	url string
 }
