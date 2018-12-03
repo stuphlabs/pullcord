@@ -27,6 +27,7 @@ type PemConfig struct {
 	Key  []byte
 }
 
+// UnmarshalJSON implements encoding/json.Unmarshaler.
 func (p *PemConfig) UnmarshalJSON(d []byte) error {
 	var t struct {
 		Cert string
@@ -43,6 +44,7 @@ func (p *PemConfig) UnmarshalJSON(d []byte) error {
 	return nil
 }
 
+// GetCertificate implements TlsCertificateGetter.
 func (p *PemConfig) GetCertificate(
 	*tls.ClientHelloInfo,
 ) (*tls.Certificate, error) {

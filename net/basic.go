@@ -26,6 +26,7 @@ func init() {
 	}
 }
 
+// UnmarshalJSON implements encoding/json.Unmarshaler.
 func (b *BasicListener) UnmarshalJSON(d []byte) error {
 	var t struct {
 		Proto string
@@ -44,14 +45,17 @@ func (b *BasicListener) UnmarshalJSON(d []byte) error {
 	}
 }
 
+// Accept implements net.Listener.
 func (b *BasicListener) Accept() (net.Conn, error) {
 	return b.Listener.Accept()
 }
 
+// Close implements net.Listener.
 func (b *BasicListener) Close() error {
 	return b.Listener.Close()
 }
 
+// Addr implements net.Listener.
 func (b *BasicListener) Addr() net.Addr {
 	return b.Listener.Addr()
 }

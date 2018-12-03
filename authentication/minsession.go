@@ -42,6 +42,7 @@ func init() {
 	)
 }
 
+// UnmarshalJSON implements encoding/json.Unmarshaler.
 func (h *MinSessionHandler) UnmarshalJSON(data []byte) error {
 	log.Debug("Unmarshaling a MinSessionHandler")
 	var t struct {
@@ -78,6 +79,7 @@ func (handler *MinSessionHandler) assureTableInitialized() {
 	}
 }
 
+// GetSession generates a new session to track state with.
 func (handler *MinSessionHandler) GetSession() (Session, error) {
 	log.Info("minsessionhandler is generating a new session")
 	log.Debug(
@@ -178,6 +180,8 @@ type MinSession struct {
 	handler *MinSessionHandler
 }
 
+// GetValue looks up a value stored in the session for a given key. If the key
+// did not match an existing saved value, an error will be returned.
 func (sesh *MinSession) GetValue(key string) (interface{}, error) {
 	log.Debug(fmt.Sprintf("minsession requesting value for: %s", key))
 
@@ -189,12 +193,15 @@ func (sesh *MinSession) GetValue(key string) (interface{}, error) {
 	}
 }
 
+// GetValues retrieves all the key/value pairs associated with the session.
 func (sesh *MinSession) GetValues() map[string]interface{} {
 	log.Debug("minsession requesting all values")
 
 	return sesh.core.data
 }
 
+// SetValue saves a key/value pair into the session, possibly overwriting a
+// previously set value.
 func (sesh *MinSession) SetValue(key string, value interface{}) error {
 	log.Debug(fmt.Sprintf("minsession setting value for: %s", key))
 

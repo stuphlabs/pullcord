@@ -51,6 +51,7 @@ func init() {
 	)
 }
 
+// UnmarshalJSON implements encoding/json.Unmarshaler.
 func (s *MinMonitorredService) UnmarshalJSON(data []byte) error {
 	var t struct {
 		URL         string
@@ -221,6 +222,9 @@ func (monitor *MinMonitor) Reprobe(name string) (up bool, err error) {
 	return svc.Reprobe()
 }
 
+// Reprobe forces the status of the service to be checked immediately without
+// regard to a possible previously cached up status. The result of this probe
+// will automatically be cached by the monitor.
 func (svc *MinMonitorredService) Reprobe() (up bool, err error) {
 	hostname := svc.URL.Hostname()
 	socktypefam := "tcp"
@@ -324,6 +328,17 @@ func (monitor *MinMonitor) Status(name string) (up bool, err error) {
 	return svc.Status()
 }
 
+// Status returns true if the status of the service is currently believed to be
+// up. The service could have its status reported as being up if a brand new
+// probe of the service indicates that the service is indeed up, or if a recent
+// probe indicated that the service was up (specifically if the most recent
+// probe indicated that the service was up and that probe was within a grace
+// period that was specified when the service was registered), or if the status
+// of the service was explicitly set as being up within that same grace period
+// (and no other forced re-probe has occurred since this forced status up
+// assignment). However, if the status of the service is reported as being down,
+// then it necessarily means that a probe has just occurred and the service was
+// unable to be reached.
 func (svc *MinMonitorredService) Status() (up bool, err error) {
 	if (!svc.up) || time.Now().After(
 		svc.lastChecked.Add(svc.GracePeriod),
@@ -373,6 +388,8 @@ func (monitor *MinMonitor) SetStatusUp(name string) (err error) {
 	return svc.SetStatusUp()
 }
 
+// SetStatusUp explicitly sets the status of the service as being up. This up
+// status will be cached just as if it were the result of a normal probe.
 func (svc *MinMonitorredService) SetStatusUp() error {
 	log.Info(
 		fmt.Sprintf(

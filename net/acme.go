@@ -30,6 +30,7 @@ type AcmeConfig struct {
 	lsr       net.Listener
 }
 
+// UnmarshalJSON implements encoding/json.Unmarshaler.
 func (a *AcmeConfig) UnmarshalJSON(d []byte) error {
 	var t struct {
 		AcceptTOS bool
@@ -53,6 +54,9 @@ func (a *AcmeConfig) UnmarshalJSON(d []byte) error {
 	return nil
 }
 
+// GetManager retrieves an x/crypto/acme/autocert.Manager with the previously
+// defined config values. Subsequent calls return the same autocert.Manager
+// object which has been preserved.
 func (a *AcmeConfig) GetManager() (*autocert.Manager, error) {
 	if a.mgr != nil {
 		return a.mgr, nil
@@ -73,6 +77,9 @@ func (a *AcmeConfig) GetManager() (*autocert.Manager, error) {
 	return a.mgr, nil
 }
 
+// Listener retrieves a net.Listener from the autocert.Manager given by
+// AcmeConfig.GetManager. Subsequent calls return the same net.Listener object
+// which has been preserved.
 func (a *AcmeConfig) Listener() (net.Listener, error) {
 	if a.lsr != nil {
 		return a.lsr, nil
@@ -88,6 +95,9 @@ func (a *AcmeConfig) Listener() (net.Listener, error) {
 	return a.lsr, nil
 }
 
+// GetCertificate implements TlsCertificateGetter so that this object can be
+// used as part of another net.Listener in case behavior other than what is
+// provided by AcmeConfig.Listener is desired.
 func (a *AcmeConfig) GetCertificate(
 	hello *tls.ClientHelloInfo,
 ) (*tls.Certificate, error) {
@@ -99,6 +109,7 @@ func (a *AcmeConfig) GetCertificate(
 	return mgr.GetCertificate(hello)
 }
 
+// Accept implements net.Listener.
 func (a *AcmeConfig) Accept() (net.Conn, error) {
 	lsr, e := a.Listener()
 	if e != nil {
@@ -108,6 +119,7 @@ func (a *AcmeConfig) Accept() (net.Conn, error) {
 	return lsr.Accept()
 }
 
+// Close implements net.Listener.
 func (a *AcmeConfig) Close() error {
 	lsr, e := a.Listener()
 	if e != nil {
@@ -117,6 +129,7 @@ func (a *AcmeConfig) Close() error {
 	return lsr.Close()
 }
 
+// Addr implements net.Listener.
 func (a *AcmeConfig) Addr() net.Addr {
 	lsr, e := a.Listener()
 	if e != nil {

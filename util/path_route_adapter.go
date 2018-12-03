@@ -26,6 +26,7 @@ func init() {
 	)
 }
 
+// UnmarshalJSON implements encoding/json.Unmarshaler.
 func (r *ExactPathRouter) UnmarshalJSON(input []byte) error {
 	var t struct {
 		Routes  map[string]*config.Resource

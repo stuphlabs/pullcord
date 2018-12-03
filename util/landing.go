@@ -22,6 +22,7 @@ func init() {
 	)
 }
 
+// UnmarshalJSON implements encoding/json.Unmarshaler.
 func (l *LandingHandler) UnmarshalJSON(data []byte) error {
 	return nil
 }

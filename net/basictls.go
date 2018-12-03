@@ -42,6 +42,7 @@ func init() {
 	}
 }
 
+// UnmarshalJSON implements encoding/json.Unmarshaler.
 func (b *BasicTlsListener) UnmarshalJSON(d []byte) error {
 	var t struct {
 		Listener   config.Resource
@@ -92,16 +93,19 @@ func (b *BasicTlsListener) assureActualListenerCreated() {
 	}
 }
 
+// Accept implements net.Listener.
 func (b *BasicTlsListener) Accept() (net.Conn, error) {
 	b.assureActualListenerCreated()
 	return b.actualListener.Accept()
 }
 
+// Close implements net.Listener.
 func (b *BasicTlsListener) Close() error {
 	b.assureActualListenerCreated()
 	return b.actualListener.Close()
 }
 
+// Addr implements net.Listener.
 func (b *BasicTlsListener) Addr() net.Addr {
 	b.assureActualListenerCreated()
 	return b.actualListener.Addr()

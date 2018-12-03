@@ -40,6 +40,7 @@ func init() {
 	)
 }
 
+// UnmarshalJSON implements encoding/json.Unmarshaler.
 func (h *LoginHandler) UnmarshalJSON(input []byte) error {
 	var t struct {
 		Identifier      string

@@ -25,6 +25,7 @@ func init() {
 	)
 }
 
+// UnmarshalJSON implements encoding/json.Unmarshaler.
 func (c *CompoundTrigger) UnmarshalJSON(input []byte) error {
 	var t struct {
 		Triggers []config.Resource

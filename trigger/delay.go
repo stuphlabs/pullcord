@@ -29,6 +29,7 @@ func init() {
 	)
 }
 
+// UnmarshalJSON implements encoding/json.Unmarshaler.
 func (d *DelayTrigger) UnmarshalJSON(input []byte) error {
 	var t struct {
 		DelayedTrigger config.Resource

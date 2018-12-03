@@ -31,6 +31,7 @@ func init() {
 	)
 }
 
+// UnmarshalJSON implements encoding/json.Unmarshaler.
 func (s *StandardResponse) UnmarshalJSON(data []byte) error {
 	var t int
 	if e := json.Unmarshal(data, &t); e != nil {

@@ -31,6 +31,7 @@ func NewPassthruFilter(u *url.URL) *PassthruFilter {
 	return (*PassthruFilter)(httputil.NewSingleHostReverseProxy(u))
 }
 
+// UnmarshalJSON implements encoding/json.Unmarshaler.
 func (f *PassthruFilter) UnmarshalJSON(input []byte) error {
 	var t struct {
 		Host string

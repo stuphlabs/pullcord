@@ -11,6 +11,8 @@ type SqsTriggerHandler struct {
 	url string
 }
 
+// Trigger implemented TriggerHandler and actually performs the encapsulated
+// behavior.
 func (handler *SqsTriggerHandler) Trigger(message string) (err error) {
 	return errors.New("Not yet implemented")
 }

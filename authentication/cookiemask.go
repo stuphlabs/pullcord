@@ -51,6 +51,7 @@ func init() {
 	)
 }
 
+// UnmarshalJSON implements encoding/json.Unmarshaler.
 func (f *CookiemaskFilter) UnmarshalJSON(input []byte) error {
 	var t struct {
 		Handler config.Resource

@@ -35,6 +35,7 @@ func init() {
 	)
 }
 
+// UnmarshalJSON implements encoding/json.Unmarshaler.
 func (r *RateLimitTrigger) UnmarshalJSON(input []byte) error {
 	var t struct {
 		GuardedTrigger config.Resource

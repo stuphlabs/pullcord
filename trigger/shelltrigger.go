@@ -28,6 +28,7 @@ func init() {
 	)
 }
 
+// UnmarshalJSON implements encoding/json.Unmarshaler.
 func (s *ShellTriggerHandler) UnmarshalJSON(input []byte) error {
 	// It shouldn't habe been necessary to do this, but by giving a
 	// defnition of how to unmarshal a pointer-to ShellTriggerHandler
