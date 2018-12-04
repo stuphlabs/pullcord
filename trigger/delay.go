@@ -29,6 +29,7 @@ func init() {
 	)
 }
 
+// UnmarshalJSON implements encoding/json.Unmarshaler.
 func (d *DelayTrigger) UnmarshalJSON(input []byte) error {
 	var t struct {
 		DelayedTrigger config.Resource
@@ -63,6 +64,8 @@ func (d *DelayTrigger) UnmarshalJSON(input []byte) error {
 	return nil
 }
 
+// NewDelayTrigger initializes a DelayTrigger. It might not be strictly
+// necessary anymore.
 func NewDelayTrigger(
 	delayedTrigger TriggerHandler,
 	delay time.Duration,
@@ -106,10 +109,10 @@ func delaytrigger(
 	}
 }
 
-// TriggerString implements the required string-based triggering function to
-// make DelayTrigger a valid TriggerHandler implementation. This function
-// effectively cancels any previous trigger and replaces it with a call using
-// only this most recent string value.
+// Trigger sets or resets the delay after which it will execute the child
+// trigger. The child trigger will be executed no sooner than the delay time
+// after any particular call, but subsequent calls may extend that time out
+// further (possibly indefinitely).
 func (dt *DelayTrigger) Trigger() error {
 	if dt.c == nil {
 		fc := make(chan interface{})

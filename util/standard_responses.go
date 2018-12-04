@@ -10,8 +10,16 @@ import (
 	"github.com/stuphlabs/pullcord/config"
 )
 
+// StandardResponse implements a net/http.Handler that gives a canned version of
+// the appropriate response for some HTTP code. For example, rather than going
+// to the trouble of creating another net/http.Handler to deal with a request
+// for a non-existant page, you could instead cast the literal integer 404 as a
+// StandardResponse and the appropriate action will be taken (so long as the
+// canned response this implementation provides will suffice).
 type StandardResponse int
 
+// MinimumStandardResponse is the lower limit of acceptable HTTP response codes
+// for which a StandardResponse can be created.
 const MinimumStandardResponse = 100
 
 func init() {
@@ -23,6 +31,7 @@ func init() {
 	)
 }
 
+// UnmarshalJSON implements encoding/json.Unmarshaler.
 func (s *StandardResponse) UnmarshalJSON(data []byte) error {
 	var t int
 	if e := json.Unmarshal(data, &t); e != nil {
@@ -46,9 +55,12 @@ func (s *StandardResponse) UnmarshalJSON(data []byte) error {
 }
 
 const (
-	NotFound            = StandardResponse(404)
+	// NotFound is a canned StandardResponse for an HTTP 404
+	NotFound = StandardResponse(404)
+	// InternalServerError is a canned StandardResponse for an HTTP 500
 	InternalServerError = StandardResponse(500)
-	NotImplemented      = StandardResponse(501)
+	// NotImplemented is a canned StandardResponse for an HTTP 501
+	NotImplemented = StandardResponse(501)
 )
 
 var responseTitle = map[StandardResponse]string{

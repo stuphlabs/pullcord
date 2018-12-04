@@ -14,6 +14,7 @@ import (
 	"github.com/stuphlabs/pullcord/util"
 )
 
+// XsrfTokenLength is the length of XSRF token strings.
 const XsrfTokenLength = 64
 
 // LoginHandler is a login handling system that presents a login page backed by
@@ -39,6 +40,7 @@ func init() {
 	)
 }
 
+// UnmarshalJSON implements encoding/json.Unmarshaler.
 func (h *LoginHandler) UnmarshalJSON(input []byte) error {
 	var t struct {
 		Identifier      string

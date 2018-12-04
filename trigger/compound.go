@@ -25,6 +25,7 @@ func init() {
 	)
 }
 
+// UnmarshalJSON implements encoding/json.Unmarshaler.
 func (c *CompoundTrigger) UnmarshalJSON(input []byte) error {
 	var t struct {
 		Triggers []config.Resource
@@ -57,8 +58,8 @@ func (c *CompoundTrigger) UnmarshalJSON(input []byte) error {
 	}
 }
 
-// TriggerString implements the required string-based triggering function to
-// make CompoundTrigger a valid TriggerHandler implementation.
+// Trigger executes all the child triggers, exiting immediately after a single
+// failure.
 func (ct *CompoundTrigger) Trigger() error {
 	for _, t := range ct.Triggers {
 		if err := t.Trigger(); err != nil {

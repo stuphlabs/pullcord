@@ -3,24 +3,24 @@ package config
 import (
 	"encoding/json"
 	"fmt"
-
-	"github.com/proidiot/gone/errors"
 )
 
 var typeRegistry = make(map[string]func() json.Unmarshaler)
 
+// RegisterResourceType is an infrastructure hack that allows new config
+// Resource types to be specified at run-time. It needs to be run before a
+// Parser is used, presumably in an Init function of the package of a config
+// plugin.
 func RegisterResourceType(
 	typeName string,
 	newFunc func() json.Unmarshaler,
 ) error {
 	_, present := typeRegistry[typeName]
 	if present || typeName == ReferenceResourceTypeName {
-		return errors.New(
-			fmt.Sprintf(
-				"More than one resource type has registerred"+
-					" the same name: %s",
-				typeName,
-			),
+		return fmt.Errorf(
+			"More than one resource type has registerred the same"+
+				" name: %s",
+			typeName,
 		)
 	}
 
@@ -28,6 +28,8 @@ func RegisterResourceType(
 	return nil
 }
 
+// MustRegisterResourceType is a convenience function around
+// RegisterResourceType that panics on error.
 func MustRegisterResourceType(
 	typeName string,
 	newFunc func() json.Unmarshaler,

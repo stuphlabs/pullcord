@@ -1,2 +1,3 @@
-// Basic utilities which come in handy for constructing real pullcord installs.
+// Package util provides basic utilities which come in handy for constructing
+// real pullcord installs.
 package util

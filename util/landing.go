@@ -8,6 +8,8 @@ import (
 	"github.com/stuphlabs/pullcord/config"
 )
 
+// LandingHandler is a net/http.Handler that acts as a default landing page for
+// a (presumably not-yet-production) Pullcord instance.
 type LandingHandler struct {
 }
 
@@ -20,6 +22,7 @@ func init() {
 	)
 }
 
+// UnmarshalJSON implements encoding/json.Unmarshaler.
 func (l *LandingHandler) UnmarshalJSON(data []byte) error {
 	return nil
 }

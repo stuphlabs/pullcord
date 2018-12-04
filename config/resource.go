@@ -9,16 +9,28 @@ import (
 	"github.com/proidiot/gone/log"
 )
 
+// UnexpectedResourceType indicates that a sub-resource did not have an
+// expected type.
 const UnexpectedResourceType = errors.New(
-	"The requested resource does not have the expected type.",
+	"The requested resource does not have the expected type",
 )
+
+// ReferenceResourceTypeName is the reserved name to indicate a placeholder for
+// an already registered resource instead of giving the type for for a new
+// resource being defined.
 const ReferenceResourceTypeName = "ref"
 
+// Resource represents a configurable object which allows an arbitrary JSON blob
+// to be turned into an implementation of whatever type it specifies. This
+// abstraction is the key to allowing instantiation of structs which have
+// interface members instead of just non-abstracted data types.
 type Resource struct {
 	Unmarshaled json.Unmarshaler
 	complete    bool
 }
 
+// UnmarshalJSON implements encoding/json.Unmarshaler, which is the core
+// requirement which allows these resources to be instantiated at all.
 func (rsc *Resource) UnmarshalJSON(input []byte) error {
 	var newRscDef struct {
 		Type string
@@ -61,20 +73,16 @@ func (rsc *Resource) UnmarshalJSON(input []byte) error {
 				rsc.Unmarshaled = d.Unmarshaled
 				rsc.complete = true
 				return nil
-			} else {
-				e := errors.New(
-					fmt.Sprintf(
-						"The resource depenency was"+
-							" already under"+
-							" construction"+
-							" (implying a cyclic"+
-							" dependency): %s",
-						name,
-					),
-				)
-				log.Crit(e.Error())
-				return e
 			}
+
+			e := fmt.Errorf(
+				"The resource depenency was already under"+
+					" construction (implying a cyclic"+
+					" dependency): %s",
+				name,
+			)
+			log.Crit(e.Error())
+			return e
 		}
 
 		return rsc.unmarshalByName(name)
@@ -82,12 +90,10 @@ func (rsc *Resource) UnmarshalJSON(input []byte) error {
 
 	newFunc, present := typeRegistry[newRscDef.Type]
 	if !present {
-		return errors.New(
-			fmt.Sprintf(
-				"The specified resource type is not a"+
-					" registerred resource type: %s",
-				newRscDef.Type,
-			),
+		return fmt.Errorf(
+			"The specified resource type is not a registerred"+
+				" resource type: %s",
+			newRscDef.Type,
 		)
 	}
 
@@ -100,15 +106,15 @@ func (rsc *Resource) UnmarshalJSON(input []byte) error {
 	return nil
 }
 
-func (r *Resource) unmarshalByName(name string) error {
-	if d, present := unregisterredResources[name]; !present {
-		return errors.New(
-			fmt.Sprintf(
-				"No resource specified with name: %s",
-				name,
-			),
+func (rsc *Resource) unmarshalByName(name string) error {
+	d, present := unregisterredResources[name]
+
+	if !present {
+		return fmt.Errorf(
+			"No resource specified with name: %s",
+			name,
 		)
-	} else {
-		return json.Unmarshal(d, r)
 	}
+
+	return json.Unmarshal(d, rsc)
 }

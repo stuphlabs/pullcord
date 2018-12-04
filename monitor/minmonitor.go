@@ -30,7 +30,7 @@ const UnknownServiceError = errors.New(
 	"No service has been registered with the requested name",
 )
 
-// MonitorredService holds the information for a single service definition.
+// MinMonitorredService holds the information for a single service definition.
 type MinMonitorredService struct {
 	URL         *url.URL
 	GracePeriod time.Duration
@@ -51,6 +51,7 @@ func init() {
 	)
 }
 
+// UnmarshalJSON implements encoding/json.Unmarshaler.
 func (s *MinMonitorredService) UnmarshalJSON(data []byte) error {
 	var t struct {
 		URL         string
@@ -118,6 +119,7 @@ func (s *MinMonitorredService) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// NewMinMonitorredService creates an initialized MinMonitorredService.
 func NewMinMonitorredService(
 	u *url.URL,
 	gracePeriod time.Duration,
@@ -220,6 +222,9 @@ func (monitor *MinMonitor) Reprobe(name string) (up bool, err error) {
 	return svc.Reprobe()
 }
 
+// Reprobe forces the status of the service to be checked immediately without
+// regard to a possible previously cached up status. The result of this probe
+// will automatically be cached by the monitor.
 func (svc *MinMonitorredService) Reprobe() (up bool, err error) {
 	hostname := svc.URL.Hostname()
 	socktypefam := "tcp"
@@ -323,6 +328,17 @@ func (monitor *MinMonitor) Status(name string) (up bool, err error) {
 	return svc.Status()
 }
 
+// Status returns true if the status of the service is currently believed to be
+// up. The service could have its status reported as being up if a brand new
+// probe of the service indicates that the service is indeed up, or if a recent
+// probe indicated that the service was up (specifically if the most recent
+// probe indicated that the service was up and that probe was within a grace
+// period that was specified when the service was registered), or if the status
+// of the service was explicitly set as being up within that same grace period
+// (and no other forced re-probe has occurred since this forced status up
+// assignment). However, if the status of the service is reported as being down,
+// then it necessarily means that a probe has just occurred and the service was
+// unable to be reached.
 func (svc *MinMonitorredService) Status() (up bool, err error) {
 	if (!svc.up) || time.Now().After(
 		svc.lastChecked.Add(svc.GracePeriod),
@@ -372,6 +388,8 @@ func (monitor *MinMonitor) SetStatusUp(name string) (err error) {
 	return svc.SetStatusUp()
 }
 
+// SetStatusUp explicitly sets the status of the service as being up. This up
+// status will be cached just as if it were the result of a normal probe.
 func (svc *MinMonitorredService) SetStatusUp() error {
 	log.Info(
 		fmt.Sprintf(
@@ -386,11 +404,11 @@ func (svc *MinMonitorredService) SetStatusUp() error {
 	return nil
 }
 
-// NewMonitorFilter produces a Falcore RequestFilter for a given named service.
-// This filter will forward to the service if it is up, otherwise it will
-// display an error page to the requester. There are also optional triggers
-// which would be run if the service is down (presumably to bring it up), or if
-// the service is already up, or in either case, respectively.
+// NewMinMonitorFilter produces an http.Handler for a given named service. This
+// handler will forward to the service if it is up, otherwise it will display an
+// error page to the requester. There are also optional triggers which would be
+// run if the service is down (presumably to bring it up), or if the service is
+// already up, or in either case, respectively.
 func (monitor *MinMonitor) NewMinMonitorFilter(
 	name string,
 ) (http.Handler, error) {
