@@ -28,6 +28,7 @@ func init() {
 	)
 }
 
+// UnmarshalJSON implements encoding/json.Unmarshaler.
 func (s *ShellTriggerHandler) UnmarshalJSON(input []byte) error {
 	// It shouldn't habe been necessary to do this, but by giving a
 	// defnition of how to unmarshal a pointer-to ShellTriggerHandler
@@ -50,10 +51,8 @@ func (s *ShellTriggerHandler) UnmarshalJSON(input []byte) error {
 	return nil
 }
 
-// TriggerString for the ShellTriggerHandler is an implementation of the
-// TriggerString function required by all TriggerHandler instances.
-//
-// In this case, the message will be passed to the command via stdin.
+// Trigger will execute the given command with the given args using the system
+// shell.
 func (handler *ShellTriggerHandler) Trigger() (err error) {
 	log.Debug("shelltrigger running trigger")
 	cmd := exec.Command(handler.Command, handler.Args...)

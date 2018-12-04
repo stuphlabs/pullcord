@@ -10,9 +10,9 @@ import (
 	"github.com/proidiot/gone/log"
 )
 
-// HttpMultiServer implements the Pullcord server interface with an HTTP handler
+// HTTPMultiServer implements the Pullcord server interface with an HTTP handler
 // and multiple listeners.
-type HttpMultiServer struct {
+type HTTPMultiServer struct {
 	Listeners []net.Listener
 	Handler   http.Handler
 }
@@ -21,7 +21,7 @@ func init() {
 	e := RegisterResourceType(
 		"httpmultiserver",
 		func() json.Unmarshaler {
-			return new(HttpServer)
+			return new(HTTPServer)
 		},
 	)
 
@@ -30,7 +30,8 @@ func init() {
 	}
 }
 
-func (s *HttpMultiServer) UnmarshalJSON(d []byte) error {
+// UnmarshalJSON implements encoding/json.Unmarshaler.
+func (s *HTTPMultiServer) UnmarshalJSON(d []byte) error {
 	var t struct {
 		Listeners []Resource
 		Handler   Resource
@@ -60,7 +61,8 @@ func (s *HttpMultiServer) UnmarshalJSON(d []byte) error {
 	return nil
 }
 
-func (s *HttpMultiServer) Serve() error {
+// Serve implements .../pullcord/Server.
+func (s *HTTPMultiServer) Serve() error {
 	log.Debug(
 		fmt.Sprintf(
 			"Serving with listeners %#v and handler %#v",
@@ -96,7 +98,8 @@ func (s *HttpMultiServer) Serve() error {
 	return err
 }
 
-func (s *HttpMultiServer) Close() error {
+// Close implements .../pullcord/Server.
+func (s *HTTPMultiServer) Close() error {
 	var err error
 	for _, l := range s.Listeners {
 		log.Info(fmt.Sprintf("Closing server at %s...", l.Addr()))

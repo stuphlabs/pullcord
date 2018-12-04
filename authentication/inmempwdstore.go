@@ -90,6 +90,7 @@ type Pbkdf2Hash struct {
 	Iterations uint16
 }
 
+// UnmarshalJSON implements encoding/json.Unmarshaler.
 func (hashStruct *Pbkdf2Hash) UnmarshalJSON(input []byte) error {
 	var t struct {
 		Hash       string
@@ -118,6 +119,7 @@ func (hashStruct *Pbkdf2Hash) UnmarshalJSON(input []byte) error {
 	}
 }
 
+// MarshalJSON implements encoding/json.Marshaler.
 func (hashStruct *Pbkdf2Hash) MarshalJSON() ([]byte, error) {
 	var t struct {
 		Hash       string
@@ -138,8 +140,8 @@ func (hashStruct *Pbkdf2Hash) MarshalJSON() ([]byte, error) {
 // testing. All passwords are hashed using PBKDF2 with SHA-256.
 type InMemPwdStore map[string]*Pbkdf2Hash
 
-// SetPassword is a function that allows a password to be hashed and added to
-// an InMemPwdStore instance.
+// GetPbkdf2Hash generates a new PBKDF2 hash in a secure way from a raw
+// password and an iteration count.
 func GetPbkdf2Hash(
 	password string,
 	iterations uint16,
@@ -169,6 +171,9 @@ func GetPbkdf2Hash(
 	return &hashStruct, nil
 }
 
+// Check verifies that the given password yields the same PBKDF2 hash given the
+// same salt and iteration count. It returns nil if the resulting hash matches,
+// or an error if the resulting hash does not match.
 func (hashStruct *Pbkdf2Hash) Check(
 	password string,
 ) error {
@@ -197,6 +202,7 @@ func (store *InMemPwdStore) CheckPassword(id, pass string) error {
 	}
 }
 
+// UnmarshalJSON implements encoding/json.Unmarshaler.
 func (store *InMemPwdStore) UnmarshalJSON(input []byte) error {
 	return json.Unmarshal(input, (*map[string]*Pbkdf2Hash)(store))
 }

@@ -12,11 +12,15 @@ import (
 	"github.com/stuphlabs/pullcord/config"
 )
 
+// ConfigTestData contains the data for a specific test case for config
+// behavior, plus the corresponding explanation string.
 type ConfigTestData struct {
 	Data        string
 	Explanation string
 }
 
+// ConfigTest represents an entire suite of tests for config behavior of a
+// particular resource type.
 type ConfigTest struct {
 	ResourceType     string
 	IsValid          func(json.Unmarshaler) error
@@ -26,6 +30,7 @@ type ConfigTest struct {
 	ListenerTest     bool
 }
 
+// Run executes the suite of config behavior tests.
 func (c *ConfigTest) Run(t *testing.T) {
 	isValidWasRun := false
 
@@ -34,9 +39,8 @@ func (c *ConfigTest) Run(t *testing.T) {
 			isValidWasRun = true
 			if c.IsValid != nil {
 				return c.IsValid(i)
-			} else {
-				return nil
 			}
+			return nil
 		},
 	)
 	assert.NoError(
@@ -245,41 +249,40 @@ func constructConfigReader(
 				data,
 			),
 		)
-	} else {
-		return strings.NewReader(
-			fmt.Sprintf(
-				`{
-					"resources": {
-						"handler": {
+	}
+	return strings.NewReader(
+		fmt.Sprintf(
+			`{
+				"resources": {
+					"handler": {
+						"type": "%s",
+						"data": {
 							"type": "%s",
-							"data": {
-								"type": "%s",
-								"data": %s
-							}
-						},
-						"listener": {
-							"type": "testlistener",
-							"data": null
+							"data": %s
 						}
 					},
-					"server": {
-						"type": "httpserver",
-						"data": {
-							"handler": {
-								"type": "ref",
-								"data": "handler"
-							},
-							"listener": {
-								"type": "ref",
-								"data": "listener"
-							}
+					"listener": {
+						"type": "testlistener",
+						"data": null
+					}
+				},
+				"server": {
+					"type": "httpserver",
+					"data": {
+						"handler": {
+							"type": "ref",
+							"data": "handler"
+						},
+						"listener": {
+							"type": "ref",
+							"data": "listener"
 						}
 					}
-				}`,
-				validatorName,
-				resourceType,
-				data,
-			),
-		)
-	}
+				}
+			}`,
+			validatorName,
+			resourceType,
+			data,
+		),
+	)
 }

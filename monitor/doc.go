@@ -1,2 +1,2 @@
-// Remote service monitor code for Pullcord
+// Package monitor contains mechanisms for monitorring remote services
 package monitor

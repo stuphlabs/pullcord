@@ -5,16 +5,17 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/proidiot/gone/errors"
 	"github.com/proidiot/gone/log"
 
 	"github.com/stuphlabs/pullcord"
 )
 
+// Parser extracts configuration info from an io.Reader.
 type Parser struct {
 	Reader io.Reader
 }
 
+// Server extracts the .../pullcord.Server component from the config io.Reader.
 func (p Parser) Server() (pullcord.Server, error) {
 	registrationMutex.Lock()
 	defer registrationMutex.Unlock()
@@ -52,17 +53,16 @@ func (p Parser) Server() (pullcord.Server, error) {
 			registry[name] = r
 			if e := r.unmarshalByName(name); e != nil {
 				return nil, e
-			} else {
-				r.complete = true
-				log.Debug(
-					fmt.Sprintf(
-						"Saved resource to"+
-							" registry: %s: %#v",
-						name,
-						r.Unmarshaled,
-					),
-				)
 			}
+
+			r.complete = true
+			log.Debug(
+				fmt.Sprintf(
+					"Saved resource to registry: %s: %#v",
+					name,
+					r.Unmarshaled,
+				),
+			)
 		} else {
 			log.Debug(
 				fmt.Sprintf(
@@ -83,13 +83,10 @@ func (p Parser) Server() (pullcord.Server, error) {
 		return server, nil
 	}
 
-	//err := errors.New("The given server has the wrong type")
-	err := errors.New(
-		fmt.Sprintf(
-			"not a server: %s - %#v",
-			config.Server,
-			rserver.Unmarshaled,
-		),
+	err := fmt.Errorf(
+		"not a server: %s - %#v",
+		config.Server,
+		rserver.Unmarshaled,
 	)
 	log.Crit(err.Error())
 

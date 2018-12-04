@@ -11,6 +11,9 @@ import (
 	"github.com/stuphlabs/pullcord/config"
 )
 
+// PassthruFilter provides a mechanism by which a net/http/httputil.ReverseProxy
+// can be configured. This reverse proxy allows requests received by Pullcord to
+// be sent to a remote service.
 type PassthruFilter httputil.ReverseProxy
 
 func init() {
@@ -22,10 +25,13 @@ func init() {
 	)
 }
 
+// NewPassthruFilter creates a PassthruFilter using a single host reverse proxy
+// pointing at the given url.URL.
 func NewPassthruFilter(u *url.URL) *PassthruFilter {
 	return (*PassthruFilter)(httputil.NewSingleHostReverseProxy(u))
 }
 
+// UnmarshalJSON implements encoding/json.Unmarshaler.
 func (f *PassthruFilter) UnmarshalJSON(input []byte) error {
 	var t struct {
 		Host string
