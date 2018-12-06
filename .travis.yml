@@ -1,5 +1,5 @@
 language: go
-
+sudo: false
 before_install:
         - .travis/gofmt.sh
         - .travis/goimports.sh
