@@ -176,7 +176,9 @@ func (filter *CookiemaskFilter) ServeHTTP(
 	// TODO remove
 	log.Debug(fmt.Sprintf("sesh is: %v", sesh))
 
-	req = req.WithContext(context.WithValue(req.Context(), "session", sesh))
+	req = req.WithContext(
+		context.WithValue(req.Context(), ctxKeySession, sesh),
+	)
 
 	fwdCkes, setCkes, err := sesh.CookieMask(
 		req.Cookies(),

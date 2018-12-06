@@ -90,7 +90,7 @@ func (handler *LoginHandler) ServeHTTP(
 	request *http.Request,
 ) {
 	errString := ""
-	rawsesh := request.Context().Value("session")
+	rawsesh := request.Context().Value(ctxKeySession)
 	if rawsesh == nil {
 		log.Crit(
 			"login handler was unable to retrieve session from" +

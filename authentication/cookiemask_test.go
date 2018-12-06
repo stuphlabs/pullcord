@@ -42,7 +42,7 @@ var cookieMaskTestPage = (http.HandlerFunc)(func(
 		fmt.Fprintf(w, "<li class=\"cke\">%s</li>", cke.String())
 	}
 	io.WriteString(w, "</ul><h1>context</h1><ul>")
-	sesh := req.Context().Value("session").(*MinSession)
+	sesh := req.Context().Value(ctxKeySession).(*MinSession)
 	for key, val := range sesh.GetValues() {
 		fmt.Fprintf(
 			w,
