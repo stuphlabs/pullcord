@@ -188,9 +188,9 @@ func (sesh *MinSession) GetValue(key string) (interface{}, error) {
 	value, present := sesh.core.data[key]
 	if !present {
 		return nil, NoSuchSessionValueError
-	} else {
-		return value, nil
 	}
+
+	return value, nil
 }
 
 // GetValues retrieves all the key/value pairs associated with the session.

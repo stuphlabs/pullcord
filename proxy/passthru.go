@@ -41,16 +41,16 @@ func (f *PassthruFilter) UnmarshalJSON(input []byte) error {
 	dec := json.NewDecoder(bytes.NewReader(input))
 	if e := dec.Decode(&t); e != nil {
 		return e
-	} else {
-		u, e := url.Parse(fmt.Sprintf("http://%s:%d", t.Host, t.Port))
-		if e != nil {
-			return e
-		}
-
-		*f = PassthruFilter(*httputil.NewSingleHostReverseProxy(u))
-
-		return nil
 	}
+
+	u, e := url.Parse(fmt.Sprintf("http://%s:%d", t.Host, t.Port))
+	if e != nil {
+		return e
+	}
+
+	*f = PassthruFilter(*httputil.NewSingleHostReverseProxy(u))
+
+	return nil
 }
 
 func (f *PassthruFilter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
