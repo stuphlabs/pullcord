@@ -187,19 +187,20 @@ func (hashStruct *Pbkdf2Hash) Check(
 
 	if 1 == subtle.ConstantTimeCompare(hashStruct.Hash[:], genHash) {
 		return nil
-	} else {
-		return BadPasswordError
 	}
+
+	return BadPasswordError
 }
 
 // CheckPassword implements the required password checking function to make
 // InMemPwdStore a PasswordChecker implementation.
 func (store *InMemPwdStore) CheckPassword(id, pass string) error {
-	if hs, present := (map[string]*Pbkdf2Hash(*store))[id]; !present {
+	hs, present := (map[string]*Pbkdf2Hash(*store))[id]
+	if !present {
 		return NoSuchIdentifierError
-	} else {
-		return hs.Check(pass)
 	}
+
+	return hs.Check(pass)
 }
 
 // UnmarshalJSON implements encoding/json.Unmarshaler.

@@ -17,9 +17,9 @@ func (th *counterTriggerHandler) Trigger() error {
 	if th.count >= 0 {
 		th.count += 1
 		return nil
-	} else {
-		return errors.New("this trigger always errors")
 	}
+
+	return errors.New("this trigger always errors")
 }
 
 func TestCompoundTriggerNoErrors(t *testing.T) {

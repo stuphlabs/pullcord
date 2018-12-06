@@ -61,33 +61,33 @@ func (f *CookiemaskFilter) UnmarshalJSON(input []byte) error {
 	dec := json.NewDecoder(bytes.NewReader(input))
 	if e := dec.Decode(&t); e != nil {
 		return e
-	} else {
-		h := t.Handler.Unmarshaled
-		switch h := h.(type) {
-		case SessionHandler:
-			f.Handler = h
-		default:
-			log.Err(
-				"Resource described by \"Handler\" is not a" +
-					" SessionHandler",
-			)
-			return config.UnexpectedResourceType
-		}
-
-		m := t.Masked.Unmarshaled
-		switch m := m.(type) {
-		case http.Handler:
-			f.Masked = m
-		default:
-			log.Err(
-				"Resource described by \"Masked\" is not a" +
-					" net/http.Handler",
-			)
-			return config.UnexpectedResourceType
-		}
-
-		return nil
 	}
+
+	h := t.Handler.Unmarshaled
+	switch h := h.(type) {
+	case SessionHandler:
+		f.Handler = h
+	default:
+		log.Err(
+			"Resource described by \"Handler\" is not a" +
+				" SessionHandler",
+		)
+		return config.UnexpectedResourceType
+	}
+
+	m := t.Masked.Unmarshaled
+	switch m := m.(type) {
+	case http.Handler:
+		f.Masked = m
+	default:
+		log.Err(
+			"Resource described by \"Masked\" is not a" +
+				" net/http.Handler",
+		)
+		return config.UnexpectedResourceType
+	}
+
+	return nil
 }
 
 type cookieAppender struct {
@@ -206,12 +206,11 @@ func (filter *CookiemaskFilter) ServeHTTP(
 
 		util.InternalServerError.ServeHTTP(ca, req)
 		return
-	} else {
-		log.Info(
-			"request has run through cookiemask, now" +
-				" forwarding to next filter",
-		)
-		filter.Masked.ServeHTTP(ca, req)
-		return
 	}
+
+	log.Info(
+		"request has run through cookiemask, now forwarding to next" +
+			" filter",
+	)
+	filter.Masked.ServeHTTP(ca, req)
 }

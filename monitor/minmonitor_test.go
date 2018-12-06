@@ -603,10 +603,10 @@ type counterTriggerHandler struct {
 func (th *counterTriggerHandler) Trigger() error {
 	if th.count < 0 {
 		return errors.New("this trigger always errors")
-	} else {
-		th.count += 1
-		return nil
 	}
+
+	th.count += 1
+	return nil
 }
 
 func TestMonitorFilterUpTriggers(t *testing.T) {

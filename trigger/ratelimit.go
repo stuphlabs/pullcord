@@ -62,11 +62,12 @@ func (r *RateLimitTrigger) UnmarshalJSON(input []byte) error {
 		return config.UnexpectedResourceType
 	}
 
-	if p, e := time.ParseDuration(t.Period); e != nil {
+	p, e := time.ParseDuration(t.Period)
+	if e != nil {
 		return e
-	} else {
-		r.Period = p
 	}
+
+	r.Period = p
 
 	r.MaxAllowed = t.MaxAllowed
 

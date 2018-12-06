@@ -34,28 +34,28 @@ func (c *CompoundTrigger) UnmarshalJSON(input []byte) error {
 	dec := json.NewDecoder(bytes.NewReader(input))
 	if e := dec.Decode(&t); e != nil {
 		return e
-	} else {
-		c.Triggers = make([]TriggerHandler, len(t.Triggers))
-
-		for _, i := range t.Triggers {
-			th := i.Unmarshaled
-			switch th := th.(type) {
-			case TriggerHandler:
-				c.Triggers = append(c.Triggers, th)
-			default:
-				log.Err(
-					fmt.Sprintf(
-						"Registry value is not a"+
-							" RequestFilter: %s",
-						th,
-					),
-				)
-				return config.UnexpectedResourceType
-			}
-		}
-
-		return nil
 	}
+
+	c.Triggers = make([]TriggerHandler, len(t.Triggers))
+
+	for _, i := range t.Triggers {
+		th := i.Unmarshaled
+		switch th := th.(type) {
+		case TriggerHandler:
+			c.Triggers = append(c.Triggers, th)
+		default:
+			log.Err(
+				fmt.Sprintf(
+					"Registry value is not a"+
+						" RequestFilter: %s",
+					th,
+				),
+			)
+			return config.UnexpectedResourceType
+		}
+	}
+
+	return nil
 }
 
 // Trigger executes all the child triggers, exiting immediately after a single
