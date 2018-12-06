@@ -52,39 +52,37 @@ func (h *LoginHandler) UnmarshalJSON(input []byte) error {
 	if e := dec.Decode(&t); e != nil {
 		log.Err("Unable to decode LoginHandler")
 		return e
-	} else {
-		p := t.PasswordChecker.Unmarshaled
-		switch p := p.(type) {
-		case PasswordChecker:
-			h.PasswordChecker = p
-		default:
-			log.Err(
-				fmt.Sprintf(
-					"Registry value is not a"+
-						" PasswordChecker: %#v",
-					t.PasswordChecker,
-				),
-			)
-			return config.UnexpectedResourceType
-		}
-
-		if d, ok := t.Downstream.Unmarshaled.(http.Handler); ok {
-			h.Downstream = d
-		} else {
-			log.Err(
-				fmt.Sprintf(
-					"Registry value is not a"+
-						" RequestFilter: %#v",
-					t.Downstream,
-				),
-			)
-			return config.UnexpectedResourceType
-		}
-
-		h.Identifier = t.Identifier
-
-		return nil
 	}
+
+	p := t.PasswordChecker.Unmarshaled
+	switch p := p.(type) {
+	case PasswordChecker:
+		h.PasswordChecker = p
+	default:
+		log.Err(
+			fmt.Sprintf(
+				"Registry value is not a PasswordChecker: %#v",
+				t.PasswordChecker,
+			),
+		)
+		return config.UnexpectedResourceType
+	}
+
+	if d, ok := t.Downstream.Unmarshaled.(http.Handler); ok {
+		h.Downstream = d
+	} else {
+		log.Err(
+			fmt.Sprintf(
+				"Registry value is not a RequestFilter: %#v",
+				t.Downstream,
+			),
+		)
+		return config.UnexpectedResourceType
+	}
+
+	h.Identifier = t.Identifier
+
+	return nil
 }
 
 func (handler *LoginHandler) ServeHTTP(

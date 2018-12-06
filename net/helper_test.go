@@ -46,9 +46,9 @@ func (t *TestCertificateGetter) GetCertificate(
 			"No certificate was added to this" +
 				" TestCertificateGetter",
 		)
-	} else {
-		return t.Cert, nil
 	}
+
+	return t.Cert, nil
 }
 
 type EavesdroppedConn struct {

@@ -39,10 +39,10 @@ func (b *BasicListener) UnmarshalJSON(d []byte) error {
 
 	if l, e := net.Listen(t.Proto, t.Laddr); e != nil {
 		return e
-	} else {
-		b.Listener = l
-		return nil
 	}
+
+	b.Listener = l
+	return nil
 }
 
 // Accept implements net.Listener.

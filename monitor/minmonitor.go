@@ -66,11 +66,12 @@ func (s *MinMonitorredService) UnmarshalJSON(data []byte) error {
 		return e
 	}
 
-	if g, e := time.ParseDuration(t.GracePeriod); e != nil {
+	g, e := time.ParseDuration(t.GracePeriod)
+	if e != nil {
 		return e
-	} else {
-		s.GracePeriod = g
 	}
+
+	s.GracePeriod = g
 
 	if t.OnDown != nil {
 		d := t.OnDown.Unmarshaled
@@ -259,19 +260,18 @@ func (svc *MinMonitorredService) Reprobe() (up bool, err error) {
 				)
 
 				return false, nil
-			} else {
-				log.Warning(
-					fmt.Sprintf(
-						"minmonitor encountered an"+
-							" error while probing"+
-							" \"%s\": %v",
-						svc.URL.String(),
-						err,
-					),
-				)
-
-				return false, err
 			}
+
+			log.Warning(
+				fmt.Sprintf(
+					"minmonitor encountered an error while"+
+						" probing \"%s\": %v",
+					svc.URL.String(),
+					err,
+				),
+			)
+
+			return false, err
 		default:
 			log.Warning(
 				fmt.Sprintf(
@@ -354,19 +354,18 @@ func (svc *MinMonitorredService) Status() (up bool, err error) {
 		)
 
 		return svc.Reprobe()
-	} else {
-		log.Info(
-			fmt.Sprintf(
-				"minmonitor is skipping the reprobe as the"+
-					" current time is still within the"+
-					" grace period of the last successfull"+
-					" probe of: \"%s\"",
-				svc.URL.String(),
-			),
-		)
-
-		return true, nil
 	}
+
+	log.Info(
+		fmt.Sprintf(
+			"minmonitor is skipping the reprobe as the current"+
+				" time is still within the grace period of the"+
+				" last successfull probe of: \"%s\"",
+			svc.URL.String(),
+		),
+	)
+
+	return true, nil
 }
 
 // SetStatusUp explicitly sets the status of a named service as being up. This

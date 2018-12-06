@@ -55,12 +55,12 @@ func (d *DelayTrigger) UnmarshalJSON(input []byte) error {
 		return config.UnexpectedResourceType
 	}
 
-	if dp, e := time.ParseDuration(t.Delay); e != nil {
+	dp, e := time.ParseDuration(t.Delay)
+	if e != nil {
 		return e
-	} else {
-		d.Delay = dp
 	}
 
+	d.Delay = dp
 	return nil
 }
 
@@ -91,9 +91,9 @@ func delaytrigger(
 			}
 			if !ok {
 				return
-			} else {
-				tmr.Reset(dla)
 			}
+
+			tmr.Reset(dla)
 		case <-tmr.C:
 			if err := tr.Trigger(); err != nil {
 				log.Err(

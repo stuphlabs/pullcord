@@ -73,10 +73,10 @@ func (handler *ShellTriggerHandler) Trigger() (err error) {
 			),
 		)
 		return err
-	} else {
-		log.Info("shelltrigger trigger sent")
-		return nil
 	}
+
+	log.Info("shelltrigger trigger sent")
+	return nil
 }
 
 // NewShellTriggerHandler constructs a new ShellTriggerHandler given the
