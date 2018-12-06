@@ -209,7 +209,7 @@ func (filter *CookiemaskFilter) ServeHTTP(
 	}
 
 	log.Info(
-		"request has run through cookiemask, now forwarding to next"+
+		"request has run through cookiemask, now forwarding to next" +
 			" filter",
 	)
 	filter.Masked.ServeHTTP(ca, req)
