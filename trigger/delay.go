@@ -113,14 +113,14 @@ func delaytrigger(
 // trigger. The child trigger will be executed no sooner than the delay time
 // after any particular call, but subsequent calls may extend that time out
 // further (possibly indefinitely).
-func (dt *DelayTrigger) Trigger() error {
-	if dt.c == nil {
+func (d *DelayTrigger) Trigger() error {
+	if d.c == nil {
 		fc := make(chan interface{})
-		dt.c = fc
+		d.c = fc
 
-		go delaytrigger(dt.DelayedTrigger, dt.Delay, fc)
+		go delaytrigger(d.DelayedTrigger, d.Delay, fc)
 	} else {
-		dt.c <- nil
+		d.c <- nil
 	}
 
 	return nil

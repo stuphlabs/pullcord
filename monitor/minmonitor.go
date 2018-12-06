@@ -207,7 +207,7 @@ func (monitor *MinMonitor) Add(
 // without regard to a possible previously cached up status. The result of this
 // probe will automatically be cached by the monitor.
 func (monitor *MinMonitor) Reprobe(name string) (up bool, err error) {
-	svc, entryExists := monitor.table[name]
+	s, entryExists := monitor.table[name]
 	if !entryExists {
 		log.Err(
 			fmt.Sprintf(
@@ -220,29 +220,29 @@ func (monitor *MinMonitor) Reprobe(name string) (up bool, err error) {
 		return false, UnknownServiceError
 	}
 
-	return svc.Reprobe()
+	return s.Reprobe()
 }
 
 // Reprobe forces the status of the service to be checked immediately without
 // regard to a possible previously cached up status. The result of this probe
 // will automatically be cached by the monitor.
-func (svc *MinMonitorredService) Reprobe() (up bool, err error) {
-	hostname := svc.URL.Hostname()
+func (s *MinMonitorredService) Reprobe() (up bool, err error) {
+	hostname := s.URL.Hostname()
 	socktypefam := "tcp"
 	if strings.Index(hostname, ":") > 0 {
 		hostname = fmt.Sprintf("//[%s]", hostname)
 		socktypefam = "tcp6"
 	}
-	port := svc.URL.Port()
+	port := s.URL.Port()
 	if port == "" {
-		port = svc.URL.Scheme
+		port = s.URL.Scheme
 	}
 
 	addr := fmt.Sprintf("%s:%s", hostname, port)
 	conn, err := net.Dial(socktypefam, addr)
-	svc.lastChecked = time.Now()
+	s.lastChecked = time.Now()
 	if err != nil {
-		svc.up = false
+		s.up = false
 		// TODO check what the error was
 
 		switch castErr := err.(type) {
@@ -255,7 +255,7 @@ func (svc *MinMonitorredService) Reprobe() (up bool, err error) {
 							" (interpereted as a"+
 							" down status) from"+
 							" \"%s\"",
-						svc.URL.String(),
+						s.URL.String(),
 					),
 				)
 
@@ -266,7 +266,7 @@ func (svc *MinMonitorredService) Reprobe() (up bool, err error) {
 				fmt.Sprintf(
 					"minmonitor encountered an error while"+
 						" probing \"%s\": %v",
-					svc.URL.String(),
+					s.URL.String(),
 					err,
 				),
 			)
@@ -278,7 +278,7 @@ func (svc *MinMonitorredService) Reprobe() (up bool, err error) {
 					"minmonitor encountered an unknown"+
 						" error while probing"+
 						" \"%s\": %v",
-					svc.URL.String(),
+					s.URL.String(),
 					err,
 				),
 			)
@@ -287,12 +287,12 @@ func (svc *MinMonitorredService) Reprobe() (up bool, err error) {
 		}
 	} else {
 		defer conn.Close()
-		svc.up = true
+		s.up = true
 
 		log.Info(
 			fmt.Sprintf(
 				"minmonitor successfully probed: \"%s\"",
-				svc.URL.String(),
+				s.URL.String(),
 			),
 		)
 
@@ -312,7 +312,7 @@ func (svc *MinMonitorredService) Reprobe() (up bool, err error) {
 // down, then it necessarily means that a probe has just occurred and the
 // service was unable to be reached.
 func (monitor *MinMonitor) Status(name string) (up bool, err error) {
-	svc, entryExists := monitor.table[name]
+	s, entryExists := monitor.table[name]
 	if !entryExists {
 		log.Err(
 			fmt.Sprintf(
@@ -325,7 +325,7 @@ func (monitor *MinMonitor) Status(name string) (up bool, err error) {
 		return false, UnknownServiceError
 	}
 
-	return svc.Status()
+	return s.Status()
 }
 
 // Status returns true if the status of the service is currently believed to be
@@ -339,9 +339,9 @@ func (monitor *MinMonitor) Status(name string) (up bool, err error) {
 // assignment). However, if the status of the service is reported as being down,
 // then it necessarily means that a probe has just occurred and the service was
 // unable to be reached.
-func (svc *MinMonitorredService) Status() (up bool, err error) {
-	if (!svc.up) || time.Now().After(
-		svc.lastChecked.Add(svc.GracePeriod),
+func (s *MinMonitorredService) Status() (up bool, err error) {
+	if (!s.up) || time.Now().After(
+		s.lastChecked.Add(s.GracePeriod),
 	) {
 		log.Info(
 			fmt.Sprintf(
@@ -349,11 +349,11 @@ func (svc *MinMonitorredService) Status() (up bool, err error) {
 					" period has lapsed or the previous"+
 					" probe indicated a down status for:"+
 					" \"%s\"",
-				svc.URL.String(),
+				s.URL.String(),
 			),
 		)
 
-		return svc.Reprobe()
+		return s.Reprobe()
 	}
 
 	log.Info(
@@ -361,7 +361,7 @@ func (svc *MinMonitorredService) Status() (up bool, err error) {
 			"minmonitor is skipping the reprobe as the current"+
 				" time is still within the grace period of the"+
 				" last successfull probe of: \"%s\"",
-			svc.URL.String(),
+			s.URL.String(),
 		),
 	)
 
@@ -371,7 +371,7 @@ func (svc *MinMonitorredService) Status() (up bool, err error) {
 // SetStatusUp explicitly sets the status of a named service as being up. This
 // up status will be cached just as if it were the result of a normal probe.
 func (monitor *MinMonitor) SetStatusUp(name string) (err error) {
-	svc, entryExists := monitor.table[name]
+	s, entryExists := monitor.table[name]
 	if !entryExists {
 		log.Err(
 			fmt.Sprintf(
@@ -384,21 +384,21 @@ func (monitor *MinMonitor) SetStatusUp(name string) (err error) {
 		return UnknownServiceError
 	}
 
-	return svc.SetStatusUp()
+	return s.SetStatusUp()
 }
 
 // SetStatusUp explicitly sets the status of the service as being up. This up
 // status will be cached just as if it were the result of a normal probe.
-func (svc *MinMonitorredService) SetStatusUp() error {
+func (s *MinMonitorredService) SetStatusUp() error {
 	log.Info(
 		fmt.Sprintf(
 			"minmonitor has been explicitly informed of the up"+
 				" status of: \"%s\"",
-			svc.URL.String(),
+			s.URL.String(),
 		),
 	)
-	svc.lastChecked = time.Now()
-	svc.up = true
+	s.lastChecked = time.Now()
+	s.up = true
 
 	return nil
 }
@@ -411,7 +411,7 @@ func (svc *MinMonitorredService) SetStatusUp() error {
 func (monitor *MinMonitor) NewMinMonitorFilter(
 	name string,
 ) (http.Handler, error) {
-	svc, serviceExists := monitor.table[name]
+	s, serviceExists := monitor.table[name]
 	if !serviceExists {
 		log.Err(
 			fmt.Sprintf(
@@ -424,23 +424,23 @@ func (monitor *MinMonitor) NewMinMonitorFilter(
 		return nil, UnknownServiceError
 	}
 
-	return svc, nil
+	return s, nil
 }
 
-func (svc *MinMonitorredService) ServeHTTP(
+func (s *MinMonitorredService) ServeHTTP(
 	w http.ResponseWriter,
 	req *http.Request,
 ) {
 	log.Debug("running minmonitor filter")
 
-	up, err := svc.Status()
+	up, err := s.Status()
 	if err != nil {
 		log.Warning(
 			fmt.Sprintf(
 				"minmonitor filter received an error"+
 					" while requesting the status for"+
 					" \"%s\": %v",
-				svc.URL.String(),
+				s.URL.String(),
 				err,
 			),
 		)
@@ -458,8 +458,8 @@ func (svc *MinMonitorredService) ServeHTTP(
 		return
 	}
 
-	if svc.Always != nil {
-		err = svc.Always.Trigger()
+	if s.Always != nil {
+		err = s.Always.Trigger()
 		if err != nil {
 			log.Warning(
 				fmt.Sprintf(
@@ -467,7 +467,7 @@ func (svc *MinMonitorredService) ServeHTTP(
 						" an error while running the"+
 						" always trigger on \"%s\":"+
 						" %v",
-					svc.URL.String(),
+					s.URL.String(),
 					err,
 				),
 			)
@@ -490,8 +490,8 @@ func (svc *MinMonitorredService) ServeHTTP(
 	}
 
 	if up {
-		if svc.OnUp != nil {
-			err = svc.OnUp.Trigger()
+		if s.OnUp != nil {
+			err = s.OnUp.Trigger()
 			if err != nil {
 				log.Warning(
 					fmt.Sprintf(
@@ -500,7 +500,7 @@ func (svc *MinMonitorredService) ServeHTTP(
 							" while running the"+
 							" onDown trigger on"+
 							" \"%s\": %v",
-						svc.URL.String(),
+						s.URL.String(),
 						err,
 					),
 				)
@@ -524,19 +524,19 @@ func (svc *MinMonitorredService) ServeHTTP(
 		}
 
 		log.Debug("minmonitor filter passthru")
-		svc.passthru.ServeHTTP(w, req)
+		s.passthru.ServeHTTP(w, req)
 		return
 	}
 
-	if svc.OnDown != nil {
-		err = svc.OnDown.Trigger()
+	if s.OnDown != nil {
+		err = s.OnDown.Trigger()
 		if err != nil {
 			log.Warning(
 				fmt.Sprintf(
 					"minmonitor filter received"+
 						" an error while running the"+
 						" onDown trigger on \"%s\": %v",
-					svc.URL.String(),
+					s.URL.String(),
 					err,
 				),
 			)
@@ -563,7 +563,7 @@ func (svc *MinMonitorredService) ServeHTTP(
 			"minmonitor filter has reached a down"+
 				" service (\"%s\"), but any triggers have"+
 				" fired successfully",
-			svc.URL.String(),
+			s.URL.String(),
 		),
 	)
 	w.WriteHeader(503)

@@ -85,7 +85,7 @@ func (h *LoginHandler) UnmarshalJSON(input []byte) error {
 	return nil
 }
 
-func (handler *LoginHandler) ServeHTTP(
+func (h *LoginHandler) ServeHTTP(
 	w http.ResponseWriter,
 	request *http.Request,
 ) {
@@ -101,15 +101,15 @@ func (handler *LoginHandler) ServeHTTP(
 	}
 	sesh := rawsesh.(Session)
 
-	authSeshKey := "authenticated-" + handler.Identifier
-	xsrfKey := "xsrf-" + handler.Identifier
-	usernameKey := "username-" + handler.Identifier
-	passwordKey := "password-" + handler.Identifier
+	authSeshKey := "authenticated-" + h.Identifier
+	xsrfKey := "xsrf-" + h.Identifier
+	usernameKey := "username-" + h.Identifier
+	passwordKey := "password-" + h.Identifier
 
 	authd, err := sesh.GetValue(authSeshKey)
 	if err == nil && authd == true {
 		log.Debug("login handler passing request along")
-		handler.Downstream.ServeHTTP(w, request)
+		h.Downstream.ServeHTTP(w, request)
 		return
 	} else if err != NoSuchSessionValueError {
 		log.Err(
@@ -168,7 +168,7 @@ func (handler *LoginHandler) ServeHTTP(
 				" password",
 		)
 		errString = "Bad request"
-	} else if err = handler.PasswordChecker.CheckPassword(
+	} else if err = h.PasswordChecker.CheckPassword(
 		uVals[0],
 		pVals[0],
 	); err == NoSuchIdentifierError {
@@ -202,7 +202,7 @@ func (handler *LoginHandler) ServeHTTP(
 				uVals[0],
 			),
 		)
-		handler.Downstream.ServeHTTP(w, request)
+		h.Downstream.ServeHTTP(w, request)
 		return
 	}
 
