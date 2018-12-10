@@ -29,7 +29,7 @@ func (l *LandingHandler) UnmarshalJSON(data []byte) error {
 
 // NewLandingHandler generates an http.Handler that produces a simple landing
 // page.
-func (handler *LandingHandler) ServeHTTP(
+func (l *LandingHandler) ServeHTTP(
 	w http.ResponseWriter,
 	req *http.Request,
 ) {

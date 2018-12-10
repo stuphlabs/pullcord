@@ -53,9 +53,9 @@ func (s *ShellTriggerHandler) UnmarshalJSON(input []byte) error {
 
 // Trigger will execute the given command with the given args using the system
 // shell.
-func (handler *ShellTriggerHandler) Trigger() (err error) {
+func (s *ShellTriggerHandler) Trigger() (err error) {
 	log.Debug("shelltrigger running trigger")
-	cmd := exec.Command(handler.Command, handler.Args...)
+	cmd := exec.Command(s.Command, s.Args...)
 	var stdout bytes.Buffer
 	cmd.Stdout = &stdout
 	err = cmd.Run()

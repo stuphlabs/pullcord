@@ -41,7 +41,7 @@ func main() {
 			maxUint16,
 		))
 	}
-	var iterations uint16 = uint16(rawIterations)
+	iterations := uint16(rawIterations)
 
 	if password == "" {
 		fmt.Fprintf(os.Stderr, "Password: ")
