@@ -149,16 +149,16 @@ func (ca cookieAppender) WriteHeader(statusCode int) {
 
 // FilterRequest implements the required function to allow CookiemaskFilter to
 // be a falcore.RequestFilter.
-func (filter *CookiemaskFilter) ServeHTTP(
+func (f *CookiemaskFilter) ServeHTTP(
 	w http.ResponseWriter,
 	req *http.Request,
 ) {
 	log.Debug("running cookiemask filter")
 
 	//TODO remove
-	log.Debug(fmt.Sprintf("handler is: %v", filter))
+	log.Debug(fmt.Sprintf("handler is: %v", f))
 
-	sesh, err := filter.Handler.GetSession()
+	sesh, err := f.Handler.GetSession()
 	if err != nil {
 		log.Err(
 			fmt.Sprintf(
@@ -212,5 +212,5 @@ func (filter *CookiemaskFilter) ServeHTTP(
 		"request has run through cookiemask, now forwarding to next" +
 			" filter",
 	)
-	filter.Masked.ServeHTTP(ca, req)
+	f.Masked.ServeHTTP(ca, req)
 }

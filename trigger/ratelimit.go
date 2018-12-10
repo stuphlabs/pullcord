@@ -93,24 +93,24 @@ func NewRateLimitTrigger(
 // than the allowed number of times within the specified rolling window of time.
 // If the rate limit is exceeded, RateLimitExceededError will be returned, and
 // the guarded trigger will not be called.
-func (rlt *RateLimitTrigger) Trigger() error {
+func (r *RateLimitTrigger) Trigger() error {
 	now := time.Now()
 
-	if rlt.previousTriggers != nil {
+	if r.previousTriggers != nil {
 		for len(
-			rlt.previousTriggers,
-		) > 0 && now.After(rlt.previousTriggers[0].Add(rlt.Period)) {
-			rlt.previousTriggers = rlt.previousTriggers[1:]
+			r.previousTriggers,
+		) > 0 && now.After(r.previousTriggers[0].Add(r.Period)) {
+			r.previousTriggers = r.previousTriggers[1:]
 		}
 
-		if uint(len(rlt.previousTriggers)) >= rlt.MaxAllowed {
+		if uint(len(r.previousTriggers)) >= r.MaxAllowed {
 			return RateLimitExceededError
 		}
 	} else {
-		rlt.previousTriggers = make([]time.Time, rlt.MaxAllowed)
+		r.previousTriggers = make([]time.Time, r.MaxAllowed)
 	}
 
-	rlt.previousTriggers = append(rlt.previousTriggers, now)
+	r.previousTriggers = append(r.previousTriggers, now)
 
-	return rlt.GuardedTrigger.Trigger()
+	return r.GuardedTrigger.Trigger()
 }
