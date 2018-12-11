@@ -10,7 +10,7 @@ import (
 )
 
 func TestDelayTriggerSingleDelay(t *testing.T) {
-	cth := &counterTriggerHandler{}
+	cth := &counterTriggerrer{}
 
 	dt := NewDelayTrigger(cth, time.Second)
 
@@ -24,7 +24,7 @@ func TestDelayTriggerSingleDelay(t *testing.T) {
 }
 
 func TestDelayTriggerDoubleDelay(t *testing.T) {
-	cth := &counterTriggerHandler{}
+	cth := &counterTriggerrer{}
 
 	dt := NewDelayTrigger(
 		cth,
@@ -51,7 +51,7 @@ func TestDelayTriggerDoubleDelay(t *testing.T) {
 }
 
 func TestDelayTriggerErrorMasking(t *testing.T) {
-	cth := &counterTriggerHandler{-1}
+	cth := &counterTriggerrer{-1}
 
 	dt := NewDelayTrigger(
 		cth,
@@ -68,7 +68,7 @@ func TestDelayTriggerErrorMasking(t *testing.T) {
 }
 
 func TestDelayTriggerReplaceError(t *testing.T) {
-	cth := &counterTriggerHandler{-1}
+	cth := &counterTriggerrer{-1}
 
 	dt := NewDelayTrigger(
 		cth,
@@ -99,7 +99,7 @@ func TestDelayTriggerReplaceError(t *testing.T) {
 }
 
 func TestDelayTriggerIntroduceError(t *testing.T) {
-	cth := &counterTriggerHandler{}
+	cth := &counterTriggerrer{}
 
 	dt := NewDelayTrigger(
 		cth,

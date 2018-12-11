@@ -10,7 +10,7 @@ import (
 )
 
 func TestRateLimit(t *testing.T) {
-	cth := &counterTriggerHandler{}
+	cth := &counterTriggerrer{}
 
 	rlt := NewRateLimitTrigger(cth, 1, time.Second)
 

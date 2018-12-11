@@ -9,11 +9,11 @@ import (
 	"github.com/stuphlabs/pullcord/util"
 )
 
-type counterTriggerHandler struct {
+type counterTriggerrer struct {
 	count int
 }
 
-func (th *counterTriggerHandler) Trigger() error {
+func (th *counterTriggerrer) Trigger() error {
 	if th.count >= 0 {
 		th.count += 1
 		return nil
@@ -23,10 +23,10 @@ func (th *counterTriggerHandler) Trigger() error {
 }
 
 func TestCompoundTriggerNoErrors(t *testing.T) {
-	th1 := &counterTriggerHandler{}
-	th2 := &counterTriggerHandler{}
+	th1 := &counterTriggerrer{}
+	th2 := &counterTriggerrer{}
 
-	ct := CompoundTrigger{[]TriggerHandler{th1, th2}}
+	ct := CompoundTrigger{[]Triggerrer{th1, th2}}
 
 	err := ct.Trigger()
 	assert.NoError(t, err)
@@ -39,10 +39,10 @@ func TestCompoundTriggerNoErrors(t *testing.T) {
 }
 
 func TestCompoundTriggerAllErrors(t *testing.T) {
-	th1 := &counterTriggerHandler{-1}
-	th2 := &counterTriggerHandler{-1}
+	th1 := &counterTriggerrer{-1}
+	th2 := &counterTriggerrer{-1}
 
-	ct := CompoundTrigger{[]TriggerHandler{th1, th2}}
+	ct := CompoundTrigger{[]Triggerrer{th1, th2}}
 
 	err := ct.Trigger()
 	assert.Error(t, err)
@@ -52,10 +52,10 @@ func TestCompoundTriggerAllErrors(t *testing.T) {
 }
 
 func TestCompoundTriggerSomeErrors(t *testing.T) {
-	th1 := &counterTriggerHandler{}
-	th2 := &counterTriggerHandler{-1}
+	th1 := &counterTriggerrer{}
+	th2 := &counterTriggerrer{-1}
 
-	ct := CompoundTrigger{[]TriggerHandler{th1, th2}}
+	ct := CompoundTrigger{[]Triggerrer{th1, th2}}
 
 	err := ct.Trigger()
 	assert.Error(t, err)
