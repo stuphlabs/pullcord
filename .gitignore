@@ -7,8 +7,11 @@
 *.bak
 *.orig
 
-# don't include coverage files
+# don't include coverage files (including old ones)
 /all.cov
 /cover.html
 /cover.out
 pkg.cov
+
+# don't include vendor cache etc.
+/.build_gopath
