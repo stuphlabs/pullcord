@@ -10,12 +10,12 @@ import (
 	"github.com/stuphlabs/pullcord/config"
 )
 
-// DelayTrigger is a TriggerHandler that delays the execution of another
+// DelayTrigger is a Triggerrer that delays the execution of another
 // trigger for at least a minimum amount of time after the most recent request.
 // The obvious analogy would be a screen saver, which will start after a
 // certain period has elapsed, but the timer is reset quite often.
 type DelayTrigger struct {
-	DelayedTrigger TriggerHandler
+	DelayedTrigger Triggerrer
 	Delay          time.Duration
 	c              chan<- interface{}
 }
@@ -43,7 +43,7 @@ func (d *DelayTrigger) UnmarshalJSON(input []byte) error {
 
 	dt := t.DelayedTrigger.Unmarshaled
 	switch dt := dt.(type) {
-	case TriggerHandler:
+	case Triggerrer:
 		d.DelayedTrigger = dt
 	default:
 		log.Err(
@@ -67,7 +67,7 @@ func (d *DelayTrigger) UnmarshalJSON(input []byte) error {
 // NewDelayTrigger initializes a DelayTrigger. It might not be strictly
 // necessary anymore.
 func NewDelayTrigger(
-	delayedTrigger TriggerHandler,
+	delayedTrigger Triggerrer,
 	delay time.Duration,
 ) *DelayTrigger {
 	return &DelayTrigger{
@@ -78,7 +78,7 @@ func NewDelayTrigger(
 }
 
 func delaytrigger(
-	tr TriggerHandler,
+	tr Triggerrer,
 	dla time.Duration,
 	ac <-chan interface{},
 ) {

@@ -34,9 +34,9 @@ const UnknownServiceError = errors.New(
 type MinMonitorredService struct {
 	URL         *url.URL
 	GracePeriod time.Duration
-	OnDown      trigger.TriggerHandler
-	OnUp        trigger.TriggerHandler
-	Always      trigger.TriggerHandler
+	OnDown      trigger.Triggerrer
+	OnUp        trigger.Triggerrer
+	Always      trigger.Triggerrer
 	lastChecked time.Time
 	up          bool
 	passthru    http.Handler
@@ -76,7 +76,7 @@ func (s *MinMonitorredService) UnmarshalJSON(data []byte) error {
 	if t.OnDown != nil {
 		d := t.OnDown.Unmarshaled
 		switch d := d.(type) {
-		case trigger.TriggerHandler:
+		case trigger.Triggerrer:
 			s.OnDown = d
 		default:
 			return config.UnexpectedResourceType
@@ -89,7 +89,7 @@ func (s *MinMonitorredService) UnmarshalJSON(data []byte) error {
 	if t.OnUp != nil {
 		u := t.OnUp.Unmarshaled
 		switch u := u.(type) {
-		case trigger.TriggerHandler:
+		case trigger.Triggerrer:
 			s.OnUp = u
 		default:
 			return config.UnexpectedResourceType
@@ -101,7 +101,7 @@ func (s *MinMonitorredService) UnmarshalJSON(data []byte) error {
 	if t.Always != nil {
 		a := t.Always.Unmarshaled
 		switch a := a.(type) {
-		case trigger.TriggerHandler:
+		case trigger.Triggerrer:
 			s.OnDown = a
 		default:
 			return config.UnexpectedResourceType
@@ -124,9 +124,9 @@ func (s *MinMonitorredService) UnmarshalJSON(data []byte) error {
 func NewMinMonitorredService(
 	u *url.URL,
 	gracePeriod time.Duration,
-	onDown trigger.TriggerHandler,
-	onUp trigger.TriggerHandler,
-	always trigger.TriggerHandler,
+	onDown trigger.Triggerrer,
+	onUp trigger.Triggerrer,
+	always trigger.Triggerrer,
 ) (service *MinMonitorredService, err error) {
 	result := MinMonitorredService{
 		u,

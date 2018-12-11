@@ -596,11 +596,11 @@ func TestMonitorFilterBadServiceName(t *testing.T) {
 	assert.Error(t, err)
 }
 
-type counterTriggerHandler struct {
+type counterTriggerrer struct {
 	count int
 }
 
-func (th *counterTriggerHandler) Trigger() error {
+func (th *counterTriggerrer) Trigger() error {
 	if th.count < 0 {
 		return errors.New("this trigger always errors")
 	}
@@ -621,9 +621,9 @@ func TestMonitorFilterUpTriggers(t *testing.T) {
 
 	gracePeriod := time.Duration(0)
 
-	onDown := &counterTriggerHandler{}
-	onUp := &counterTriggerHandler{}
-	always := &counterTriggerHandler{}
+	onDown := &counterTriggerrer{}
+	onUp := &counterTriggerrer{}
+	always := &counterTriggerrer{}
 
 	service, err := NewMinMonitorredService(
 		u,
@@ -673,9 +673,9 @@ func TestMonitorFilterDownTriggers(t *testing.T) {
 
 	gracePeriod := time.Duration(0)
 
-	onDown := &counterTriggerHandler{}
-	onUp := &counterTriggerHandler{}
-	always := &counterTriggerHandler{}
+	onDown := &counterTriggerrer{}
+	onUp := &counterTriggerrer{}
+	always := &counterTriggerrer{}
 
 	svc, err := NewMinMonitorredService(
 		u,
@@ -726,9 +726,9 @@ func TestMonitorFilterUpOnUpTriggerError(t *testing.T) {
 
 	gracePeriod := time.Duration(0)
 
-	onDown := &counterTriggerHandler{}
-	onUp := &counterTriggerHandler{-1}
-	always := &counterTriggerHandler{}
+	onDown := &counterTriggerrer{}
+	onUp := &counterTriggerrer{-1}
+	always := &counterTriggerrer{}
 
 	service, err := NewMinMonitorredService(
 		u,
@@ -776,9 +776,9 @@ func TestMonitorFilterDownOnDownTriggerError(t *testing.T) {
 
 	gracePeriod := time.Duration(0)
 
-	onDown := &counterTriggerHandler{-1}
-	onUp := &counterTriggerHandler{}
-	always := &counterTriggerHandler{}
+	onDown := &counterTriggerrer{-1}
+	onUp := &counterTriggerrer{}
+	always := &counterTriggerrer{}
 
 	svc, err := NewMinMonitorredService(
 		u,
@@ -826,9 +826,9 @@ func TestMonitorFilterDownAlwaysTriggerError(t *testing.T) {
 
 	gracePeriod := time.Duration(0)
 
-	onDown := &counterTriggerHandler{}
-	onUp := &counterTriggerHandler{}
-	always := &counterTriggerHandler{-1}
+	onDown := &counterTriggerrer{}
+	onUp := &counterTriggerrer{}
+	always := &counterTriggerrer{-1}
 
 	svc, err := NewMinMonitorredService(
 		u,
