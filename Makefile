@@ -46,14 +46,14 @@ cover.out: *.go */*.go ${go_build_files}
 	${go_run} test -v -coverprofile $@ -covermode ${COVERMODE} ${PKG}
 
 .PHONY: distclean
-distclean:
+distclean: clean
 	-rm -rf ${dist_cleanfiles}
 	-rm -f `for file in ${recursive_dist_cleanfiles}; do \
 		find . -name $${file}; \
 	done`
 
 .PHONY: maintainer_clean
-maintainer_clean:
+maintainer_clean: clean distclean
 	-rm -rf ${maintainer_cleanfiles}
 	-rm -f `for file in ${recursive_maintainer_cleanfiles}; do \
 		find . -name $${file}; \
