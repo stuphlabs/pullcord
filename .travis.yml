@@ -6,8 +6,7 @@ before_install:
         - .travis/gometalinter.sh
         - go get github.com/mattn/goveralls
 
-install: .travis/install.sh
-
 script:
+        - .travis/build.sh
         - LOG_UPTO="LOG_ALERT" $HOME/gopath/bin/goveralls -service=travis-ci
 
