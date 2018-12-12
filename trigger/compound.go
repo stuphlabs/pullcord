@@ -9,11 +9,11 @@ import (
 	"github.com/stuphlabs/pullcord/config"
 )
 
-// CompoundTrigger is a TriggerHandler that allows more than one trigger to be
+// CompoundTrigger is a Triggerrer that allows more than one trigger to be
 // fired off at a time. It any trigger returns an error, it isn't guaranteed
 // that all triggers will fire.
 type CompoundTrigger struct {
-	Triggers []TriggerHandler
+	Triggers []Triggerrer
 }
 
 func init() {
@@ -36,12 +36,12 @@ func (c *CompoundTrigger) UnmarshalJSON(input []byte) error {
 		return e
 	}
 
-	c.Triggers = make([]TriggerHandler, len(t.Triggers))
+	c.Triggers = make([]Triggerrer, len(t.Triggers))
 
 	for _, i := range t.Triggers {
 		th := i.Unmarshaled
 		switch th := th.(type) {
-		case TriggerHandler:
+		case Triggerrer:
 			c.Triggers = append(c.Triggers, th)
 		default:
 			log.Err(

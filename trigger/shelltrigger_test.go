@@ -30,7 +30,7 @@ func TestShellTriggerTee(t *testing.T) {
 		`printf "` + testMessage + `" > ` + testFile,
 	}
 
-	handler := NewShellTriggerHandler(testCommand, testArgs)
+	handler := NewShellTriggerrer(testCommand, testArgs)
 	err = handler.Trigger()
 
 	assert.NoError(t, err)
@@ -43,7 +43,7 @@ func TestShellTriggerFail(t *testing.T) {
 	testCommand := "["
 	testArgs := []string{"1", "-eq", "0"}
 
-	handler := NewShellTriggerHandler(testCommand, testArgs)
+	handler := NewShellTriggerrer(testCommand, testArgs)
 	err := handler.Trigger()
 
 	assert.Error(t, err)

@@ -10,11 +10,11 @@ import (
 	"github.com/stuphlabs/pullcord/config"
 )
 
-// ShellTriggerHandler is a basic TriggerHandler that calls a stored shell
+// ShellTriggerrer is a basic Triggerrer that calls a stored shell
 // command (along with arguments) when triggered.
 //
 // The message given to TriggerString will be passed to the command via stdin.
-type ShellTriggerHandler struct {
+type ShellTriggerrer struct {
 	Command string
 	Args    []string
 }
@@ -23,17 +23,17 @@ func init() {
 	config.RegisterResourceType(
 		"shelltrigger",
 		func() json.Unmarshaler {
-			return new(ShellTriggerHandler)
+			return new(ShellTriggerrer)
 		},
 	)
 }
 
 // UnmarshalJSON implements encoding/json.Unmarshaler.
-func (s *ShellTriggerHandler) UnmarshalJSON(input []byte) error {
+func (s *ShellTriggerrer) UnmarshalJSON(input []byte) error {
 	// It shouldn't habe been necessary to do this, but by giving a
-	// defnition of how to unmarshal a pointer-to ShellTriggerHandler
+	// defnition of how to unmarshal a pointer-to ShellTriggerrer
 	// (which we apparently need to do), it seems that unmarshalling a
-	// non-pointer ShellTriggerHandler also uses this function to
+	// non-pointer ShellTriggerrer also uses this function to
 	// unmarshal, resulting in an infinite stack.
 	var t struct {
 		Command string
@@ -53,7 +53,7 @@ func (s *ShellTriggerHandler) UnmarshalJSON(input []byte) error {
 
 // Trigger will execute the given command with the given args using the system
 // shell.
-func (s *ShellTriggerHandler) Trigger() (err error) {
+func (s *ShellTriggerrer) Trigger() (err error) {
 	log.Debug("shelltrigger running trigger")
 	cmd := exec.Command(s.Command, s.Args...)
 	var stdout bytes.Buffer
@@ -79,16 +79,16 @@ func (s *ShellTriggerHandler) Trigger() (err error) {
 	return nil
 }
 
-// NewShellTriggerHandler constructs a new ShellTriggerHandler given the
+// NewShellTriggerrer constructs a new ShellTriggerrer given the
 // command (and arguments) to be run each time TriggerString is called. Entire
 // shell scripts could potentially be stored in the arguments, though the
 // trigger could just as easily call an external shell script. As a result, a
 // wide variety of actions could be taken based on the message passed in via
 // stdin.
-func NewShellTriggerHandler(
+func NewShellTriggerrer(
 	command string,
 	args []string,
-) *ShellTriggerHandler {
+) *ShellTriggerrer {
 	log.Info("initializing shell trigger handler")
 	log.Debug(
 		fmt.Sprintf(
@@ -98,7 +98,7 @@ func NewShellTriggerHandler(
 		),
 	)
 
-	var handler ShellTriggerHandler
+	var handler ShellTriggerrer
 	handler.Command = command
 	handler.Args = args
 

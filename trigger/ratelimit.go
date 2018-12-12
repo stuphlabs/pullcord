@@ -16,11 +16,11 @@ import (
 // guarded trigger will not be called.
 var RateLimitExceededError = errors.New("Rate limit exceeded for trigger.")
 
-// RateLimitTrigger is a TriggerHandler that will prevent a guarded trigger
+// RateLimitTrigger is a Triggerrer that will prevent a guarded trigger
 // from being called more than a specified number of times over a specified
 // duration.
 type RateLimitTrigger struct {
-	GuardedTrigger   TriggerHandler
+	GuardedTrigger   Triggerrer
 	MaxAllowed       uint
 	Period           time.Duration
 	previousTriggers []time.Time
@@ -50,7 +50,7 @@ func (r *RateLimitTrigger) UnmarshalJSON(input []byte) error {
 
 	gt := t.GuardedTrigger.Unmarshaled
 	switch gt := gt.(type) {
-	case TriggerHandler:
+	case Triggerrer:
 		r.GuardedTrigger = gt
 	default:
 		log.Err(
@@ -77,7 +77,7 @@ func (r *RateLimitTrigger) UnmarshalJSON(input []byte) error {
 // NewRateLimitTrigger initializes a RateLimitTrigger. It may no longer be
 // strictly necessary.
 func NewRateLimitTrigger(
-	guardedTrigger TriggerHandler,
+	guardedTrigger Triggerrer,
 	maxAllowed uint,
 	period time.Duration,
 ) *RateLimitTrigger {
