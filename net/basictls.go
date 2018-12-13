@@ -57,7 +57,7 @@ func (b *BasicTlsListener) UnmarshalJSON(d []byte) error {
 	var ok bool
 	b.Listener, ok = t.Listener.Unmarshaled.(net.Listener)
 	if !ok {
-		log.Debug(
+		_ = log.Debug(
 			fmt.Sprintf(
 				"Resource is not a net.Listener: %#v",
 				t.Listener.Unmarshaled,
@@ -68,7 +68,7 @@ func (b *BasicTlsListener) UnmarshalJSON(d []byte) error {
 
 	b.CertGetter, ok = t.CertGetter.Unmarshaled.(TlsCertificateGetter)
 	if !ok {
-		log.Debug(
+		_ = log.Debug(
 			fmt.Sprintf(
 				"Resource is not a TlsCertificateGetter: %#v",
 				t.CertGetter.Unmarshaled,
