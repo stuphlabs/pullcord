@@ -60,12 +60,6 @@ const defaultConfig = `{
 }
 `
 
-func must(e error) {
-	if e != nil {
-		panic(e)
-	}
-}
-
 func main() {
 	var inlineCfg string
 	var cfgPath string
@@ -111,32 +105,39 @@ func main() {
 	if cfgReader == nil {
 		cfgReader, err = os.Open(cfgPath)
 		if err != nil {
-			must(log.Error(
+			err = log.Error(
 				fmt.Sprintf(
 					"Unable to open specified config file"+
 						" %s: %s",
 					cfgPath,
 					err.Error(),
 				),
-			))
+			)
+			if err != nil {
+				panic(err)
+			}
 			cfgReader = nil
 		} else {
-			must(log.Info(
+			err = log.Info(
 				fmt.Sprintf(
 					"Reading config from file: %s",
 					cfgPath,
 				),
-			))
+			)
+			if err != nil {
+				panic(err)
+			}
 		}
 	}
 
 	if cfgReader == nil {
 		if !cfgFallback {
-			must(log.Crit(
+			err = errors.New(
 				"No config defined and not falling back to" +
 					" default, aborting.",
-			))
-			os.Exit(1)
+			)
+			_ = log.Crit(err)
+			panic(err)
 		} else {
 			cfgReader = strings.NewReader(defaultConfig)
 		}
@@ -149,13 +150,16 @@ func main() {
 	trigger.LoadPlugin()
 	util.LoadPlugin()
 
-	must(log.Debug("Plugins loaded"))
+	_ = log.Debug("Plugins loaded")
 
 	if cfgPrint {
 		b := new(bytes.Buffer)
-		_, e := b.ReadFrom(cfgReader)
-		must(e)
-		must(log.Debug(fmt.Sprintf("Config is: %s", b.String())))
+		_, err = b.ReadFrom(cfgReader)
+		if err != nil {
+			panic(err)
+		}
+
+		_ = log.Debug(fmt.Sprintf("Config is: %s", b.String()))
 		_, err2 := cfgReader.Seek(0, io.SeekStart)
 		if err2 != nil {
 			critErr := fmt.Errorf(
@@ -163,7 +167,7 @@ func main() {
 					" printing to debug logs: %s",
 				err.Error(),
 			)
-			must(log.Crit(critErr))
+			_ = log.Crit(critErr)
 			panic(critErr)
 		}
 	}
@@ -171,12 +175,12 @@ func main() {
 	cfgParser := config.Parser{cfgReader}
 	server, err := cfgParser.Server()
 	if err != nil {
-		must(log.Debug(err))
+		_ = log.Debug(err)
 		critErr := fmt.Errorf(
 			"Error while parsing server config: %s",
 			err.Error(),
 		)
-		must(log.Crit(critErr))
+		_ = log.Crit(critErr)
 		panic(critErr)
 	}
 
@@ -187,12 +191,12 @@ func main() {
 	}()
 	err = server.Serve()
 	if err != nil {
-		must(log.Debug(err))
+		_ = log.Debug(err)
 		critErr := fmt.Errorf(
 			"Error while running server: %s",
 			err.Error(),
 		)
-		must(log.Crit(critErr))
+		_ = log.Crit(critErr)
 		panic(critErr)
 	}
 }
