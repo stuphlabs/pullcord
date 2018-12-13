@@ -388,8 +388,7 @@ func TestResourceUnmarshalJSON(t *testing.T) {
 		},
 	}
 
-	err := RegisterResourceType("dummyType", newDummy)
-	assert.NoError(t, err)
+	_ = RegisterResourceType("dummyType", newDummy)
 
 	for _, v := range testData {
 		var r Resource
@@ -853,8 +852,7 @@ func TestServerFromReader(t *testing.T) {
 		},
 	}
 
-	err := RegisterResourceType("dummyType", newDummy)
-	assert.NoError(t, err)
+	_ = RegisterResourceType("dummyType", newDummy)
 
 	for _, d := range syntacticallyBad {
 		d := d
