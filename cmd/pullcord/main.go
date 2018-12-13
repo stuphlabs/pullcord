@@ -60,6 +60,12 @@ const defaultConfig = `{
 }
 `
 
+func must(e error) {
+	if e != nil {
+		panic(e)
+	}
+}
+
 func main() {
 	var inlineCfg string
 	var cfgPath string
@@ -105,31 +111,31 @@ func main() {
 	if cfgReader == nil {
 		cfgReader, err = os.Open(cfgPath)
 		if err != nil {
-			log.Error(
+			must(log.Error(
 				fmt.Sprintf(
 					"Unable to open specified config file"+
 						" %s: %s",
 					cfgPath,
 					err.Error(),
 				),
-			)
+			))
 			cfgReader = nil
 		} else {
-			log.Info(
+			must(log.Info(
 				fmt.Sprintf(
 					"Reading config from file: %s",
 					cfgPath,
 				),
-			)
+			))
 		}
 	}
 
 	if cfgReader == nil {
 		if !cfgFallback {
-			log.Crit(
+			must(log.Crit(
 				"No config defined and not falling back to" +
 					" default, aborting.",
-			)
+			))
 			os.Exit(1)
 		} else {
 			cfgReader = strings.NewReader(defaultConfig)
@@ -143,12 +149,13 @@ func main() {
 	trigger.LoadPlugin()
 	util.LoadPlugin()
 
-	log.Debug("Plugins loaded")
+	must(log.Debug("Plugins loaded"))
 
 	if cfgPrint {
 		b := new(bytes.Buffer)
-		b.ReadFrom(cfgReader)
-		log.Debug(fmt.Sprintf("Config is: %s", b.String()))
+		_, e := b.ReadFrom(cfgReader)
+		must(e)
+		must(log.Debug(fmt.Sprintf("Config is: %s", b.String())))
 		_, err2 := cfgReader.Seek(0, io.SeekStart)
 		if err2 != nil {
 			critErr := fmt.Errorf(
@@ -156,7 +163,7 @@ func main() {
 					" printing to debug logs: %s",
 				err.Error(),
 			)
-			log.Crit(critErr)
+			must(log.Crit(critErr))
 			panic(critErr)
 		}
 	}
@@ -164,12 +171,12 @@ func main() {
 	cfgParser := config.Parser{Reader: cfgReader}
 	server, err := cfgParser.Server()
 	if err != nil {
-		log.Debug(err)
+		must(log.Debug(err))
 		critErr := fmt.Errorf(
 			"Error while parsing server config: %s",
 			err.Error(),
 		)
-		log.Crit(critErr)
+		must(log.Crit(critErr))
 		panic(critErr)
 	}
 
@@ -180,12 +187,12 @@ func main() {
 	}()
 	err = server.Serve()
 	if err != nil {
-		log.Debug(err)
+		must(log.Debug(err))
 		critErr := fmt.Errorf(
 			"Error while running server: %s",
 			err.Error(),
 		)
-		log.Crit(critErr)
+		must(log.Crit(critErr))
 		panic(critErr)
 	}
 }
