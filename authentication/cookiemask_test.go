@@ -1027,15 +1027,11 @@ func TestCookiemaskFromConfig(t *testing.T) {
 			case *CookiemaskFilter:
 				c = i
 			default:
-				return errors.New(
-					fmt.Sprintf(
-						"Expecting"+
-							" unmarsheled"+
-							" resource to be a"+
-							" cookiemaskfilter,"+
-							" but instead got: %v",
-						i,
-					),
+				return fmt.Errorf(
+					"Expecting unmarsheled resource to be"+
+						" a cookiemaskfilter, but"+
+						" instead got: %v",
+					i,
 				)
 			}
 
@@ -1043,14 +1039,11 @@ func TestCookiemaskFromConfig(t *testing.T) {
 			case *MinSessionHandler:
 				// do nothing
 			default:
-				return errors.New(
-					fmt.Sprintf(
-						"Expecting"+
-							" handler to be a"+
-							" minsessionhandler,"+
-							" but instead got: %v",
-						h,
-					),
+				return fmt.Errorf(
+					"Expecting handler to be a"+
+						" minsessionhandler, but"+
+						" instead got: %v",
+					h,
 				)
 			}
 
@@ -1058,14 +1051,11 @@ func TestCookiemaskFromConfig(t *testing.T) {
 			case *util.LandingHandler:
 				// do nothing
 			default:
-				return errors.New(
-					fmt.Sprintf(
-						"Expecting"+
-							" masked to be a"+
-							" landinghandler,"+
-							" but instead got: %v",
-						m,
-					),
+				return fmt.Errorf(
+					"Expecting masked to be a"+
+						" landinghandler, but instead"+
+						" got: %v",
+					m,
 				)
 			}
 

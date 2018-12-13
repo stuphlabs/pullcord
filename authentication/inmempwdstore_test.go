@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/proidiot/gone/errors"
 	"github.com/stretchr/testify/assert"
 	configutil "github.com/stuphlabs/pullcord/config/util"
 )
@@ -168,15 +167,11 @@ func TestInMemPwdStoreFromConfig(t *testing.T) {
 			case *InMemPwdStore:
 				// do nothing
 			default:
-				return errors.New(
-					fmt.Sprintf(
-						"Expecting"+
-							" unmarsheled"+
-							" resource to be a"+
-							" inmempwdstore,"+
-							" but instead got: %v",
-						i,
-					),
+				return fmt.Errorf(
+					"Expecting unmarsheled resource to be"+
+						" a inmempwdstore, but instead"+
+						" got: %v",
+					i,
 				)
 			}
 
