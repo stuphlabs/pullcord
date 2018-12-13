@@ -17,7 +17,7 @@ import (
 type PassthruFilter httputil.ReverseProxy
 
 func init() {
-	config.RegisterResourceType(
+	config.MustRegisterResourceType(
 		"passthrufilter",
 		func() json.Unmarshaler {
 			return new(PassthruFilter)
