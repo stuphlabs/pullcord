@@ -27,7 +27,7 @@ type RateLimitTrigger struct {
 }
 
 func init() {
-	config.RegisterResourceType(
+	config.MustRegisterResourceType(
 		"ratelimittrigger",
 		func() json.Unmarshaler {
 			return new(RateLimitTrigger)
@@ -53,7 +53,7 @@ func (r *RateLimitTrigger) UnmarshalJSON(input []byte) error {
 	case Triggerrer:
 		r.GuardedTrigger = gt
 	default:
-		log.Err(
+		_ = log.Err(
 			fmt.Sprintf(
 				"Registry value is not a Trigger: %s",
 				gt,

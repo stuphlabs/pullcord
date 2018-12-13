@@ -17,7 +17,7 @@ type CompoundTrigger struct {
 }
 
 func init() {
-	config.RegisterResourceType(
+	config.MustRegisterResourceType(
 		"compoundtrigger",
 		func() json.Unmarshaler {
 			return new(CompoundTrigger)
@@ -44,7 +44,7 @@ func (c *CompoundTrigger) UnmarshalJSON(input []byte) error {
 		case Triggerrer:
 			c.Triggers = append(c.Triggers, th)
 		default:
-			log.Err(
+			_ = log.Err(
 				fmt.Sprintf(
 					"Registry value is not a"+
 						" RequestFilter: %s",
