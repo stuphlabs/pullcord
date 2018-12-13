@@ -74,16 +74,18 @@ func getUpService(t *testing.T) (*url.URL, *http.Server, error) {
 	return getFreshLandingResponder(t)
 }
 
-func recycleUpService(s *http.Server) error {
+func recycleUpService(s *http.Server) {
 	// TODO recycle services
-	return s.Close()
+	_ = s.Close()
 }
 
 func getTCPTimeout() (time.Duration, error) {
 	tcpTimeoutFile, err := os.Open(
 		"/proc/sys/net/ipv4/tcp_fin_timeout",
 	)
-	defer tcpTimeoutFile.Close()
+	defer func() {
+		_ = tcpTimeoutFile.Close()
+	} ()
 	if err != nil {
 		return 0, err
 	}
@@ -322,7 +324,8 @@ func TestMinMonitorSetStatusUp(t *testing.T) {
 	assert.NoError(t, err)
 	assert.False(t, up)
 
-	mon.SetStatusUp(testServiceName)
+	err = mon.SetStatusUp(testServiceName)
+	assert.NoError(t, err)
 
 	up, err = mon.Status(testServiceName)
 	assert.NoError(t, err)
@@ -361,7 +364,8 @@ func TestMinMonitorFalsePositive(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, up)
 
-	s.Close()
+	err = s.Close()
+	assert.NoError(t, err)
 
 	up, err = mon.Status(testServiceName)
 	assert.NoError(t, err)
