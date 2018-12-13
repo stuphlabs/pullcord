@@ -85,7 +85,7 @@ func getTCPTimeout() (time.Duration, error) {
 	)
 	defer func() {
 		_ = tcpTimeoutFile.Close()
-	} ()
+	}()
 	if err != nil {
 		return 0, err
 	}
