@@ -63,7 +63,7 @@ func (s *HTTPMultiServer) UnmarshalJSON(d []byte) error {
 
 // Serve implements .../pullcord/Server.
 func (s *HTTPMultiServer) Serve() error {
-	log.Debug(
+	_ = log.Debug(
 		fmt.Sprintf(
 			"Serving with listeners %#v and handler %#v",
 			s.Listeners,
@@ -77,13 +77,16 @@ func (s *HTTPMultiServer) Serve() error {
 	errChan := make(chan error)
 	for _, l := range s.Listeners {
 		go func(gl net.Listener, gErrChan chan<- error) {
-			log.Notice(
+			e := log.Notice(
 				fmt.Sprintf(
 					"Starting server at %s...",
 					gl.Addr(),
 				),
 			)
-			gErrChan <- http.Serve(gl, s.Handler)
+			if e != nil {
+				e = http.Serve(gl, s.Handler)
+			}
+			gErrChan <- e
 		}(l, errChan)
 	}
 
@@ -102,7 +105,7 @@ func (s *HTTPMultiServer) Serve() error {
 func (s *HTTPMultiServer) Close() error {
 	var err error
 	for _, l := range s.Listeners {
-		log.Info(fmt.Sprintf("Closing server at %s...", l.Addr()))
+		_ = log.Info(fmt.Sprintf("Closing server at %s...", l.Addr()))
 		thisErr := l.Close()
 		if err == nil && thisErr != nil {
 			err = thisErr

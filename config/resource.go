@@ -39,7 +39,7 @@ func (rsc *Resource) UnmarshalJSON(input []byte) error {
 
 	dec := json.NewDecoder(bytes.NewReader(input))
 	if e := dec.Decode(&newRscDef); e != nil {
-		log.Crit(
+		_ = log.Crit(
 			fmt.Sprintf(
 				"Unable to decode resource definition: %s",
 				e.Error(),
@@ -57,7 +57,7 @@ func (rsc *Resource) UnmarshalJSON(input []byte) error {
 	if newRscDef.Type == ReferenceResourceTypeName {
 		var name string
 		if e := json.Unmarshal(newRscDef.Data, &name); e != nil {
-			log.Crit(
+			_ = log.Crit(
 				fmt.Sprintf(
 					"Unable to decode the resource"+
 						" string: %s",
@@ -81,7 +81,7 @@ func (rsc *Resource) UnmarshalJSON(input []byte) error {
 					" dependency): %s",
 				name,
 			)
-			log.Crit(e.Error())
+			_ = log.Crit(e.Error())
 			return e
 		}
 
