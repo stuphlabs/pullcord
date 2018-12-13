@@ -18,7 +18,7 @@ type ExactPathRouter struct {
 }
 
 func init() {
-	config.RegisterResourceType(
+	config.MustRegisterResourceType(
 		"exactpathrouter",
 		func() json.Unmarshaler {
 			return new(ExactPathRouter)
@@ -45,7 +45,7 @@ func (r *ExactPathRouter) UnmarshalJSON(input []byte) error {
 		case http.Handler:
 			r.Routes[path] = f
 		default:
-			log.Err(
+			_ = log.Err(
 				fmt.Sprintf(
 					"Registry value is not a"+
 						" http.Handler: %s",
@@ -60,7 +60,7 @@ func (r *ExactPathRouter) UnmarshalJSON(input []byte) error {
 		case http.Handler:
 			r.Default = f
 		default:
-			log.Err(
+			_ = log.Err(
 				fmt.Sprintf(
 					"Registry value is not a"+
 						" http.Handler: %s",
@@ -75,8 +75,8 @@ func (r *ExactPathRouter) UnmarshalJSON(input []byte) error {
 }
 
 func (r *ExactPathRouter) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	log.Info(fmt.Sprintf("Request received for path: %s", req.URL.Path))
-	log.Debug(fmt.Sprintf("Path router: %#v", r))
+	_ = log.Info(fmt.Sprintf("Request received for path: %s", req.URL.Path))
+	_ = log.Debug(fmt.Sprintf("Path router: %#v", r))
 	if f, present := r.Routes[req.URL.Path]; present {
 		f.ServeHTTP(w, req)
 	} else if r.Default != nil {

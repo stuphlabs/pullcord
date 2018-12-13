@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"text/template"
 
+	"github.com/proidiot/gone/log"
 	"github.com/stuphlabs/pullcord/config"
 )
 
@@ -23,7 +24,7 @@ type StandardResponse int
 const MinimumStandardResponse = 100
 
 func init() {
-	config.RegisterResourceType(
+	config.MustRegisterResourceType(
 		"standardresponse",
 		func() json.Unmarshaler {
 			return new(StandardResponse)
@@ -128,5 +129,14 @@ func (s StandardResponse) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(int(rs))
-	responseStringTemplate.Execute(w, values)
+	err := responseStringTemplate.Execute(w, values)
+	if err != nil {
+		_ = log.Error(
+			fmt.Sprintf(
+				"error while writing standard response"+
+					" template: %s",
+				err.Error(),
+			),
+		)
+	}
 }

@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/proidiot/gone/log"
 	"github.com/stretchr/testify/assert"
 	configutil "github.com/stuphlabs/pullcord/config/util"
 	"github.com/stuphlabs/pullcord/trigger"
@@ -17,7 +18,16 @@ type stringFilter string
 
 func (s stringFilter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(200)
-	w.Write([]byte(s))
+	_, err := w.Write([]byte(s))
+	if err != nil {
+		_ = log.Debug(
+			fmt.Sprintf(
+				"in path_route_adapter_test, error writing to"+
+					" stringFilter: %s",
+				err.Error(),
+			),
+		)
+	}
 }
 
 func TestExactPathRouterHandler(t *testing.T) {
