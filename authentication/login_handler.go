@@ -106,8 +106,9 @@ func (h *LoginHandler) ServeHTTP(
 	usernameKey := "username-" + h.Identifier
 	passwordKey := "password-" + h.Identifier
 
-	authd, err := sesh.GetValue(authSeshKey)
-	if err == nil && authd == true {
+	if authd, err := sesh.GetValue(
+		authSeshKey,
+	); err == nil && authd == true {
 		log.Debug("login handler passing request along")
 		h.Downstream.ServeHTTP(w, request)
 		return
@@ -123,8 +124,9 @@ func (h *LoginHandler) ServeHTTP(
 		return
 	}
 
-	xsrfStored, err := sesh.GetValue(xsrfKey)
-	if err != nil && err != NoSuchSessionValueError {
+	if xsrfStored, err := sesh.GetValue(
+		xsrfKey,
+	); err != nil && err != NoSuchSessionValueError {
 		log.Err(
 			fmt.Sprintf(
 				"login handler error during xsrf token"+
@@ -225,7 +227,7 @@ func (h *LoginHandler) ServeHTTP(
 	}
 	nextXsrfToken := hex.EncodeToString(rawXsrfToken)
 
-	if err = sesh.SetValue(xsrfKey, nextXsrfToken); err != nil {
+	if err := sesh.SetValue(xsrfKey, nextXsrfToken); err != nil {
 		log.Err(
 			fmt.Sprintf(
 				"login handler error during xsrf set: %#v",
