@@ -8,6 +8,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/proidiot/gone/errors"
 	"github.com/proidiot/gone/log"
 	"github.com/stuphlabs/pullcord/authentication"
 	"github.com/stuphlabs/pullcord/config"
