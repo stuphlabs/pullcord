@@ -1,0 +1,119 @@
+#!/bin/sh
+
+set -eu
+
+DOCKER='docker -it --rm'
+DOCKER_GOLANG_IMG='golang:latest'
+GO='go'
+M4='m4'
+USE_DOCKER='TEST'
+USE_DOCKER_GO='TEST'
+
+HELP_MSG="./configure [ OPTIONS ]
+
+Available options:
+
+	-h, --help
+		Print this message.
+
+	--with-m4=CMD
+		Explicitly specify m4 command.
+		Default: ${M4}
+
+	--with-docker[=CMD]
+		Explicitly specify use of Docker. Optionally specify base
+		docker command to use (not including mount option, image name,
+		or go command).
+		Default: ${DOCKER} (if present)
+
+	--without-docker
+		Explicitly specify not to use Docker.
+		Default: use if present
+
+	--with-docker-golang[=IMG]
+		Explicitly specify the use of Docker-based golang instead of
+		the host golang binary (which will be used by default if it
+		exists). Optionally specify the image name to use.
+		Default: ${DOCKER_GOLANG_IMG} (if no local go binary)
+
+	--with-go=CMD
+		Explicitly specify golang command.
+		Default: ${GO} (if present)
+"
+
+while [ $# -ne 0 ]; do
+	case $1 in
+	--with-m4=*)
+		M4="`echo -n ${1} | sed 's/^--with-m4=\(.*\)$/\1/'`"
+		;;
+	--with-docker=*)
+		DOCKER="`echo -n ${1} | sed 's/^--with-docker=\(.*\)$/\1/'`"
+		USE_DOCKER='TRUE'
+		;;
+	--with-docker)
+		USE_DOCKER='TRUE'
+		;;
+	--without-docker)
+		USE_DOCKER='FALSE'
+		;;
+	--with-docker-golang=*)
+		DOCKER_GOLANG_IMG="`echo -n ${1} \
+			| sed 's/^--with-docker-golang=\(.*\)$/\1/'`"
+		USE_DOCKER='TRUE'
+		USE_DOCKER_GO='TRUE'
+		;;
+	--with-docker-golang)
+		USE_DOCKER='TRUE'
+		USE_DOCKER_GO='TRUE'
+		;;
+	--with-go=*)
+		GO="`echo -n ${1} | sed 's/^--with-go=\(.*\)$/\1/'`"
+		;;
+	--help|-h)
+		echo "${HELP_MSG}"
+		;;
+	*)
+		echo "${HELP_MSG}" >&2
+		exit 1
+		;;
+	esac
+	shift
+done
+
+if [ "x${USE_DOCKER}" = 'xTEST' ]; then
+	echo -n 'checking for docker... '
+	if command -V docker; then
+		USE_DOCKER='TRUE'
+	else
+		USE_DOCKER='FALSE'
+	fi
+fi
+
+if [ "x${USE_DOCKER_GO}" = 'xTEST' ]; then
+	echo -n 'checking for go... '
+	if command -V go; then
+		USE_DOCKER_GO='FALSE'
+	else
+		USE_DOCKER_GO='TRUE'
+		echo 'no local go binary, dockerized golang required'
+	fi
+fi
+
+if [ "x${USE_DOCKER_GO}" = 'xTRUE' ]; then
+	if [ "x${USE_DOCKER}" = 'xFALSE' ]; then
+		echo 'docker required for dockerized golang, aborting' >&2
+		exit 1
+	fi
+fi
+
+M4_ARGS="-D _GO_CMD_='${GO}'"
+if [ "x${USE_DOCKER}" = 'xTRUE' ]; then
+	M4_ARGS="${M4_ARGS} -D _DOCKER_CMD_='${DOCKER}'"
+fi
+if [ "x${USE_DOCKER_GO}" = 'xTRUE' ]; then
+	M4_ARGS="${M4_ARGS} -D _DOCKER_GOLANG_IMG_='${DOCKER_GOLANG_IMG}'"
+fi
+
+echo -n "\nwriting out Makefile... "
+${M4} ${M4_ARGS} < Makefile.in > Makefile
+echo 'done'

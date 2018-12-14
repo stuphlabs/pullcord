@@ -1,33 +1,41 @@
+changequote(`[',`]')dnl`
 ROOTPKG = github.com/stuphlabs/pullcord
 CONTAINERNAME = pullcord
 
-binfiles = bin/pullcord bin/genhash
-
 PKG = ./...
 COVERMODE = set
-GO = go
-DOCKER = docker
 
+ifdef([_DOCKER_CMD_], [
+DOCKER := _DOCKER_CMD_
+])dnl
+ifdef([_DOCKER_GOLANG_IMG_],[
+GO := ${DOCKER} -v $${PWD}/:/go/src/${ROOTPKG}/ -w /go/src/${ROOTPKG} _GO_CMD_
+],[
+GO := cd .build_gopath/src/${ROOTPKG} && GOPATH=$${PWD}/.build_gopath _GO_CMD_
+])dnl
+
+binfiles = bin/pullcord bin/genhash
 cleanfiles = bin cover.html cover.out ${binfiles}
 recursive_cleanfiles =
-dist_cleanfiles = .build_gopath
+dist_cleanfiles = Makefile ifdef([_DOCKER_GOLANG_IMG_],,[.build_gopath])
 recursive_dist_cleanfiles =
 maintainer_cleanfiles =
 recursive_maintainer_cleanfiles =
-go_build_files = .build_gopath/src
-go_run = cd .build_gopath/src/${ROOTPKG} && GOPATH=$${PWD}/.build_gopath ${GO}
+go_build_files = ifdef([_DOCKER_GOLANG_IMG_],,[.build_gopath/src])
 
 .PHONY: all
 all: test ${binfiles}
 
 bin/%: cmd/%/*.go ${go_build_files}
 	mkdir -p bin
-	${go_run} build -v -o $@ ./cmd/$*
+	${GO} build -v -o $@ ./cmd/$*
 
+ifdef([_DOCKER_GOLANG_IMG_],,[
 .build_gopath/src:
 	mkdir -p $@/`dirname ${ROOTPKG}`
 	ln -s $${PWD} $@/${ROOTPKG}
-	${go_run} get -t -v ${PKG}
+	${GO} get -t -v ${PKG}
+])dnl
 
 .PHONY: clean
 clean:
@@ -36,14 +44,16 @@ clean:
 		find . -name $${file}; \
 	done`
 
+ifdef([_DOCKER_CMD_],[
 container: test Dockerfile ${binfiles}
 	${DOCKER} build -t ${CONTAINERNAME} .
+])
 
 cover.html: cover.out ${go_build_files}
-	${go_run} tool cover -html $< -o $@
+	${GO} tool cover -html $< -o $@
 
 cover.out: *.go */*.go ${go_build_files}
-	${go_run} test -v -coverprofile $@ -covermode ${COVERMODE} ${PKG}
+	${GO} test -v -coverprofile $@ -covermode ${COVERMODE} ${PKG}
 
 .PHONY: distclean
 distclean: clean
