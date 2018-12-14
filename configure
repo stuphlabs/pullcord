@@ -2,7 +2,7 @@
 
 set -eu
 
-DOCKER='docker -it --rm'
+DOCKER='docker'
 DOCKER_GOLANG_IMG='golang:latest'
 GO='go'
 M4='m4'
@@ -71,6 +71,7 @@ while [ $# -ne 0 ]; do
 		;;
 	--help|-h)
 		echo "${HELP_MSG}"
+		exit 0
 		;;
 	*)
 		echo "${HELP_MSG}" >&2
@@ -106,14 +107,22 @@ if [ "x${USE_DOCKER_GO}" = 'xTRUE' ]; then
 	fi
 fi
 
-M4_ARGS="-D _GO_CMD_='${GO}'"
 if [ "x${USE_DOCKER}" = 'xTRUE' ]; then
-	M4_ARGS="${M4_ARGS} -D _DOCKER_CMD_='${DOCKER}'"
+	USE_DOCKER_FLAG='-D _USE_DOCKER_'
+else
+	USE_DOCKER_FLAG='-U _USE_DOCKER_'
 fi
 if [ "x${USE_DOCKER_GO}" = 'xTRUE' ]; then
-	M4_ARGS="${M4_ARGS} -D _DOCKER_GOLANG_IMG_='${DOCKER_GOLANG_IMG}'"
+	USE_DOCKER_GO_FLAG='-D _USE_DOCKER_GO_'
+else
+	USE_DOCKER_GO_FLAG='-U _USE_DOCKER_GO_'
 fi
 
 echo -n "\nwriting out Makefile... "
-${M4} ${M4_ARGS} < Makefile.in > Makefile
+${M4} \
+	-D _GO_CMD_="${GO}" \
+	-D _DOCKER_CMD_="${DOCKER}" \
+	-D _DOCKER_GOLANG_IMG_="${DOCKER_GOLANG_IMG}" \
+	${USE_DOCKER_FLAG} ${USE_DOCKER_GO_FLAG} \
+	< Makefile.in > Makefile
 echo 'done'

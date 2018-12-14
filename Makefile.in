@@ -5,37 +5,42 @@ CONTAINERNAME = pullcord
 PKG = ./...
 COVERMODE = set
 
-ifdef([_DOCKER_CMD_], [
+ifdef([_USE_DOCKER_], [
 DOCKER := _DOCKER_CMD_
-])dnl
-ifdef([_DOCKER_GOLANG_IMG_],[
-GO := ${DOCKER} -v $${PWD}/:/go/src/${ROOTPKG}/ -w /go/src/${ROOTPKG} _GO_CMD_
+])
+ifdef([_USE_DOCKER_GO_],[
+GO := ${DOCKER} \
+	run -it --rm \
+	-v $${PWD}/.build_gopath/:/go/ \
+	-v $${PWD}/:/go/src/${ROOTPKG}/ \
+	-w /go/src/${ROOTPKG}/ \
+	-u `id -u` \
+	_DOCKER_GOLANG_IMG_ \
+	_GO_CMD_
 ],[
-GO := cd .build_gopath/src/${ROOTPKG} && GOPATH=$${PWD}/.build_gopath _GO_CMD_
-])dnl
+GO := cd .build_gopath/src/${ROOTPKG} \
+	&& GOPATH=$${PWD}/.build_gopath _GO_CMD_
+])
 
 binfiles = bin/pullcord bin/genhash
 cleanfiles = bin cover.html cover.out ${binfiles}
 recursive_cleanfiles =
-dist_cleanfiles = Makefile ifdef([_DOCKER_GOLANG_IMG_],,[.build_gopath])
+dist_cleanfiles = Makefile .build_gopath
 recursive_dist_cleanfiles =
 maintainer_cleanfiles =
 recursive_maintainer_cleanfiles =
-go_build_files = ifdef([_DOCKER_GOLANG_IMG_],,[.build_gopath/src])
 
 .PHONY: all
 all: test ${binfiles}
 
-bin/%: cmd/%/*.go ${go_build_files}
+bin/%: cmd/%/*.go .build_gopath/src
 	mkdir -p bin
 	${GO} build -v -o $@ ./cmd/$*
 
-ifdef([_DOCKER_GOLANG_IMG_],,[
 .build_gopath/src:
 	mkdir -p $@/`dirname ${ROOTPKG}`
-	ln -s $${PWD} $@/${ROOTPKG}
+	ifdef([_USE_DOCKER_GO_],,[ln -s $${PWD} $@/${ROOTPKG}])
 	${GO} get -t -v ${PKG}
-])dnl
 
 .PHONY: clean
 clean:
@@ -44,15 +49,15 @@ clean:
 		find . -name $${file}; \
 	done`
 
-ifdef([_DOCKER_CMD_],[
+ifdef([_USE_DOCKER_],[
 container: test Dockerfile ${binfiles}
 	${DOCKER} build -t ${CONTAINERNAME} .
 ])
 
-cover.html: cover.out ${go_build_files}
-	${GO} tool cover -html $< -o $@
+cover.html: cover.out
+	${GO} tool cover -html cover.out -o $@
 
-cover.out: *.go */*.go ${go_build_files}
+cover.out: *.go */*.go .build_gopath/src
 	${GO} test -v -coverprofile $@ -covermode ${COVERMODE} ${PKG}
 
 .PHONY: distclean
