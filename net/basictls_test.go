@@ -135,10 +135,10 @@ func TestBasicTlsListenerBehavior(t *testing.T) {
 	}
 
 	defer func() {
-		e := l.Close()
+		err := l.Close()
 		assert.NoError(
 			t,
-			e,
+			err,
 			"Attempting to close a basic listener should not"+
 				" produce an error, but an error was produced.",
 		)
@@ -174,10 +174,10 @@ func TestBasicTlsListenerBehavior(t *testing.T) {
 			close(done)
 		}(done)
 
-		c, e := l.Accept()
+		c, err := l.Accept()
 		assert.NoError(
 			t,
-			e,
+			err,
 			"Attempting to accept a connection from a valid"+
 				" basic listener should not produce an error, but an"+
 				" error was produced.",
@@ -195,10 +195,10 @@ func TestBasicTlsListenerBehavior(t *testing.T) {
 
 		endToEndBuffer := new(bytes.Buffer)
 
-		_, e = endToEndBuffer.ReadFrom(c)
+		_, err = endToEndBuffer.ReadFrom(c)
 		assert.NoError(
 			t,
-			e,
+			err,
 			"Attempting to read from an accepted connection that"+
 				" came from a valid basic listener should not"+
 				" produce an error, but an error was produced.",
@@ -230,7 +230,8 @@ func TestBasicTlsListenerBehavior(t *testing.T) {
 	certPool := x509.NewCertPool()
 	certPool.AddCert(x509Cert)
 
-	c, e := tls.Dial(
+	var c net.Conn
+	c, e = tls.Dial(
 		addr.Network(),
 		addr.String(),
 		&tls.Config{
@@ -256,10 +257,10 @@ func TestBasicTlsListenerBehavior(t *testing.T) {
 	}
 
 	defer func(t *testing.T, c net.Conn) {
-		e := c.Close()
+		err := c.Close()
 		assert.NoError(
 			t,
-			e,
+			err,
 			"Attempting to close a client connection to a basic"+
 				" listener should not produce an error, but an error"+
 				" was produced.",
