@@ -52,7 +52,7 @@ func (s *HTTPMultiServer) UnmarshalJSON(d []byte) error {
 		s.Listeners = append(s.Listeners, l)
 	}
 
-  var ok bool
+	var ok bool
 	s.Handler, ok = t.Handler.Unmarshalled.(http.Handler)
 	if !ok {
 		return UnexpectedResourceType
