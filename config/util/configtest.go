@@ -61,7 +61,7 @@ func (c *ConfigTest) Run(t *testing.T) {
 		isValidWasRun = false
 
 		parser := config.Parser{
-			constructConfigReader(
+			Reader: constructConfigReader(
 				c.ListenerTest,
 				validatorName,
 				c.ResourceType,
@@ -111,7 +111,7 @@ func (c *ConfigTest) Run(t *testing.T) {
 		isValidWasRun = false
 
 		parser := config.Parser{
-			constructConfigReader(
+			Reader: constructConfigReader(
 				c.ListenerTest,
 				validatorName,
 				c.ResourceType,
@@ -161,7 +161,7 @@ func (c *ConfigTest) Run(t *testing.T) {
 		isValidWasRun = false
 
 		parser := config.Parser{
-			constructConfigReader(
+			Reader: constructConfigReader(
 				c.ListenerTest,
 				validatorName,
 				c.ResourceType,

@@ -113,13 +113,13 @@ func TestMinSessionHandlerSessionDataPreservation(t *testing.T) {
 		localCookies = append(localCookies, cookie)
 
 		/* intermediate check */
-		_, present1 := sesh1.GetValue(expectedKey)
+		_, present1 = sesh1.GetValue(expectedKey)
 		assert.Error(t, present1)
 		assert.Equal(t, present1, NoSuchSessionValueError)
 
 		expectedString := "saving data into " + cookie.Name + " cookie"
 		expectedData[expectedKey] = expectedString
-		err := sesh1.SetValue(expectedKey, expectedString)
+		err = sesh1.SetValue(expectedKey, expectedString)
 		assert.NoError(t, err)
 	}
 	sesh2, err := handler.GetSession()

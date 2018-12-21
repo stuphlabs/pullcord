@@ -15,3 +15,7 @@ pkg.cov
 
 # don't include vendor cache etc.
 /.build_gopath
+
+# don't include templated files
+/Makefile
+
