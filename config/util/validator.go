@@ -14,7 +14,7 @@ import (
 
 type validation struct {
 	unmarshalled json.Unmarshaler
-	validate    func(json.Unmarshaler) error
+	validate     func(json.Unmarshaler) error
 }
 
 func (v *validation) UnmarshalJSON(input []byte) error {
@@ -91,7 +91,7 @@ func GenerateValidator(
 		func() json.Unmarshaler {
 			return &validation{
 				unmarshalled: nil,
-				validate:    validate,
+				validate:     validate,
 			}
 		},
 	)

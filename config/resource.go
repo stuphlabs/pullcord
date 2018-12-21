@@ -26,7 +26,7 @@ const ReferenceResourceTypeName = "ref"
 // interface members instead of just non-abstracted data types.
 type Resource struct {
 	Unmarshalled json.Unmarshaler
-	complete    bool
+	complete     bool
 }
 
 // UnmarshalJSON implements encoding/json.Unmarshaler, which is the core
