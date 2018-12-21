@@ -13,8 +13,8 @@ import (
 )
 
 type validation struct {
-	unmarshaled json.Unmarshaler
-	validate    func(json.Unmarshaler) error
+	unmarshalled json.Unmarshaler
+	validate     func(json.Unmarshaler) error
 }
 
 func (v *validation) UnmarshalJSON(input []byte) error {
@@ -25,8 +25,8 @@ func (v *validation) UnmarshalJSON(input []byte) error {
 		return e
 	}
 
-	v.unmarshaled = r.Unmarshaled
-	return v.validate(v.unmarshaled)
+	v.unmarshalled = r.Unmarshalled
+	return v.validate(v.unmarshalled)
 }
 
 var responseString = `<!DOCTYPE html>
@@ -90,8 +90,8 @@ func GenerateValidator(
 		validatorName,
 		func() json.Unmarshaler {
 			return &validation{
-				unmarshaled: nil,
-				validate:    validate,
+				unmarshalled: nil,
+				validate:     validate,
 			}
 		},
 	)

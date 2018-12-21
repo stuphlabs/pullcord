@@ -41,7 +41,7 @@ func (r *ExactPathRouter) UnmarshalJSON(input []byte) error {
 
 	r.Routes = make(map[string]http.Handler)
 	for path, rsc := range t.Routes {
-		switch f := rsc.Unmarshaled.(type) {
+		switch f := rsc.Unmarshalled.(type) {
 		case http.Handler:
 			r.Routes[path] = f
 		default:
@@ -56,7 +56,7 @@ func (r *ExactPathRouter) UnmarshalJSON(input []byte) error {
 		}
 	}
 	if t.Default != nil {
-		switch f := t.Default.Unmarshaled.(type) {
+		switch f := t.Default.Unmarshalled.(type) {
 		case http.Handler:
 			r.Default = f
 		default:

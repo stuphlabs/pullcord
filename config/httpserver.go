@@ -42,12 +42,12 @@ func (s *HTTPServer) UnmarshalJSON(d []byte) error {
 	}
 
 	var ok bool
-	s.Listener, ok = t.Listener.Unmarshaled.(net.Listener)
+	s.Listener, ok = t.Listener.Unmarshalled.(net.Listener)
 	if !ok {
 		return UnexpectedResourceType
 	}
 
-	s.Handler, ok = t.Handler.Unmarshaled.(http.Handler)
+	s.Handler, ok = t.Handler.Unmarshalled.(http.Handler)
 	if !ok {
 		return UnexpectedResourceType
 	}

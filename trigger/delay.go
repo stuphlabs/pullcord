@@ -41,7 +41,7 @@ func (d *DelayTrigger) UnmarshalJSON(input []byte) error {
 		return e
 	}
 
-	dt := t.DelayedTrigger.Unmarshaled
+	dt := t.DelayedTrigger.Unmarshalled
 	switch dt := dt.(type) {
 	case Triggerrer:
 		d.DelayedTrigger = dt

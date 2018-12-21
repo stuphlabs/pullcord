@@ -39,7 +39,7 @@ func (c *CompoundTrigger) UnmarshalJSON(input []byte) error {
 	c.Triggers = make([]Triggerrer, len(t.Triggers))
 
 	for _, i := range t.Triggers {
-		th := i.Unmarshaled
+		th := i.Unmarshalled
 		switch th := th.(type) {
 		case Triggerrer:
 			c.Triggers = append(c.Triggers, th)

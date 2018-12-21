@@ -48,7 +48,7 @@ func (r *RateLimitTrigger) UnmarshalJSON(input []byte) error {
 		return e
 	}
 
-	gt := t.GuardedTrigger.Unmarshaled
+	gt := t.GuardedTrigger.Unmarshalled
 	switch gt := gt.(type) {
 	case Triggerrer:
 		r.GuardedTrigger = gt

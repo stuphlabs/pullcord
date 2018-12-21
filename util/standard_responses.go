@@ -2,7 +2,6 @@ package util
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"text/template"
@@ -40,14 +39,11 @@ func (s *StandardResponse) UnmarshalJSON(data []byte) error {
 	}
 
 	if t < MinimumStandardResponse {
-		return errors.New(
-			fmt.Sprintf(
-				"StandardResponse must be a valid HTTP status"+
-					" code (an integer greater than %d),"+
-					"but was given: %d",
-				MinimumStandardResponse,
-				t,
-			),
+		return fmt.Errorf(
+			"StandardResponse must be a valid HTTP status code (an"+
+				" integer greater than %d), but was given: %d",
+			MinimumStandardResponse,
+			t,
 		)
 	}
 
