@@ -217,7 +217,7 @@ func TestNoXsrfLoginPage(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(
 		t,
-		strings.Contains(string(content), "Invalid credentials"),
+		strings.Contains(string(content), msgInvalidCredentials),
 		"content is: "+string(content),
 	)
 }
@@ -303,7 +303,7 @@ func TestBadXsrfLoginPage(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(
 		t,
-		strings.Contains(string(content), "Invalid credentials"),
+		strings.Contains(string(content), msgInvalidCredentials),
 		"content is: "+string(content),
 	)
 }
@@ -396,7 +396,7 @@ func TestNoUsernameLoginPage(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(
 		t,
-		strings.Contains(string(content2), "Invalid credentials"),
+		strings.Contains(string(content2), msgInvalidCredentials),
 		"content is: "+string(content2),
 	)
 }
@@ -490,7 +490,7 @@ func TestNoPasswordLoginPage(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(
 		t,
-		strings.Contains(string(content2), "Invalid credentials"),
+		strings.Contains(string(content2), msgInvalidCredentials),
 		"content is: "+string(content2),
 	)
 }
@@ -685,7 +685,7 @@ func TestBadUsernameLoginPage(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(
 		t,
-		strings.Contains(string(content2), "Invalid credentials"),
+		strings.Contains(string(content2), msgInvalidCredentials),
 		"content is: "+string(content2),
 	)
 }
@@ -782,7 +782,7 @@ func TestBadPasswordLoginPage(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(
 		t,
-		strings.Contains(string(content2), "Invalid credentials"),
+		strings.Contains(string(content2), msgInvalidCredentials),
 		"content is: "+string(content2),
 	)
 }

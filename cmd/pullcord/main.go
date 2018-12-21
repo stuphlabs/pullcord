@@ -173,7 +173,7 @@ func main() {
 		}
 	}
 
-	cfgParser := config.Parser{cfgReader}
+	cfgParser := config.Parser{Reader: cfgReader}
 	server, err := cfgParser.Server()
 	if err != nil {
 		_ = log.Debug(err)
