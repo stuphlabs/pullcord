@@ -17,6 +17,8 @@ import (
 // XsrfTokenLength is the length of XSRF token strings.
 const XsrfTokenLength = 64
 
+const msgInvalidCredentials = "Invalid Credentials"
+
 // LoginHandler is a login handling system that presents a login page backed by
 // a PasswordChecker for users that are not yet logged in, while seamlessly
 // forwarding all requests downstream for users that are logged in. A
@@ -106,8 +108,9 @@ func (h *LoginHandler) ServeHTTP(
 	usernameKey := "username-" + h.Identifier
 	passwordKey := "password-" + h.Identifier
 
-	authd, err := sesh.GetValue(authSeshKey)
-	if err == nil && authd == true {
+	if authd, err := sesh.GetValue(
+		authSeshKey,
+	); err == nil && authd == true {
 		log.Debug("login handler passing request along")
 		h.Downstream.ServeHTTP(w, request)
 		return
@@ -123,8 +126,9 @@ func (h *LoginHandler) ServeHTTP(
 		return
 	}
 
-	xsrfStored, err := sesh.GetValue(xsrfKey)
-	if err != nil && err != NoSuchSessionValueError {
+	if xsrfStored, err := sesh.GetValue(
+		xsrfKey,
+	); err != nil && err != NoSuchSessionValueError {
 		log.Err(
 			fmt.Sprintf(
 				"login handler error during xsrf token"+
@@ -147,21 +151,21 @@ func (h *LoginHandler) ServeHTTP(
 	} else if xsrfRcvd, present :=
 		request.PostForm[xsrfKey]; !present {
 		log.Info("login handler did not receive xsrf token")
-		errString = "Invalid credentials"
+		errString = msgInvalidCredentials
 	} else if len(xsrfRcvd) != 1 || 1 != subtle.ConstantTimeCompare(
 		[]byte(xsrfStored.(string)),
 		[]byte(xsrfRcvd[0]),
 	) {
 		log.Info("login handler received bad xsrf token")
-		errString = "Invalid credentials"
+		errString = msgInvalidCredentials
 	} else if uVals, present :=
 		request.PostForm[usernameKey]; !present {
 		log.Info("login handler did not receive username")
-		errString = "Invalid credentials"
+		errString = msgInvalidCredentials
 	} else if pVals, present :=
 		request.PostForm[passwordKey]; !present {
 		log.Info("login handler did not receive password")
-		errString = "Invalid credentials"
+		errString = msgInvalidCredentials
 	} else if len(uVals) != 1 || len(pVals) != 1 {
 		log.Info(
 			"login handler received multi values for username or" +
@@ -173,10 +177,10 @@ func (h *LoginHandler) ServeHTTP(
 		pVals[0],
 	); err == NoSuchIdentifierError {
 		log.Info("login handler received bad username")
-		errString = "Invalid credentials"
+		errString = msgInvalidCredentials
 	} else if err == BadPasswordError {
 		log.Info("login handler received bad password")
-		errString = "Invalid credentials"
+		errString = msgInvalidCredentials
 	} else if err != nil {
 		log.Err(
 			fmt.Sprintf(
@@ -225,7 +229,7 @@ func (h *LoginHandler) ServeHTTP(
 	}
 	nextXsrfToken := hex.EncodeToString(rawXsrfToken)
 
-	if err = sesh.SetValue(xsrfKey, nextXsrfToken); err != nil {
+	if err := sesh.SetValue(xsrfKey, nextXsrfToken); err != nil {
 		log.Err(
 			fmt.Sprintf(
 				"login handler error during xsrf set: %#v",

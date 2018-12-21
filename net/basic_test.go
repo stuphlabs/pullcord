@@ -73,7 +73,9 @@ func TestBasicListenerConfig(t *testing.T) {
 }
 
 func TestBasicListenerBehavior(t *testing.T) {
-	nl, e := net.Listen("tcp", ":0")
+	var nl net.Listener
+	var e error
+	nl, e = net.Listen("tcp", ":0")
 	assert.NoError(
 		t,
 		e,
@@ -94,10 +96,10 @@ func TestBasicListenerBehavior(t *testing.T) {
 	}
 
 	defer func() {
-		e := l.Close()
+		err := l.Close()
 		assert.NoError(
 			t,
-			e,
+			err,
 			"Attempting to close a basic listener should not"+
 				" produce an error, but an error was produced.",
 		)
@@ -132,10 +134,10 @@ func TestBasicListenerBehavior(t *testing.T) {
 			close(done)
 		}(done)
 
-		c, e := l.Accept()
+		c, err := l.Accept()
 		assert.NoError(
 			t,
-			e,
+			err,
 			"Attempting to accept a connection from a valid"+
 				" basic listener should not produce an error, but an"+
 				" error was produced.",
@@ -153,10 +155,10 @@ func TestBasicListenerBehavior(t *testing.T) {
 
 		b := new(bytes.Buffer)
 
-		_, e = b.ReadFrom(c)
+		_, err = b.ReadFrom(c)
 		assert.NoError(
 			t,
-			e,
+			err,
 			"Attempting to read from an accepted connection that"+
 				" came from a valid basic listener should not"+
 				" produce an error, but an error was produced.",
@@ -174,7 +176,8 @@ func TestBasicListenerBehavior(t *testing.T) {
 		)
 	}(t, l, expected, done)
 
-	c, e := net.Dial(addr.Network(), addr.String())
+	var c net.Conn
+	c, e = net.Dial(addr.Network(), addr.String())
 	assert.NoError(
 		t,
 		e,
@@ -194,10 +197,10 @@ func TestBasicListenerBehavior(t *testing.T) {
 	}
 
 	defer func(t *testing.T, c net.Conn) {
-		e := c.Close()
+		err := c.Close()
 		assert.NoError(
 			t,
-			e,
+			err,
 			"Attempting to close a client connection to a basic"+
 				" listener should not produce an error, but an error"+
 				" was produced.",
