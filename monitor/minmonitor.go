@@ -74,7 +74,7 @@ func (s *MinMonitorredService) UnmarshalJSON(data []byte) error {
 	s.GracePeriod = g
 
 	if t.OnDown != nil {
-		d := t.OnDown.Unmarshaled
+		d := t.OnDown.Unmarshalled
 		switch d := d.(type) {
 		case trigger.Triggerrer:
 			s.OnDown = d
@@ -87,7 +87,7 @@ func (s *MinMonitorredService) UnmarshalJSON(data []byte) error {
 	}
 
 	if t.OnUp != nil {
-		u := t.OnUp.Unmarshaled
+		u := t.OnUp.Unmarshalled
 		switch u := u.(type) {
 		case trigger.Triggerrer:
 			s.OnUp = u
@@ -99,7 +99,7 @@ func (s *MinMonitorredService) UnmarshalJSON(data []byte) error {
 	}
 
 	if t.Always != nil {
-		a := t.Always.Unmarshaled
+		a := t.Always.Unmarshalled
 		switch a := a.(type) {
 		case trigger.Triggerrer:
 			s.OnDown = a

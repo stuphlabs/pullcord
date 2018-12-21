@@ -25,7 +25,7 @@ const ReferenceResourceTypeName = "ref"
 // abstraction is the key to allowing instantiation of structs which have
 // interface members instead of just non-abstracted data types.
 type Resource struct {
-	Unmarshaled json.Unmarshaler
+	Unmarshalled json.Unmarshaler
 	complete    bool
 }
 
@@ -49,7 +49,7 @@ func (rsc *Resource) UnmarshalJSON(input []byte) error {
 	}
 
 	if newRscDef.Type == "" && newRscDef.Data == nil {
-		rsc.Unmarshaled = nil
+		rsc.Unmarshalled = nil
 		rsc.complete = true
 		return nil
 	}
@@ -70,7 +70,7 @@ func (rsc *Resource) UnmarshalJSON(input []byte) error {
 		d, present := registry[name]
 		if present {
 			if d.complete {
-				rsc.Unmarshaled = d.Unmarshaled
+				rsc.Unmarshalled = d.Unmarshalled
 				rsc.complete = true
 				return nil
 			}
@@ -101,7 +101,7 @@ func (rsc *Resource) UnmarshalJSON(input []byte) error {
 	if e := json.Unmarshal(newRscDef.Data, u); e != nil {
 		return e
 	}
-	rsc.Unmarshaled = u
+	rsc.Unmarshalled = u
 	rsc.complete = true
 	return nil
 }

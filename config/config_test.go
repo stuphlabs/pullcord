@@ -162,7 +162,7 @@ func TestResourceUnmarshalJSON(t *testing.T) {
 				)
 				assert.Nil(
 					t,
-					r.Unmarshaled,
+					r.Unmarshalled,
 					"As a null Resource value could make"+
 						" sense in some circumstances,"+
 						" unmarshalling a JSON null should"+
@@ -198,7 +198,7 @@ func TestResourceUnmarshalJSON(t *testing.T) {
 				)
 				assert.Nil(
 					t,
-					r.Unmarshaled,
+					r.Unmarshalled,
 					"As a null Resource value could make"+
 						" sense in some circumstances,"+
 						" attempting to unmarshal an empty"+
@@ -354,7 +354,7 @@ func TestResourceUnmarshalJSON(t *testing.T) {
 				assert.IsType(
 					t,
 					expectedType,
-					r.Unmarshaled,
+					r.Unmarshalled,
 				)
 			},
 			[]byte("{\"type\":\"dummyType\",\"data\":{}}"),

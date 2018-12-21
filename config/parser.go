@@ -60,7 +60,7 @@ func (p Parser) Server() (pullcord.Server, error) {
 				fmt.Sprintf(
 					"Saved resource to registry: %s: %#v",
 					name,
-					r.Unmarshaled,
+					r.Unmarshalled,
 				),
 			)
 		} else {
@@ -79,14 +79,14 @@ func (p Parser) Server() (pullcord.Server, error) {
 		return nil, e
 	}
 
-	if server, ok := rserver.Unmarshaled.(pullcord.Server); ok {
+	if server, ok := rserver.Unmarshalled.(pullcord.Server); ok {
 		return server, nil
 	}
 
 	err := fmt.Errorf(
 		"not a server: %s - %#v",
 		config.Server,
-		rserver.Unmarshaled,
+		rserver.Unmarshalled,
 	)
 	log.Crit(err.Error())
 

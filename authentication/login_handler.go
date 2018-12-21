@@ -54,7 +54,7 @@ func (h *LoginHandler) UnmarshalJSON(input []byte) error {
 		return e
 	}
 
-	p := t.PasswordChecker.Unmarshaled
+	p := t.PasswordChecker.Unmarshalled
 	switch p := p.(type) {
 	case PasswordChecker:
 		h.PasswordChecker = p
@@ -68,7 +68,7 @@ func (h *LoginHandler) UnmarshalJSON(input []byte) error {
 		return config.UnexpectedResourceType
 	}
 
-	if d, ok := t.Downstream.Unmarshaled.(http.Handler); ok {
+	if d, ok := t.Downstream.Unmarshalled.(http.Handler); ok {
 		h.Downstream = d
 	} else {
 		log.Err(

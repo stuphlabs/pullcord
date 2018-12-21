@@ -63,7 +63,7 @@ func (f *CookiemaskFilter) UnmarshalJSON(input []byte) error {
 		return e
 	}
 
-	h := t.Handler.Unmarshaled
+	h := t.Handler.Unmarshalled
 	switch h := h.(type) {
 	case SessionHandler:
 		f.Handler = h
@@ -75,7 +75,7 @@ func (f *CookiemaskFilter) UnmarshalJSON(input []byte) error {
 		return config.UnexpectedResourceType
 	}
 
-	m := t.Masked.Unmarshaled
+	m := t.Masked.Unmarshalled
 	switch m := m.(type) {
 	case http.Handler:
 		f.Masked = m
