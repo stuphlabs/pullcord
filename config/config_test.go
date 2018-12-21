@@ -388,7 +388,7 @@ func TestResourceUnmarshalJSON(t *testing.T) {
 		},
 	}
 
-	RegisterResourceType("dummyType", newDummy)
+	_ = RegisterResourceType("dummyType", newDummy)
 
 	for _, v := range testData {
 		var r Resource
@@ -442,19 +442,22 @@ func TestServerFromReader(t *testing.T) {
 		reason string
 	}
 
-	RegisterResourceType(
+	var e error
+	e = RegisterResourceType(
 		"internaltesthandler",
 		func() json.Unmarshaler {
 			return new(TestHandler)
 		},
 	)
+	assert.NoError(t, e)
 
-	RegisterResourceType(
+	e = RegisterResourceType(
 		"internaltestlistener",
 		func() json.Unmarshaler {
 			return new(TestListener)
 		},
 	)
+	assert.NoError(t, e)
 
 	syntacticallyBad := []testStruct{
 		{
@@ -849,7 +852,7 @@ func TestServerFromReader(t *testing.T) {
 		},
 	}
 
-	RegisterResourceType("dummyType", newDummy)
+	_ = RegisterResourceType("dummyType", newDummy)
 
 	for _, d := range syntacticallyBad {
 		d := d

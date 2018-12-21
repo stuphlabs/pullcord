@@ -2,6 +2,7 @@ package util
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/proidiot/gone/log"
@@ -14,7 +15,7 @@ type LandingHandler struct {
 }
 
 func init() {
-	config.RegisterResourceType(
+	config.MustRegisterResourceType(
 		"landinghandler",
 		func() json.Unmarshaler {
 			return new(LandingHandler)
@@ -33,10 +34,10 @@ func (l *LandingHandler) ServeHTTP(
 	w http.ResponseWriter,
 	req *http.Request,
 ) {
-	log.Info("running landing handler")
+	_ = log.Info("running landing handler")
 
 	w.WriteHeader(200)
-	w.Write(
+	_, err := w.Write(
 		[]byte(
 			"<html><head><title>" +
 				"Pullcord Landing Page" +
@@ -53,4 +54,12 @@ func (l *LandingHandler) ServeHTTP(
 				"</p></body></html>",
 		),
 	)
+	if err != nil {
+		_ = log.Error(
+			fmt.Sprintf(
+				"error while writing landing page: %s",
+				err.Error(),
+			),
+		)
+	}
 }

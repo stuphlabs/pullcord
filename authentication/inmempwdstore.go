@@ -15,7 +15,7 @@ import (
 )
 
 func init() {
-	config.RegisterResourceType(
+	config.MustRegisterResourceType(
 		"inmempwdstore",
 		func() json.Unmarshaler {
 			return new(InMemPwdStore)

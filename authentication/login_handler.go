@@ -34,7 +34,7 @@ type LoginHandler struct {
 }
 
 func init() {
-	config.RegisterResourceType(
+	config.MustRegisterResourceType(
 		"loginhandler",
 		func() json.Unmarshaler {
 			return new(LoginHandler)
@@ -52,7 +52,7 @@ func (h *LoginHandler) UnmarshalJSON(input []byte) error {
 
 	dec := json.NewDecoder(bytes.NewReader(input))
 	if e := dec.Decode(&t); e != nil {
-		log.Err("Unable to decode LoginHandler")
+		_ = log.Err("Unable to decode LoginHandler")
 		return e
 	}
 
@@ -61,7 +61,7 @@ func (h *LoginHandler) UnmarshalJSON(input []byte) error {
 	case PasswordChecker:
 		h.PasswordChecker = p
 	default:
-		log.Err(
+		_ = log.Err(
 			fmt.Sprintf(
 				"Registry value is not a PasswordChecker: %#v",
 				t.PasswordChecker,
@@ -73,7 +73,7 @@ func (h *LoginHandler) UnmarshalJSON(input []byte) error {
 	if d, ok := t.Downstream.Unmarshaled.(http.Handler); ok {
 		h.Downstream = d
 	} else {
-		log.Err(
+		_ = log.Err(
 			fmt.Sprintf(
 				"Registry value is not a RequestFilter: %#v",
 				t.Downstream,
@@ -94,7 +94,7 @@ func (h *LoginHandler) ServeHTTP(
 	errString := ""
 	rawsesh := request.Context().Value(ctxKeySession)
 	if rawsesh == nil {
-		log.Crit(
+		_ = log.Crit(
 			"login handler was unable to retrieve session from" +
 				" context",
 		)
@@ -111,11 +111,11 @@ func (h *LoginHandler) ServeHTTP(
 	if authd, err := sesh.GetValue(
 		authSeshKey,
 	); err == nil && authd == true {
-		log.Debug("login handler passing request along")
+		_ = log.Debug("login handler passing request along")
 		h.Downstream.ServeHTTP(w, request)
 		return
 	} else if err != NoSuchSessionValueError {
-		log.Err(
+		_ = log.Err(
 			fmt.Sprintf(
 				"login handler error during auth status"+
 					" retrieval: %v",
@@ -129,7 +129,7 @@ func (h *LoginHandler) ServeHTTP(
 	if xsrfStored, err := sesh.GetValue(
 		xsrfKey,
 	); err != nil && err != NoSuchSessionValueError {
-		log.Err(
+		_ = log.Err(
 			fmt.Sprintf(
 				"login handler error during xsrf token"+
 					" retrieval: %v",
@@ -139,35 +139,40 @@ func (h *LoginHandler) ServeHTTP(
 		util.InternalServerError.ServeHTTP(w, request)
 		return
 	} else if err == NoSuchSessionValueError {
-		log.Info("login handler received new request")
+		_ = log.Info("login handler received new request")
 	} else if err = request.ParseForm(); err != nil {
-		log.Warning(
+		err = log.Warning(
 			fmt.Sprintf(
 				"login handler error during ParseForm: %#v",
 				err,
 			),
 		)
+		if err != nil {
+			// this is too suspicious
+			util.Forbidden.ServeHTTP(w, request)
+			return
+		}
 		errString = "Bad request"
 	} else if xsrfRcvd, present :=
 		request.PostForm[xsrfKey]; !present {
-		log.Info("login handler did not receive xsrf token")
+		_ = log.Info("login handler did not receive xsrf token")
 		errString = msgInvalidCredentials
 	} else if len(xsrfRcvd) != 1 || 1 != subtle.ConstantTimeCompare(
 		[]byte(xsrfStored.(string)),
 		[]byte(xsrfRcvd[0]),
 	) {
-		log.Info("login handler received bad xsrf token")
+		_ = log.Info("login handler received bad xsrf token")
 		errString = msgInvalidCredentials
 	} else if uVals, present :=
 		request.PostForm[usernameKey]; !present {
-		log.Info("login handler did not receive username")
+		_ = log.Info("login handler did not receive username")
 		errString = msgInvalidCredentials
 	} else if pVals, present :=
 		request.PostForm[passwordKey]; !present {
-		log.Info("login handler did not receive password")
+		_ = log.Info("login handler did not receive password")
 		errString = msgInvalidCredentials
 	} else if len(uVals) != 1 || len(pVals) != 1 {
-		log.Info(
+		_ = log.Info(
 			"login handler received multi values for username or" +
 				" password",
 		)
@@ -176,13 +181,13 @@ func (h *LoginHandler) ServeHTTP(
 		uVals[0],
 		pVals[0],
 	); err == NoSuchIdentifierError {
-		log.Info("login handler received bad username")
+		_ = log.Info("login handler received bad username")
 		errString = msgInvalidCredentials
 	} else if err == BadPasswordError {
-		log.Info("login handler received bad password")
+		_ = log.Info("login handler received bad password")
 		errString = msgInvalidCredentials
 	} else if err != nil {
-		log.Err(
+		_ = log.Err(
 			fmt.Sprintf(
 				"login handler error during CheckPassword: %#v",
 				err,
@@ -191,7 +196,7 @@ func (h *LoginHandler) ServeHTTP(
 		util.InternalServerError.ServeHTTP(w, request)
 		return
 	} else if err = sesh.SetValue(authSeshKey, true); err != nil {
-		log.Err(
+		_ = log.Err(
 			fmt.Sprintf(
 				"login handler error during auth set: %#v",
 				err,
@@ -200,12 +205,16 @@ func (h *LoginHandler) ServeHTTP(
 		util.InternalServerError.ServeHTTP(w, request)
 		return
 	} else {
-		log.Notice(
+		err = log.Notice(
 			fmt.Sprintf(
 				"login successful for: %s",
 				uVals[0],
 			),
 		)
+		if err != nil {
+			util.InternalServerError.ServeHTTP(w, request)
+			return
+		}
 		h.Downstream.ServeHTTP(w, request)
 		return
 	}
@@ -214,7 +223,7 @@ func (h *LoginHandler) ServeHTTP(
 	if rsize, err := rand.Read(
 		rawXsrfToken[:],
 	); err != nil || rsize != XsrfTokenLength {
-		log.Err(
+		_ = log.Err(
 			fmt.Sprintf(
 				"login handler error during xsrf generation:"+
 					" len expected: %d, actual: %d,"+
@@ -230,7 +239,7 @@ func (h *LoginHandler) ServeHTTP(
 	nextXsrfToken := hex.EncodeToString(rawXsrfToken)
 
 	if err := sesh.SetValue(xsrfKey, nextXsrfToken); err != nil {
-		log.Err(
+		_ = log.Err(
 			fmt.Sprintf(
 				"login handler error during xsrf set: %#v",
 				err,
@@ -248,7 +257,7 @@ func (h *LoginHandler) ServeHTTP(
 		)
 	}
 
-	fmt.Fprintf(
+	_, err := fmt.Fprintf(
 		w,
 		"<html><head><title>Pullcord Login</title></head><body>"+
 			"<form method=\"POST\" action=\"%s\"><fieldset>"+
@@ -267,5 +276,14 @@ func (h *LoginHandler) ServeHTTP(
 		xsrfKey,
 		nextXsrfToken,
 	)
+	if err != nil {
+		_ = log.Error(
+			fmt.Sprintf(
+				"Unable to write login form: %s",
+				err.Error(),
+			),
+		)
+		util.InternalServerError.ServeHTTP(w, request)
+	}
 	return
 }

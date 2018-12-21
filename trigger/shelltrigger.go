@@ -20,7 +20,7 @@ type ShellTriggerrer struct {
 }
 
 func init() {
-	config.RegisterResourceType(
+	config.MustRegisterResourceType(
 		"shelltrigger",
 		func() json.Unmarshaler {
 			return new(ShellTriggerrer)
@@ -54,19 +54,19 @@ func (s *ShellTriggerrer) UnmarshalJSON(input []byte) error {
 // Trigger will execute the given command with the given args using the system
 // shell.
 func (s *ShellTriggerrer) Trigger() (err error) {
-	log.Debug("shelltrigger running trigger")
+	_ = log.Debug("shelltrigger running trigger")
 	cmd := exec.Command(s.Command, s.Args...)
 	var stdout bytes.Buffer
 	cmd.Stdout = &stdout
 	err = cmd.Run()
-	log.Debug(
+	_ = log.Debug(
 		fmt.Sprintf(
 			"shelltrigger command wrote to stdout: %s",
 			stdout.String(),
 		),
 	)
 	if err != nil {
-		log.Err(
+		_ = log.Err(
 			fmt.Sprintf(
 				"shelltrigger failed during trigger: %v",
 				err,
@@ -75,7 +75,7 @@ func (s *ShellTriggerrer) Trigger() (err error) {
 		return err
 	}
 
-	log.Info("shelltrigger trigger sent")
+	_ = log.Info("shelltrigger trigger sent")
 	return nil
 }
 
@@ -89,8 +89,8 @@ func NewShellTriggerrer(
 	command string,
 	args []string,
 ) *ShellTriggerrer {
-	log.Info("initializing shell trigger handler")
-	log.Debug(
+	_ = log.Info("initializing shell trigger handler")
+	_ = log.Debug(
 		fmt.Sprintf(
 			"shelltrigger will run command: %s %v",
 			command,

@@ -15,6 +15,7 @@ import (
 
 	"github.com/dustin/randbo"
 	"github.com/proidiot/gone/errors"
+	"github.com/proidiot/gone/log"
 	"github.com/stretchr/testify/assert"
 	configutil "github.com/stuphlabs/pullcord/config/util"
 	"github.com/stuphlabs/pullcord/util"
@@ -37,21 +38,70 @@ var cookieMaskTestPage = (http.HandlerFunc)(func(
 	req *http.Request,
 ) {
 	w.WriteHeader(200)
-	io.WriteString(w, "<html><body><h1>cookies</h1><ul>")
-	for _, cke := range req.Cookies() {
-		fmt.Fprintf(w, "<li class=\"cke\">%s</li>", cke.String())
+	_, err := io.WriteString(w, "<html><body><h1>cookies</h1><ul>")
+	if err != nil {
+		_ = log.Error(
+			fmt.Sprintf(
+				"error during cookiemask_test while writing"+
+					" top of page: %s",
+				err.Error(),
+			),
+		)
 	}
-	io.WriteString(w, "</ul><h1>context</h1><ul>")
+	for _, cke := range req.Cookies() {
+		_, err = fmt.Fprintf(
+			w,
+			"<li class=\"cke\">%s</li>",
+			cke.String(),
+		)
+		if err != nil {
+			_ = log.Error(
+				fmt.Sprintf(
+					"error during cookiemask_test while"+
+						" writing unmasked cookies: %s",
+					err.Error(),
+				),
+			)
+		}
+	}
+	_, err = io.WriteString(w, "</ul><h1>context</h1><ul>")
+	if err != nil {
+		_ = log.Error(
+			fmt.Sprintf(
+				"error during cookiemask_test while writing"+
+					" middle of page: %s",
+				err.Error(),
+			),
+		)
+	}
 	sesh := req.Context().Value(ctxKeySession).(*MinSession)
 	for key, val := range sesh.GetValues() {
-		fmt.Fprintf(
+		_, err = fmt.Fprintf(
 			w,
 			"<li class=\"sesh\">%s: %s</li>",
 			key,
 			gostring(val),
 		)
+		if err != nil {
+			_ = log.Error(
+				fmt.Sprintf(
+					"error during cookiemask_test while"+
+						" writing session vals: %s",
+					err.Error(),
+				),
+			)
+		}
 	}
-	io.WriteString(w, "</ul></body></html>")
+	_, err = io.WriteString(w, "</ul></body></html>")
+	if err != nil {
+		_ = log.Error(
+			fmt.Sprintf(
+				"error during cookiemask_test while writing"+
+					" bottom of page: %s",
+				err.Error(),
+			),
+		)
+	}
 })
 
 // testCookieGen is a testing helper function that generates a randomized
@@ -61,8 +111,38 @@ var cookieMaskTestPage = (http.HandlerFunc)(func(
 func testCookieGen(variant string) (result http.Cookie) {
 	nbytes := make([]byte, minSessionCookieNameRandSize)
 	vbytes := make([]byte, minSessionCookieValueRandSize)
-	randgen.Read(nbytes)
-	randgen.Read(vbytes)
+	_, err := randgen.Read(nbytes)
+	if err != nil {
+		err = log.Crit(
+			fmt.Sprintf(
+				"Unable to read random nbytes during"+
+					" cookiemask_test: %s",
+				err.Error(),
+			),
+		)
+		if err != nil {
+			// if we can't raise this flag during tests, that is
+			// cause to panic
+			panic(err)
+		}
+		return http.Cookie{}
+	}
+	_, err = randgen.Read(vbytes)
+	if err != nil {
+		err = log.Crit(
+			fmt.Sprintf(
+				"Unable to read random vbytes during"+
+					" cookiemask_test: %s",
+				err.Error(),
+			),
+		)
+		if err != nil {
+			// if we can't raise this flag during tests, that is
+			// cause to panic
+			panic(err)
+		}
+		return http.Cookie{}
+	}
 	result.Name = variant + "-" + hex.EncodeToString(nbytes)
 	result.Value = hex.EncodeToString(vbytes)
 	return result

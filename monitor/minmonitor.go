@@ -43,7 +43,7 @@ type MinMonitorredService struct {
 }
 
 func init() {
-	config.RegisterResourceType(
+	config.MustRegisterResourceType(
 		"minmonitorredservice",
 		func() json.Unmarshaler {
 			return new(MinMonitorredService)
@@ -174,7 +174,7 @@ func (monitor *MinMonitor) Add(
 ) (err error) {
 	osvc, previousEntryExists := monitor.table[name]
 	if previousEntryExists {
-		log.Err(
+		_ = log.Err(
 			fmt.Sprintf(
 				"minmonitor cannot add service: name \"%s\""+
 					" previously used for service at"+
@@ -194,7 +194,7 @@ func (monitor *MinMonitor) Add(
 
 	monitor.table[name] = service
 
-	log.Info(
+	_ = log.Info(
 		fmt.Sprintf(
 			"minmonitor has successfully added service: \"%s\"",
 			name,
@@ -209,7 +209,7 @@ func (monitor *MinMonitor) Add(
 func (monitor *MinMonitor) Reprobe(name string) (up bool, err error) {
 	s, entryExists := monitor.table[name]
 	if !entryExists {
-		log.Err(
+		_ = log.Err(
 			fmt.Sprintf(
 				"minmonitor cannot probe unknown service:"+
 					" \"%s\"",
@@ -248,7 +248,7 @@ func (s *MinMonitorredService) Reprobe() (up bool, err error) {
 		switch castErr := err.(type) {
 		case *net.OpError:
 			if castErr.Addr != nil {
-				log.Info(
+				_ = log.Info(
 					fmt.Sprintf(
 						"minmonitor received a"+
 							" connection refused"+
@@ -262,7 +262,7 @@ func (s *MinMonitorredService) Reprobe() (up bool, err error) {
 				return false, nil
 			}
 
-			log.Warning(
+			_ = log.Warning(
 				fmt.Sprintf(
 					"minmonitor encountered an error while"+
 						" probing \"%s\": %v",
@@ -273,7 +273,7 @@ func (s *MinMonitorredService) Reprobe() (up bool, err error) {
 
 			return false, err
 		default:
-			log.Warning(
+			_ = log.Warning(
 				fmt.Sprintf(
 					"minmonitor encountered an unknown"+
 						" error while probing"+
@@ -286,10 +286,12 @@ func (s *MinMonitorredService) Reprobe() (up bool, err error) {
 			return false, err
 		}
 	} else {
-		defer conn.Close()
+		defer func() {
+			_ = conn.Close()
+		}()
 		s.up = true
 
-		log.Info(
+		_ = log.Info(
 			fmt.Sprintf(
 				"minmonitor successfully probed: \"%s\"",
 				s.URL.String(),
@@ -314,7 +316,7 @@ func (s *MinMonitorredService) Reprobe() (up bool, err error) {
 func (monitor *MinMonitor) Status(name string) (up bool, err error) {
 	s, entryExists := monitor.table[name]
 	if !entryExists {
-		log.Err(
+		_ = log.Err(
 			fmt.Sprintf(
 				"minmonitor cannot probe unknown service:"+
 					" \"%s\"",
@@ -343,7 +345,7 @@ func (s *MinMonitorredService) Status() (up bool, err error) {
 	if (!s.up) || time.Now().After(
 		s.lastChecked.Add(s.GracePeriod),
 	) {
-		log.Info(
+		_ = log.Info(
 			fmt.Sprintf(
 				"minmonitor must reprobe as either the grace"+
 					" period has lapsed or the previous"+
@@ -356,7 +358,7 @@ func (s *MinMonitorredService) Status() (up bool, err error) {
 		return s.Reprobe()
 	}
 
-	log.Info(
+	_ = log.Info(
 		fmt.Sprintf(
 			"minmonitor is skipping the reprobe as the current"+
 				" time is still within the grace period of the"+
@@ -373,7 +375,7 @@ func (s *MinMonitorredService) Status() (up bool, err error) {
 func (monitor *MinMonitor) SetStatusUp(name string) (err error) {
 	s, entryExists := monitor.table[name]
 	if !entryExists {
-		log.Err(
+		_ = log.Err(
 			fmt.Sprintf(
 				"minmonitor cannot set the status of unknown"+
 					" service: \"%s\"",
@@ -390,7 +392,7 @@ func (monitor *MinMonitor) SetStatusUp(name string) (err error) {
 // SetStatusUp explicitly sets the status of the service as being up. This up
 // status will be cached just as if it were the result of a normal probe.
 func (s *MinMonitorredService) SetStatusUp() error {
-	log.Info(
+	_ = log.Info(
 		fmt.Sprintf(
 			"minmonitor has been explicitly informed of the up"+
 				" status of: \"%s\"",
@@ -413,7 +415,7 @@ func (monitor *MinMonitor) NewMinMonitorFilter(
 ) (http.Handler, error) {
 	s, serviceExists := monitor.table[name]
 	if !serviceExists {
-		log.Err(
+		_ = log.Err(
 			fmt.Sprintf(
 				"minmonitor cannot create a request filter"+
 					" for unknown service: \"%s\"",
@@ -431,11 +433,11 @@ func (s *MinMonitorredService) ServeHTTP(
 	w http.ResponseWriter,
 	req *http.Request,
 ) {
-	log.Debug("running minmonitor filter")
+	_ = log.Debug("running minmonitor filter")
 
 	up, err := s.Status()
 	if err != nil {
-		log.Warning(
+		_ = log.Warning(
 			fmt.Sprintf(
 				"minmonitor filter received an error"+
 					" while requesting the status for"+
@@ -445,7 +447,7 @@ func (s *MinMonitorredService) ServeHTTP(
 			),
 		)
 		w.WriteHeader(500)
-		fmt.Fprint(
+		_, err = fmt.Fprint(
 			w,
 			"<html><head><title>Pullcord - Internal"+
 				" Server Error</title></head><body><h1>"+
@@ -455,13 +457,22 @@ func (s *MinMonitorredService) ServeHTTP(
 				" problem persists, the site administrator"+
 				" should be contacted.</p></body></html>",
 		)
+		if err != nil {
+			_ = log.Error(
+				fmt.Sprintf(
+					"error writing page after error with"+
+						" monitor status: %s",
+					err.Error(),
+				),
+			)
+		}
 		return
 	}
 
 	if s.Always != nil {
 		err = s.Always.Trigger()
 		if err != nil {
-			log.Warning(
+			_ = log.Warning(
 				fmt.Sprintf(
 					"minmonitor filter received"+
 						" an error while running the"+
@@ -472,7 +483,7 @@ func (s *MinMonitorredService) ServeHTTP(
 				),
 			)
 			w.WriteHeader(500)
-			fmt.Fprint(
+			_, err = fmt.Fprint(
 				w,
 				"<html><head><title>Pullcord -"+
 					" Internal Server Error</title>"+
@@ -485,6 +496,16 @@ func (s *MinMonitorredService) ServeHTTP(
 					" should be contacted.</p></body>"+
 					"</html>",
 			)
+			if err != nil {
+				_ = log.Error(
+					fmt.Sprintf(
+						"error writing page after"+
+							" error with always"+
+							" trigger: %s",
+						err.Error(),
+					),
+				)
+			}
 			return
 		}
 	}
@@ -493,7 +514,7 @@ func (s *MinMonitorredService) ServeHTTP(
 		if s.OnUp != nil {
 			err = s.OnUp.Trigger()
 			if err != nil {
-				log.Warning(
+				_ = log.Warning(
 					fmt.Sprintf(
 						"minmonitor filter"+
 							" received an error"+
@@ -505,7 +526,7 @@ func (s *MinMonitorredService) ServeHTTP(
 					),
 				)
 				w.WriteHeader(500)
-				fmt.Fprint(
+				_, err = fmt.Fprint(
 					w,
 					"<html><head><title>Pullcord"+
 						" - Internal Server Error"+
@@ -519,11 +540,22 @@ func (s *MinMonitorredService) ServeHTTP(
 						" administrator should be"+
 						" contacted.</p></body></html>",
 				)
+				if err != nil {
+					_ = log.Error(
+						fmt.Sprintf(
+							"error writing page"+
+								" after error"+
+								" with onup"+
+								" trigger: %s",
+							err.Error(),
+						),
+					)
+				}
 				return
 			}
 		}
 
-		log.Debug("minmonitor filter passthru")
+		_ = log.Debug("minmonitor filter passthru")
 		s.passthru.ServeHTTP(w, req)
 		return
 	}
@@ -531,7 +563,7 @@ func (s *MinMonitorredService) ServeHTTP(
 	if s.OnDown != nil {
 		err = s.OnDown.Trigger()
 		if err != nil {
-			log.Warning(
+			_ = log.Warning(
 				fmt.Sprintf(
 					"minmonitor filter received"+
 						" an error while running the"+
@@ -541,7 +573,7 @@ func (s *MinMonitorredService) ServeHTTP(
 				),
 			)
 			w.WriteHeader(500)
-			fmt.Fprint(
+			_, err = fmt.Fprint(
 				w,
 				"<html><head><title>Pullcord -"+
 					" Internal Server Error</title>"+
@@ -554,11 +586,21 @@ func (s *MinMonitorredService) ServeHTTP(
 					" should be contacted.</p></body>"+
 					"</html>",
 			)
+			if err != nil {
+				_ = log.Error(
+					fmt.Sprintf(
+						"error writing page after"+
+							" error with ondown"+
+							" trigger: %s",
+						err.Error(),
+					),
+				)
+			}
 			return
 		}
 	}
 
-	log.Info(
+	_ = log.Info(
 		fmt.Sprintf(
 			"minmonitor filter has reached a down"+
 				" service (\"%s\"), but any triggers have"+
@@ -567,7 +609,7 @@ func (s *MinMonitorredService) ServeHTTP(
 		),
 	)
 	w.WriteHeader(503)
-	fmt.Fprint(
+	_, err = fmt.Fprint(
 		w,
 		"<html><head><title>Pullcord - Service Not Ready"+
 			"</title></head><body><h1>Pullcord - Service Not"+
@@ -578,12 +620,20 @@ func (s *MinMonitorredService) ServeHTTP(
 			" would like further information, please contact the"+
 			" site administrator.</p></body></html>",
 	)
+	if err != nil {
+		_ = log.Error(
+			fmt.Sprintf(
+				"error writing page after status down: %s",
+				err.Error(),
+			),
+		)
+	}
 	return
 }
 
 // NewMinMonitor constructs a new MinMonitor.
 func NewMinMonitor() *MinMonitor {
-	log.Info("initializing minimal service monitor")
+	_ = log.Info("initializing minimal service monitor")
 
 	var result MinMonitor
 	result.table = make(map[string]*MinMonitorredService)

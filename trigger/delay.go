@@ -21,7 +21,7 @@ type DelayTrigger struct {
 }
 
 func init() {
-	config.RegisterResourceType(
+	config.MustRegisterResourceType(
 		"delaytrigger",
 		func() json.Unmarshaler {
 			return new(DelayTrigger)
@@ -46,7 +46,7 @@ func (d *DelayTrigger) UnmarshalJSON(input []byte) error {
 	case Triggerrer:
 		d.DelayedTrigger = dt
 	default:
-		log.Err(
+		_ = log.Err(
 			fmt.Sprintf(
 				"Registry value is not a Trigger: %s",
 				dt,
@@ -96,7 +96,7 @@ func delaytrigger(
 			tmr.Reset(dla)
 		case <-tmr.C:
 			if err := tr.Trigger(); err != nil {
-				log.Err(
+				_ = log.Err(
 					fmt.Sprintf(
 						"delaytrigger received an"+
 							" error: %#v",

@@ -29,7 +29,7 @@ func (p Parser) Server() (pullcord.Server, error) {
 	registry = make(map[string]*Resource)
 
 	if e := dec.Decode(&config); e != nil {
-		log.Crit(
+		_ = log.Crit(
 			fmt.Sprintf(
 				"Unable to decode resource: %#v",
 				e,
@@ -40,9 +40,9 @@ func (p Parser) Server() (pullcord.Server, error) {
 
 	unregisterredResources = config.Resources
 	for name := range config.Resources {
-		log.Debug(fmt.Sprintf("Assessing resource: %s", name))
+		_ = log.Debug(fmt.Sprintf("Assessing resource: %s", name))
 		if _, present := registry[name]; !present {
-			log.Debug(
+			_ = log.Debug(
 				fmt.Sprintf(
 					"Resource does not already exist in"+
 						" the registry: %s",
@@ -56,7 +56,7 @@ func (p Parser) Server() (pullcord.Server, error) {
 			}
 
 			r.complete = true
-			log.Debug(
+			_ = log.Debug(
 				fmt.Sprintf(
 					"Saved resource to registry: %s: %#v",
 					name,
@@ -64,7 +64,7 @@ func (p Parser) Server() (pullcord.Server, error) {
 				),
 			)
 		} else {
-			log.Debug(
+			_ = log.Debug(
 				fmt.Sprintf(
 					"Resource already exists in the"+
 						" registry: %s",
@@ -88,7 +88,7 @@ func (p Parser) Server() (pullcord.Server, error) {
 		config.Server,
 		rserver.Unmarshaled,
 	)
-	log.Crit(err.Error())
+	_ = log.Crit(err.Error())
 
 	return nil, err
 }

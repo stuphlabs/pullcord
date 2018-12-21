@@ -57,7 +57,7 @@ func (s *HTTPServer) UnmarshalJSON(d []byte) error {
 
 // Serve implements .../pullcord.Server.
 func (s *HTTPServer) Serve() error {
-	log.Debug(
+	_ = log.Debug(
 		fmt.Sprintf(
 			"Serving with listener %#v and handler %#v",
 			s.Listener,
@@ -65,12 +65,17 @@ func (s *HTTPServer) Serve() error {
 		),
 	)
 
-	log.Notice(fmt.Sprintf("Starting server at %s...", s.Listener.Addr()))
-	return http.Serve(s.Listener, s.Handler)
+	e := log.Notice(
+		fmt.Sprintf("Starting server at %s...", s.Listener.Addr()),
+	)
+	if e != nil {
+		e = http.Serve(s.Listener, s.Handler)
+	}
+	return e
 }
 
 // Close implements .../pullcord.Server.
 func (s *HTTPServer) Close() error {
-	log.Info(fmt.Sprintf("Closing server at %s...", s.Listener.Addr()))
+	_ = log.Info(fmt.Sprintf("Closing server at %s...", s.Listener.Addr()))
 	return s.Listener.Close()
 }

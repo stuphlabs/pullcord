@@ -3,6 +3,7 @@ package authentication
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -11,6 +12,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/proidiot/gone/log"
 	"github.com/stretchr/testify/assert"
 	configutil "github.com/stuphlabs/pullcord/config/util"
 
@@ -74,7 +76,19 @@ func TestInitialLoginPage(t *testing.T) {
 		w http.ResponseWriter,
 		r *http.Request,
 	) {
-		io.WriteString(w, "<html><body><p>logged in</p></body></html>")
+		_, err := io.WriteString(
+			w,
+			"<html><body><p>logged in</p></body></html>",
+		)
+		if err != nil {
+			_ = log.Error(
+				fmt.Sprintf(
+					"error during login_handler_test while"+
+						" writing from downstream: %s",
+					err.Error(),
+				),
+			)
+		}
 	})
 	sessionHandler := NewMinSessionHandler(
 		"testSessionHandler",
@@ -132,7 +146,19 @@ func TestNoXsrfLoginPage(t *testing.T) {
 		w http.ResponseWriter,
 		r *http.Request,
 	) {
-		io.WriteString(w, "<html><body><p>logged in</p></body></html>")
+		_, err := io.WriteString(
+			w,
+			"<html><body><p>logged in</p></body></html>",
+		)
+		if err != nil {
+			_ = log.Error(
+				fmt.Sprintf(
+					"error during login_handler_test while"+
+						" writing from downstream: %s",
+					err.Error(),
+				),
+			)
+		}
 	})
 	sessionHandler := NewMinSessionHandler(
 		"testSessionHandler",
@@ -205,7 +231,19 @@ func TestBadXsrfLoginPage(t *testing.T) {
 		w http.ResponseWriter,
 		r *http.Request,
 	) {
-		io.WriteString(w, "<html><body><p>logged in</p></body></html>")
+		_, err := io.WriteString(
+			w,
+			"<html><body><p>logged in</p></body></html>",
+		)
+		if err != nil {
+			_ = log.Error(
+				fmt.Sprintf(
+					"error during login_handler_test while"+
+						" writing from downstream: %s",
+					err.Error(),
+				),
+			)
+		}
 	})
 	sessionHandler := NewMinSessionHandler(
 		"testSessionHandler",
@@ -279,7 +317,19 @@ func TestNoUsernameLoginPage(t *testing.T) {
 		w http.ResponseWriter,
 		r *http.Request,
 	) {
-		io.WriteString(w, "<html><body><p>logged in</p></body></html>")
+		_, err := io.WriteString(
+			w,
+			"<html><body><p>logged in</p></body></html>",
+		)
+		if err != nil {
+			_ = log.Error(
+				fmt.Sprintf(
+					"error during login_handler_test while"+
+						" writing from downstream: %s",
+					err.Error(),
+				),
+			)
+		}
 	})
 	sessionHandler := NewMinSessionHandler(
 		"testSessionHandler",
@@ -360,7 +410,19 @@ func TestNoPasswordLoginPage(t *testing.T) {
 		w http.ResponseWriter,
 		r *http.Request,
 	) {
-		io.WriteString(w, "<html><body><p>logged in</p></body></html>")
+		_, err := io.WriteString(
+			w,
+			"<html><body><p>logged in</p></body></html>",
+		)
+		if err != nil {
+			_ = log.Error(
+				fmt.Sprintf(
+					"error during login_handler_test while"+
+						" writing from downstream: %s",
+					err.Error(),
+				),
+			)
+		}
 	})
 	sessionHandler := NewMinSessionHandler(
 		"testSessionHandler",
@@ -442,7 +504,19 @@ func TestUsernameArrayLoginPage(t *testing.T) {
 		w http.ResponseWriter,
 		r *http.Request,
 	) {
-		io.WriteString(w, "<html><body><p>logged in</p></body></html>")
+		_, err := io.WriteString(
+			w,
+			"<html><body><p>logged in</p></body></html>",
+		)
+		if err != nil {
+			_ = log.Error(
+				fmt.Sprintf(
+					"error during login_handler_test while"+
+						" writing from downstream: %s",
+					err.Error(),
+				),
+			)
+		}
 	})
 	sessionHandler := NewMinSessionHandler(
 		"testSessionHandler",
@@ -528,7 +602,19 @@ func TestBadUsernameLoginPage(t *testing.T) {
 		w http.ResponseWriter,
 		r *http.Request,
 	) {
-		io.WriteString(w, "<html><body><p>logged in</p></body></html>")
+		_, err := io.WriteString(
+			w,
+			"<html><body><p>logged in</p></body></html>",
+		)
+		if err != nil {
+			_ = log.Error(
+				fmt.Sprintf(
+					"error during login_handler_test while"+
+						" writing from downstream: %s",
+					err.Error(),
+				),
+			)
+		}
 	})
 	sessionHandler := NewMinSessionHandler(
 		"testSessionHandler",
@@ -613,7 +699,19 @@ func TestBadPasswordLoginPage(t *testing.T) {
 		w http.ResponseWriter,
 		r *http.Request,
 	) {
-		io.WriteString(w, "<html><body><p>logged in</p></body></html>")
+		_, err := io.WriteString(
+			w,
+			"<html><body><p>logged in</p></body></html>",
+		)
+		if err != nil {
+			_ = log.Error(
+				fmt.Sprintf(
+					"error during login_handler_test while"+
+						" writing from downstream: %s",
+					err.Error(),
+				),
+			)
+		}
 	})
 	sessionHandler := NewMinSessionHandler(
 		"testSessionHandler",
@@ -698,7 +796,19 @@ func TestGoodLoginPage(t *testing.T) {
 		w http.ResponseWriter,
 		r *http.Request,
 	) {
-		io.WriteString(w, "<html><body><p>logged in</p></body></html>")
+		_, err := io.WriteString(
+			w,
+			"<html><body><p>logged in</p></body></html>",
+		)
+		if err != nil {
+			_ = log.Error(
+				fmt.Sprintf(
+					"error during login_handler_test while"+
+						" writing from downstream: %s",
+					err.Error(),
+				),
+			)
+		}
 	})
 	sessionHandler := NewMinSessionHandler(
 		"testSessionHandler",
@@ -783,7 +893,19 @@ func TestPassthruLoginPage(t *testing.T) {
 		w http.ResponseWriter,
 		r *http.Request,
 	) {
-		io.WriteString(w, "<html><body><p>logged in</p></body></html>")
+		_, err := io.WriteString(
+			w,
+			"<html><body><p>logged in</p></body></html>",
+		)
+		if err != nil {
+			_ = log.Error(
+				fmt.Sprintf(
+					"error during login_handler_test while"+
+						" writing from downstream: %s",
+					err.Error(),
+				),
+			)
+		}
 	})
 	sessionHandler := NewMinSessionHandler(
 		"testSessionHandler",

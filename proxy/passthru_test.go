@@ -58,7 +58,9 @@ func TestPassthru(t *testing.T) {
 
 	u, s, err := getLandingResponder(t)
 	assert.NoError(t, err)
-	defer s.Close()
+	defer func() {
+		_ = s.Close()
+	}()
 
 	passthru := NewPassthruFilter(u)
 

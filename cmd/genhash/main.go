@@ -44,7 +44,7 @@ func main() {
 	iterations := uint16(rawIterations)
 
 	if password == "" {
-		fmt.Fprintf(os.Stderr, "Password: ")
+		_, _ = fmt.Fprintf(os.Stderr, "Password: ")
 
 		_, err := fmt.Scanf("%s\n", &password)
 		if err != nil {

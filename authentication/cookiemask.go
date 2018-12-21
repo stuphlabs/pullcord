@@ -43,7 +43,7 @@ type CookiemaskFilter struct {
 }
 
 func init() {
-	config.RegisterResourceType(
+	config.MustRegisterResourceType(
 		"cookiemaskfilter",
 		func() json.Unmarshaler {
 			return new(CookiemaskFilter)
@@ -68,7 +68,7 @@ func (f *CookiemaskFilter) UnmarshalJSON(input []byte) error {
 	case SessionHandler:
 		f.Handler = h
 	default:
-		log.Err(
+		_ = log.Err(
 			"Resource described by \"Handler\" is not a" +
 				" SessionHandler",
 		)
@@ -80,7 +80,7 @@ func (f *CookiemaskFilter) UnmarshalJSON(input []byte) error {
 	case http.Handler:
 		f.Masked = m
 	default:
-		log.Err(
+		_ = log.Err(
 			"Resource described by \"Masked\" is not a" +
 				" net/http.Handler",
 		)
@@ -153,14 +153,14 @@ func (f *CookiemaskFilter) ServeHTTP(
 	w http.ResponseWriter,
 	req *http.Request,
 ) {
-	log.Debug("running cookiemask filter")
+	_ = log.Debug("running cookiemask filter")
 
 	//TODO remove
-	log.Debug(fmt.Sprintf("handler is: %v", f))
+	_ = log.Debug(fmt.Sprintf("handler is: %v", f))
 
 	sesh, err := f.Handler.GetSession()
 	if err != nil {
-		log.Err(
+		_ = log.Err(
 			fmt.Sprintf(
 				"cookiemask filter was unable to get"+
 					" a new session from the session"+
@@ -174,7 +174,7 @@ func (f *CookiemaskFilter) ServeHTTP(
 	}
 
 	// TODO remove
-	log.Debug(fmt.Sprintf("sesh is: %v", sesh))
+	_ = log.Debug(fmt.Sprintf("sesh is: %v", sesh))
 
 	req = req.WithContext(
 		context.WithValue(req.Context(), ctxKeySession, sesh),
@@ -197,7 +197,7 @@ func (f *CookiemaskFilter) ServeHTTP(
 	defer ca.writeTrailers()
 
 	if err != nil {
-		log.Err(
+		_ = log.Err(
 			fmt.Sprintf(
 				"cookiemask filter's call to the"+
 					" session handler's CookieMask"+
@@ -210,7 +210,7 @@ func (f *CookiemaskFilter) ServeHTTP(
 		return
 	}
 
-	log.Info(
+	_ = log.Info(
 		"request has run through cookiemask, now forwarding to next" +
 			" filter",
 	)
