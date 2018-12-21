@@ -1028,7 +1028,7 @@ func TestCookiemaskFromConfig(t *testing.T) {
 				c = i
 			default:
 				return fmt.Errorf(
-					"Expecting unmarsheled resource to be"+
+					"Expecting unmarshalled resource to be"+
 						" a cookiemaskfilter, but"+
 						" instead got: %v",
 					i,

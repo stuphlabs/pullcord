@@ -168,7 +168,7 @@ func TestInMemPwdStoreFromConfig(t *testing.T) {
 				// do nothing
 			default:
 				return fmt.Errorf(
-					"Expecting unmarsheled resource to be"+
+					"Expecting unmarshalled resource to be"+
 						" a inmempwdstore, but instead"+
 						" got: %v",
 					i,
