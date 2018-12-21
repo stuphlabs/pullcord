@@ -126,7 +126,7 @@ func (h *LoginHandler) ServeHTTP(
 		return
 	}
 
-  if xsrfStored, err := sesh.GetValue(
+	if xsrfStored, err := sesh.GetValue(
 		xsrfKey,
 	); err != nil && err != NoSuchSessionValueError {
 		_ = log.Err(
