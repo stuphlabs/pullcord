@@ -257,7 +257,7 @@ func (h *LoginHandler) ServeHTTP(
 		)
 	}
 
-	_, err = fmt.Fprintf(
+	_, err := fmt.Fprintf(
 		w,
 		"<html><head><title>Pullcord Login</title></head><body>"+
 			"<form method=\"POST\" action=\"%s\"><fieldset>"+
