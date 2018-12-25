@@ -102,7 +102,7 @@ func (s *MinMonitorredService) UnmarshalJSON(data []byte) error {
 		a := t.Always.Unmarshalled
 		switch a := a.(type) {
 		case trigger.Triggerrer:
-			s.OnDown = a
+			s.Always = a
 		default:
 			return config.UnexpectedResourceType
 		}
