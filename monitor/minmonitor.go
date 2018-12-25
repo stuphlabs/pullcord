@@ -470,6 +470,7 @@ func (s *MinMonitorredService) ServeHTTP(
 	}
 
 	if s.Always != nil {
+		_ = log.Debug("minmonitor running always trigger")
 		err = s.Always.Trigger()
 		if err != nil {
 			_ = log.Warning(
@@ -508,10 +509,13 @@ func (s *MinMonitorredService) ServeHTTP(
 			}
 			return
 		}
+		_ = log.Debug("minmonitor completed always trigger")
 	}
 
 	if up {
+		_ = log.Debug("minmonitor determined service is up")
 		if s.OnUp != nil {
+			_ = log.Debug("minmonitor running up trigger")
 			err = s.OnUp.Trigger()
 			if err != nil {
 				_ = log.Warning(
@@ -553,6 +557,7 @@ func (s *MinMonitorredService) ServeHTTP(
 				}
 				return
 			}
+			_ = log.Debug("minmonitor completed up trigger")
 		}
 
 		_ = log.Debug("minmonitor filter passthru")
@@ -560,7 +565,9 @@ func (s *MinMonitorredService) ServeHTTP(
 		return
 	}
 
+	_ = log.Debug("minmonitor determined service is down")
 	if s.OnDown != nil {
+		_ = log.Debug("minmonitor running down trigger")
 		err = s.OnDown.Trigger()
 		if err != nil {
 			_ = log.Warning(
@@ -598,6 +605,7 @@ func (s *MinMonitorredService) ServeHTTP(
 			}
 			return
 		}
+		_ = log.Debug("minmonitor completed down trigger")
 	}
 
 	_ = log.Info(

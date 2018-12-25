@@ -69,8 +69,16 @@ func (s *HTTPServer) Serve() error {
 		fmt.Sprintf("Starting server at %s...", s.Listener.Addr()),
 	)
 	if e != nil {
-		e = http.Serve(s.Listener, s.Handler)
+		_ = log.Debug("Unable to log")
+		return e
 	}
+
+	e = http.Serve(s.Listener, s.Handler)
+	if e != nil {
+		_ = log.Debug("Server exited with an error")
+		return e
+	}
+	e = log.Notice("Server stopped")
 	return e
 }
 
