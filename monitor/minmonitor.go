@@ -560,8 +560,9 @@ func (s *MinMonitorredService) ServeHTTP(
 			_ = log.Debug("minmonitor completed up trigger")
 		}
 
-		_ = log.Debug("minmonitor filter passthru")
+		_ = log.Debug("minmonitor filter passthru starting")
 		s.passthru.ServeHTTP(w, req)
+		_ = log.Debug("minmonitor filter passthru completed")
 		return
 	}
 
