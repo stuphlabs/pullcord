@@ -129,14 +129,14 @@ func NewMinMonitorredService(
 	always trigger.Triggerrer,
 ) (service *MinMonitorredService, err error) {
 	result := MinMonitorredService{
-		URL: u,
+		URL:         u,
 		GracePeriod: gracePeriod,
-		OnDown: onDown,
-		OnUp: onUp,
-		Always: always,
+		OnDown:      onDown,
+		OnUp:        onUp,
+		Always:      always,
 		lastChecked: time.Time{},
-		up: false,
-		passthru: nil,
+		up:          false,
+		passthru:    nil,
 	}
 
 	return &result, nil
