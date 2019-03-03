@@ -129,14 +129,14 @@ func NewMinMonitorredService(
 	always trigger.Triggerrer,
 ) (service *MinMonitorredService, err error) {
 	result := MinMonitorredService{
-		u,
-		gracePeriod,
-		onDown,
-		onUp,
-		always,
-		time.Time{},
-		false,
-		proxy.NewPassthruFilter(u),
+		URL: u,
+		GracePeriod: gracePeriod,
+		OnDown: onDown,
+		OnUp: onUp,
+		Always: always,
+		lastChecked: time.Time{},
+		up: false,
+		passthru: nil,
 	}
 
 	return &result, nil
@@ -558,6 +558,16 @@ func (s *MinMonitorredService) ServeHTTP(
 				return
 			}
 			_ = log.Debug("minmonitor completed up trigger")
+		}
+
+		if s.passthru == nil {
+			_ = log.Debug(
+				"minmonitor filter passthru creation started",
+			)
+			s.passthru = proxy.NewPassthruFilter(s.URL)
+			_ = log.Debug(
+				"minmonitor filter passthru creation completed",
+			)
 		}
 
 		_ = log.Debug("minmonitor filter passthru starting")
