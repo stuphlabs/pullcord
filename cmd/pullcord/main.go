@@ -190,6 +190,11 @@ func main() {
 			fmt.Println("Failed", r)
 		}
 	}()
+
+	err = log.Info("Starting server...")
+	if err != nil {
+		panic(err)
+	}
 	err = server.Serve()
 	if err != nil {
 		_ = log.Debug(err)
@@ -199,5 +204,9 @@ func main() {
 		)
 		_ = log.Crit(critErr)
 		panic(critErr)
+	}
+	err = log.Info("Server stopped")
+	if err != nil {
+		panic(err)
 	}
 }

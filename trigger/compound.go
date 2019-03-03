@@ -61,10 +61,12 @@ func (c *CompoundTrigger) UnmarshalJSON(input []byte) error {
 // Trigger executes all the child triggers, exiting immediately after a single
 // failure.
 func (c *CompoundTrigger) Trigger() error {
+	_ = log.Debug("compound trigger initiated")
 	for _, t := range c.Triggers {
 		if err := t.Trigger(); err != nil {
 			return err
 		}
 	}
+	_ = log.Debug("compound trigger completed")
 	return nil
 }

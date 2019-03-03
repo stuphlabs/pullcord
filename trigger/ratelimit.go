@@ -95,8 +95,10 @@ func NewRateLimitTrigger(
 // the guarded trigger will not be called.
 func (r *RateLimitTrigger) Trigger() error {
 	now := time.Now()
+	_ = log.Debug("rate limit trigger initiated")
 
 	if r.previousTriggers != nil {
+		_ = log.Debug("determine if rate limit has been exceeded")
 		for len(
 			r.previousTriggers,
 		) > 0 && now.After(r.previousTriggers[0].Add(r.Period)) {
@@ -104,13 +106,16 @@ func (r *RateLimitTrigger) Trigger() error {
 		}
 
 		if uint(len(r.previousTriggers)) >= r.MaxAllowed {
+			_ = log.Debug("rate limit has been exceeded")
 			return RateLimitExceededError
 		}
 	} else {
+		_ = log.Debug("first rate limited trigger")
 		r.previousTriggers = make([]time.Time, r.MaxAllowed)
 	}
 
 	r.previousTriggers = append(r.previousTriggers, now)
 
+	_ = log.Debug("rate limit not exceeded, cascading the trigger")
 	return r.GuardedTrigger.Trigger()
 }

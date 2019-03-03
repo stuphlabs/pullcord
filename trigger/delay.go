@@ -94,7 +94,9 @@ func delaytrigger(
 			}
 
 			tmr.Reset(dla)
+			_ = log.Debug("delaytrigger has been reset")
 		case <-tmr.C:
+			_ = log.Debug("delaytrigger has expired")
 			if err := tr.Trigger(); err != nil {
 				_ = log.Err(
 					fmt.Sprintf(
@@ -114,14 +116,18 @@ func delaytrigger(
 // after any particular call, but subsequent calls may extend that time out
 // further (possibly indefinitely).
 func (d *DelayTrigger) Trigger() error {
+	_ = log.Debug("delaytrigger initiated")
 	if d.c == nil {
+		_ = log.Debug("creating delay timer")
 		fc := make(chan interface{})
 		d.c = fc
 
 		go delaytrigger(d.DelayedTrigger, d.Delay, fc)
 	} else {
+		_ = log.Debug("resetting delay timer")
 		d.c <- nil
 	}
 
+	_ = log.Debug("delaytrigger completed")
 	return nil
 }

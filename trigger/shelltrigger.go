@@ -57,12 +57,20 @@ func (s *ShellTriggerrer) Trigger() (err error) {
 	_ = log.Debug("shelltrigger running trigger")
 	cmd := exec.Command(s.Command, s.Args...)
 	var stdout bytes.Buffer
+	var stderr bytes.Buffer
 	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
 	err = cmd.Run()
 	_ = log.Debug(
 		fmt.Sprintf(
 			"shelltrigger command wrote to stdout: %s",
 			stdout.String(),
+		),
+	)
+	_ = log.Debug(
+		fmt.Sprintf(
+			"shelltrigger command wrote to stderr: %s",
+			stderr.String(),
 		),
 	)
 	if err != nil {
