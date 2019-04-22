@@ -13,19 +13,19 @@ import (
 	configutil "github.com/stuphlabs/pullcord/config/util"
 )
 
-func TestBasicTlsListenerType(t *testing.T) {
-	b := new(BasicTlsListener)
+func TestBasicTLSListenerType(t *testing.T) {
+	b := new(BasicTLSListener)
 
 	assert.Implements(
 		t,
 		(*net.Listener)(nil),
 		b,
-		"A BasicTlsListener should be a net.Listener, but this"+
-			" BasicTlsListener has the wrong type.",
+		"A BasicTLSListener should be a net.Listener, but this"+
+			" BasicTLSListener has the wrong type.",
 	)
 }
 
-func TestBasicTlsListenerConfig(t *testing.T) {
+func TestBasicTLSListenerConfig(t *testing.T) {
 	test := configutil.ConfigTest{
 		ResourceType: "basictlslistener",
 		ListenerTest: true,
@@ -101,7 +101,7 @@ func TestBasicTlsListenerConfig(t *testing.T) {
 	test.Run(t)
 }
 
-func TestBasicTlsListenerBehavior(t *testing.T) {
+func TestBasicTLSListenerBehavior(t *testing.T) {
 	nl, e := net.Listen("tcp", "127.0.0.1:0")
 	assert.NoError(
 		t,
@@ -125,7 +125,7 @@ func TestBasicTlsListenerBehavior(t *testing.T) {
 		Target: nl,
 	}
 
-	l := &BasicTlsListener{
+	l := &BasicTLSListener{
 		Listener:   bel,
 		CertGetter: &TestCertificateGetter{Cert: tlsCert},
 	}
@@ -165,7 +165,7 @@ func TestBasicTlsListenerBehavior(t *testing.T) {
 
 	go func(
 		t *testing.T,
-		l *BasicTlsListener,
+		l *BasicTLSListener,
 		bel *BufferedEavesdropListener,
 		expected string,
 		done chan<- interface{},
