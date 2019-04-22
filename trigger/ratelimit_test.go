@@ -20,7 +20,7 @@ func TestRateLimit(t *testing.T) {
 
 	err = rlt.Trigger()
 	assert.Error(t, err)
-	assert.Equal(t, RateLimitExceededError, err)
+	assert.Equal(t, ErrRateLimitExceeded, err)
 	assert.Equal(t, 1, cth.count)
 
 	time.Sleep(time.Second)
