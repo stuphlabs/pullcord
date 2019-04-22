@@ -53,7 +53,7 @@ func TestRegisterResourceType(t *testing.T) {
 					e,
 					"RegisterResourceType should not"+
 						" return an error when a new valid"+
-						" type is registerred for the first"+
+						" type is registered for the first"+
 						" time.",
 				)
 			},
@@ -67,7 +67,7 @@ func TestRegisterResourceType(t *testing.T) {
 					e,
 					"RegisterResourceType should not"+
 						" return an error when a new valid"+
-						" type is registerred for the first"+
+						" type is registered for the first"+
 						" time.",
 				)
 			},
@@ -625,7 +625,7 @@ func TestServerFromReader(t *testing.T) {
 					}
 				}
 			}`,
-			reason: "non-existant Resource specified as an" +
+			reason: "non-existent Resource specified as an" +
 				" upstream for a Pipeline",
 		},
 		{

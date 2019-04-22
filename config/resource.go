@@ -91,7 +91,7 @@ func (rsc *Resource) UnmarshalJSON(input []byte) error {
 	newFunc, present := typeRegistry[newRscDef.Type]
 	if !present {
 		return fmt.Errorf(
-			"The specified resource type is not a registerred"+
+			"The specified resource type is not a registered"+
 				" resource type: %s",
 			newRscDef.Type,
 		)

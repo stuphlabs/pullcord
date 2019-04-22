@@ -362,7 +362,7 @@ func (s *MinMonitorredService) Status() (up bool, err error) {
 		fmt.Sprintf(
 			"minmonitor is skipping the reprobe as the current"+
 				" time is still within the grace period of the"+
-				" last successfull probe of: \"%s\"",
+				" last successful probe of: \"%s\"",
 			s.URL.String(),
 		),
 	)

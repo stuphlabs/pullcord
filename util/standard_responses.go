@@ -13,7 +13,7 @@ import (
 // StandardResponse implements a net/http.Handler that gives a canned version of
 // the appropriate response for some HTTP code. For example, rather than going
 // to the trouble of creating another net/http.Handler to deal with a request
-// for a non-existant page, you could instead cast the literal integer 404 as a
+// for a non-existent page, you could instead cast the literal integer 404 as a
 // StandardResponse and the appropriate action will be taken (so long as the
 // canned response this implementation provides will suffice).
 type StandardResponse int
@@ -72,7 +72,7 @@ var responseTitle = map[StandardResponse]string{
 var responseText = map[StandardResponse]string{
 	Forbidden:           "You are not authorized to make this request.",
 	NotFound:            "The requested page was not found.",
-	InternalServerError: "An internal server error occured.",
+	InternalServerError: "An internal server error occurred.",
 	NotImplemented: "The requested behavior has not yet been" +
 		" implemented.",
 }

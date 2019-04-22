@@ -18,7 +18,7 @@ func RegisterResourceType(
 	_, present := typeRegistry[typeName]
 	if present || typeName == ReferenceResourceTypeName {
 		return fmt.Errorf(
-			"More than one resource type has registerred the same"+
+			"More than one resource type has registered the same"+
 				" name: %s",
 			typeName,
 		)
