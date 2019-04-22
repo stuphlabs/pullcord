@@ -14,8 +14,8 @@ import (
 	"github.com/stuphlabs/pullcord/util"
 )
 
-// XsrfTokenLength is the length of XSRF token strings.
-const XsrfTokenLength = 64
+// XSRFTokenLength is the length of XSRF token strings.
+const XSRFTokenLength = 64
 
 const msgInvalidCredentials = "Invalid Credentials"
 
@@ -219,16 +219,16 @@ func (h *LoginHandler) ServeHTTP(
 		return
 	}
 
-	rawXsrfToken := make([]byte, XsrfTokenLength)
+	rawXSRFToken := make([]byte, XSRFTokenLength)
 	if rsize, err := rand.Read(
-		rawXsrfToken[:],
-	); err != nil || rsize != XsrfTokenLength {
+		rawXSRFToken[:],
+	); err != nil || rsize != XSRFTokenLength {
 		_ = log.Err(
 			fmt.Sprintf(
 				"login handler error during xsrf generation:"+
 					" len expected: %d, actual: %d,"+
 					" err: %#v",
-				XsrfTokenLength,
+				XSRFTokenLength,
 				rsize,
 				err,
 			),
@@ -236,9 +236,9 @@ func (h *LoginHandler) ServeHTTP(
 		util.InternalServerError.ServeHTTP(w, request)
 		return
 	}
-	nextXsrfToken := hex.EncodeToString(rawXsrfToken)
+	nextXSRFToken := hex.EncodeToString(rawXSRFToken)
 
-	if err := sesh.SetValue(xsrfKey, nextXsrfToken); err != nil {
+	if err := sesh.SetValue(xsrfKey, nextXSRFToken); err != nil {
 		_ = log.Err(
 			fmt.Sprintf(
 				"login handler error during xsrf set: %#v",
@@ -274,7 +274,7 @@ func (h *LoginHandler) ServeHTTP(
 		usernameKey,
 		passwordKey,
 		xsrfKey,
-		nextXsrfToken,
+		nextXSRFToken,
 	)
 	if err != nil {
 		_ = log.Error(
