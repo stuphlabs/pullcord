@@ -15,6 +15,7 @@ GO := ${DOCKER} \
 	-v $${PWD}/:/go/src/${ROOTPKG}/ \
 	-w /go/src/${ROOTPKG}/ \
 	-u `id -u` \
+	-e XDG_CACHE_HOME='/tmp/.cache' \
 	_DOCKER_GOLANG_IMG_ \
 	_GO_CMD_
 ],[
