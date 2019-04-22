@@ -610,7 +610,7 @@ func (th *counterTriggerrer) Trigger() error {
 		return errors.New("this trigger always errors")
 	}
 
-	th.count += 1
+	th.count++
 	return nil
 }
 

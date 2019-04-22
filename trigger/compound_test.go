@@ -15,7 +15,7 @@ type counterTriggerrer struct {
 
 func (th *counterTriggerrer) Trigger() error {
 	if th.count >= 0 {
-		th.count += 1
+		th.count++
 		return nil
 	}
 
