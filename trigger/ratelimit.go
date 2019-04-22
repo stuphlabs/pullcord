@@ -14,7 +14,7 @@ import (
 // RateLimitExceededError indicates that the trigger has been called more than
 // the allowed number of times within the specified duration, and so the
 // guarded trigger will not be called.
-var RateLimitExceededError = errors.New("Rate limit exceeded for trigger.")
+var RateLimitExceededError = errors.New("Rate limit exceeded for trigger")
 
 // RateLimitTrigger is a Triggerrer that will prevent a guarded trigger
 // from being called more than a specified number of times over a specified

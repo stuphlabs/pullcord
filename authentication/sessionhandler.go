@@ -10,7 +10,7 @@ import (
 // event that a given key requested from a Session using its GetValue function
 // is not present in the session.
 const NoSuchSessionValueError = errors.New(
-	"The session does not have a the requested value.",
+	"The session does not have a the requested value",
 )
 
 // Session is an abstract interface that allows session-level data to not only
