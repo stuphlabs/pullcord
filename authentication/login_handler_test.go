@@ -19,7 +19,7 @@ import (
 	"golang.org/x/net/html"
 )
 
-func getXsrfToken(n *html.Node, xsrfName string) (string, error) {
+func getXSRFToken(n *html.Node, xsrfName string) (string, error) {
 	if n.Type == html.ElementNode && n.Data == "input" {
 		correctType := false
 		correctName := false
@@ -59,7 +59,7 @@ func getXsrfToken(n *html.Node, xsrfName string) (string, error) {
 	}
 
 	for c := n.FirstChild; c != nil; c = c.NextSibling {
-		if s, e := getXsrfToken(c, xsrfName); e != nil || s != "" {
+		if s, e := getXSRFToken(c, xsrfName); e != nil || s != "" {
 			return s, e
 		}
 	}
@@ -137,7 +137,7 @@ func TestInitialLoginPage(t *testing.T) {
 	assert.NotEmpty(t, response.Header["Set-Cookie"])
 }
 
-func TestNoXsrfLoginPage(t *testing.T) {
+func TestNoXSRFLoginPage(t *testing.T) {
 	/* setup */
 	testUser := "testUser"
 	testPassword := "P@ssword1"
@@ -222,7 +222,7 @@ func TestNoXsrfLoginPage(t *testing.T) {
 	)
 }
 
-func TestBadXsrfLoginPage(t *testing.T) {
+func TestBadXSRFLoginPage(t *testing.T) {
 	/* setup */
 	testUser := "testUser"
 	testPassword := "P@ssword1"
@@ -366,7 +366,7 @@ func TestNoUsernameLoginPage(t *testing.T) {
 	assert.NoError(t, err)
 	htmlRoot, err := html.Parse(bytes.NewReader(content1))
 	assert.NoError(t, err)
-	xsrfToken, err := getXsrfToken(htmlRoot, "xsrf-"+handler.Identifier)
+	xsrfToken, err := getXSRFToken(htmlRoot, "xsrf-"+handler.Identifier)
 	assert.NoError(t, err)
 	postdata2 := url.Values{}
 	postdata2.Add("xsrf-"+handler.Identifier, xsrfToken)
@@ -459,7 +459,7 @@ func TestNoPasswordLoginPage(t *testing.T) {
 	assert.NoError(t, err)
 	htmlRoot, err := html.Parse(bytes.NewReader(content1))
 	assert.NoError(t, err)
-	xsrfToken, err := getXsrfToken(htmlRoot, "xsrf-"+handler.Identifier)
+	xsrfToken, err := getXSRFToken(htmlRoot, "xsrf-"+handler.Identifier)
 	assert.NoError(t, err)
 	postdata2 := url.Values{}
 	postdata2.Add("xsrf-"+handler.Identifier, xsrfToken)
@@ -553,7 +553,7 @@ func TestUsernameArrayLoginPage(t *testing.T) {
 	assert.NoError(t, err)
 	htmlRoot, err := html.Parse(bytes.NewReader(content1))
 	assert.NoError(t, err)
-	xsrfToken, err := getXsrfToken(htmlRoot, "xsrf-"+handler.Identifier)
+	xsrfToken, err := getXSRFToken(htmlRoot, "xsrf-"+handler.Identifier)
 	assert.NoError(t, err)
 
 	postdata2 := url.Values{}
@@ -651,7 +651,7 @@ func TestBadUsernameLoginPage(t *testing.T) {
 	assert.NoError(t, err)
 	htmlRoot, err := html.Parse(bytes.NewReader(content1))
 	assert.NoError(t, err)
-	xsrfToken, err := getXsrfToken(htmlRoot, "xsrf-"+handler.Identifier)
+	xsrfToken, err := getXSRFToken(htmlRoot, "xsrf-"+handler.Identifier)
 	assert.NoError(t, err)
 
 	postdata2 := url.Values{}
@@ -748,7 +748,7 @@ func TestBadPasswordLoginPage(t *testing.T) {
 	assert.NoError(t, err)
 	htmlRoot, err := html.Parse(bytes.NewReader(content1))
 	assert.NoError(t, err)
-	xsrfToken, err := getXsrfToken(htmlRoot, "xsrf-"+handler.Identifier)
+	xsrfToken, err := getXSRFToken(htmlRoot, "xsrf-"+handler.Identifier)
 	assert.NoError(t, err)
 
 	postdata2 := url.Values{}
@@ -845,7 +845,7 @@ func TestGoodLoginPage(t *testing.T) {
 	assert.NoError(t, err)
 	htmlRoot, err := html.Parse(bytes.NewReader(content1))
 	assert.NoError(t, err)
-	xsrfToken, err := getXsrfToken(htmlRoot, "xsrf-"+handler.Identifier)
+	xsrfToken, err := getXSRFToken(htmlRoot, "xsrf-"+handler.Identifier)
 	assert.NoError(t, err)
 
 	postdata2 := url.Values{}
@@ -942,7 +942,7 @@ func TestPassthruLoginPage(t *testing.T) {
 	assert.NoError(t, err)
 	htmlRoot, err := html.Parse(bytes.NewReader(content1))
 	assert.NoError(t, err)
-	xsrfToken, err := getXsrfToken(htmlRoot, "xsrf-"+handler.Identifier)
+	xsrfToken, err := getXSRFToken(htmlRoot, "xsrf-"+handler.Identifier)
 	assert.NoError(t, err)
 
 	postdata2 := url.Values{}

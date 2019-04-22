@@ -12,20 +12,20 @@ import (
 	"github.com/stuphlabs/pullcord/config"
 )
 
-// TlsCertificateGetter provides a mechanism by which the assignment of the
+// TLSCertificateGetter provides a mechanism by which the assignment of the
 // crypto/tls.Config.GetCertificate method can be abstracted independently from
 // other aspects of the creation of the net.Listener returned from a call to
 // crypto/tls.NewListener.
-type TlsCertificateGetter interface {
+type TLSCertificateGetter interface {
 	GetCertificate(*tls.ClientHelloInfo) (*tls.Certificate, error)
 }
 
-// BasicTlsListener combines the certificate retrieval process abstracted by a
-// TlsCertificateGetter with a supplied net.Listener to give a simple
+// BasicTLSListener combines the certificate retrieval process abstracted by a
+// TLSCertificateGetter with a supplied net.Listener to give a simple
 // configurable wrapper around a call to crypto/tls.NewListener.
-type BasicTlsListener struct {
+type BasicTLSListener struct {
 	Listener       net.Listener
-	CertGetter     TlsCertificateGetter
+	CertGetter     TLSCertificateGetter
 	actualListener net.Listener
 }
 
@@ -33,7 +33,7 @@ func init() {
 	e := config.RegisterResourceType(
 		"basictlslistener",
 		func() json.Unmarshaler {
-			return new(BasicTlsListener)
+			return new(BasicTLSListener)
 		},
 	)
 
@@ -43,7 +43,7 @@ func init() {
 }
 
 // UnmarshalJSON implements encoding/json.Unmarshaler.
-func (b *BasicTlsListener) UnmarshalJSON(d []byte) error {
+func (b *BasicTLSListener) UnmarshalJSON(d []byte) error {
 	var t struct {
 		Listener   config.Resource
 		CertGetter config.Resource
@@ -66,11 +66,11 @@ func (b *BasicTlsListener) UnmarshalJSON(d []byte) error {
 		return config.UnexpectedResourceType
 	}
 
-	b.CertGetter, ok = t.CertGetter.Unmarshalled.(TlsCertificateGetter)
+	b.CertGetter, ok = t.CertGetter.Unmarshalled.(TLSCertificateGetter)
 	if !ok {
 		_ = log.Debug(
 			fmt.Sprintf(
-				"Resource is not a TlsCertificateGetter: %#v",
+				"Resource is not a TLSCertificateGetter: %#v",
 				t.CertGetter.Unmarshalled,
 			),
 		)
@@ -82,7 +82,7 @@ func (b *BasicTlsListener) UnmarshalJSON(d []byte) error {
 	return nil
 }
 
-func (b *BasicTlsListener) assureActualListenerCreated() {
+func (b *BasicTLSListener) assureActualListenerCreated() {
 	if b.actualListener == nil {
 		b.actualListener = tls.NewListener(
 			b.Listener,
@@ -94,19 +94,19 @@ func (b *BasicTlsListener) assureActualListenerCreated() {
 }
 
 // Accept implements net.Listener.
-func (b *BasicTlsListener) Accept() (net.Conn, error) {
+func (b *BasicTLSListener) Accept() (net.Conn, error) {
 	b.assureActualListenerCreated()
 	return b.actualListener.Accept()
 }
 
 // Close implements net.Listener.
-func (b *BasicTlsListener) Close() error {
+func (b *BasicTLSListener) Close() error {
 	b.assureActualListenerCreated()
 	return b.actualListener.Close()
 }
 
 // Addr implements net.Listener.
-func (b *BasicTlsListener) Addr() net.Addr {
+func (b *BasicTLSListener) Addr() net.Addr {
 	b.assureActualListenerCreated()
 	return b.actualListener.Addr()
 }
