@@ -4,7 +4,6 @@ Pullcord
 [![Build Status](https://travis-ci.org/stuphlabs/pullcord.svg?branch=master)](https://travis-ci.org/stuphlabs/pullcord)
 [![Coverage](https://coveralls.io/repos/github/stuphlabs/pullcord/badge.svg?branch=master)](https://coveralls.io/github/stuphlabs/pullcord?branch=master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/stuphlabs/pullcord)](https://goreportcard.com/report/github.com/stuphlabs/pullcord)
-[![Active Dev](https://badge.waffle.io/stuphlabs/pullcord.svg?columns=Ready,In%20Progress,In%20Review)](https://waffle.io/stuphlabs/pullcord)
 [![Godoc](https://godoc.org/github.com/stuphlabs/pullcord?status.svg)](http://godoc.org/github.com/stuphlabs/pullcord)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/982/badge)](https://bestpractices.coreinfrastructure.org/projects/982)
 
